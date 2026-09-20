@@ -42,15 +42,25 @@ The data files are not in this repository (see [Data](#data) for how to get
 them). Place them under `OTP/` as described in [OTP/README.md](OTP/README.md),
 then:
 
+Run these from the repository root.
+
 ```powershell
 # Build the graph
-docker run --rm -v "E:\EgyptTransportationPlanner\OTP:/var/opentripplanner" `
+docker run --rm -v "${PWD}\OTP:/var/opentripplanner" `
   opentripplanner/opentripplanner:latest --build --save
 
 # Serve it on http://localhost:8080
 docker run -it --rm -p 8080:8080 `
-  -v "E:\EgyptTransportationPlanner\OTP:/var/opentripplanner" `
+  -v "${PWD}\OTP:/var/opentripplanner" `
   opentripplanner/opentripplanner:latest --load --serve
+```
+
+On macOS or Linux:
+
+```bash
+docker run --rm -v "$(pwd)/OTP:/var/opentripplanner"   opentripplanner/opentripplanner:latest --build --save
+
+docker run -it --rm -p 8080:8080   -v "$(pwd)/OTP:/var/opentripplanner"   opentripplanner/opentripplanner:latest --load --serve
 ```
 
 The image supplies the `/var/opentripplanner` path itself. Do **not** pass a

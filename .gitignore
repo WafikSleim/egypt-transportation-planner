@@ -10,11 +10,15 @@
 #     terms over the whole tree. See OTP/README.md for where to fetch them.
 # ---------------------------------------------------------------------------
 *.osm.pbf
-*.zip
 graph.obj
+OTP/road.zip
+OTP/metro.zip
 OTP/data/
-OTP/*.json
 otp-*.jar
+
+# OTP's own config files (build-config.json, router-config.json,
+# otp-config.json) are NOT ignored on purpose â they are small, they are how
+# the graph build is configured, and they belong in version control.
 
 # Python
 __pycache__/
