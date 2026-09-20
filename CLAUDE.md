@@ -26,8 +26,9 @@ locally, over both the metro and the microbus network. Verified end to end —
 Helwan to Shubra El-Kheima routes as M1 + interchange + M2, and Giza to New
 Cairo as three microbus legs. The graph holds 1,012 routes and 3,105 stops.
 
-The only code in the repo is `scripts/fix_gtfs_calendar.py`; no application
-code exists yet. Next is the backend API.
+The backend API exists too, as of 2026-09-20: FastAPI in `api/`, in front of
+OTP, verified against the live graph. See [api/README.md](api/README.md). Next
+is the Flutter client.
 
 Repository: `https://github.com/WafikSleim/egypt-transportation-planner`
 (public, AGPL-3.0). Working directory: `E:\EgyptTransportationPlanner\OTP`
@@ -168,16 +169,25 @@ What is in the road feed (fieldwork 2019–2023, updated October 2025):
 
 - ~995–1011 routes, ~2,983 stops, ~1,769 directional variants
 - ~35,000 km of network
-- By operator: 511 microbus (14-seater), 229 CTA bus, 104 CTA minibus,
-  70 tomnaya, 49 cooperative, 18 Mwasalat Misr, 9 box, 2 Green Bus
+- By operator, counted from `routes.txt` on 2026-09-20 (1011 total):
+  511 microbus `P_O_14`, 244 CTA bus `CTA`, 107 CTA minibus `CTA_M`,
+  70 tomnaya `P_B_8`, 49 cooperative `COOP`, 18 Mwasalat Misr `MM`,
+  9 box `BOX`, 2 Green Bus `GRN`, 1 LTRA minibus `LTRA_M`.
+  (Earlier notes here said 229 CTA and 104 CTA minibus; those were low.)
 - Coverage: Greater Cairo only — lat 29.745–30.352, lon 30.846–31.775.
   Nothing outside this box.
 
 ### Three traps in this feed
 
-1. **Every route is `route_type = 3`**, including the metro. Modes are
-   distinguished by `agency_id`, not by `route_type`. Any code that branches on
-   `route_type` will classify the metro as a bus.
+1. **Every route in the road feed is `route_type = 3`.** All 1011 of them,
+   including 14-seater microbuses, because GTFS has no code for paratransit.
+   Modes must be distinguished by `agency_id`. `api/modes.py` does this.
+
+   Checked on 2026-09-20: this file previously claimed the metro was also
+   `route_type = 3`. It is not — the metro is a separate feed and types itself
+   correctly as `route_type = 1`, which OTP reports as `SUBWAY`. The road feed
+   declares a `NAT` (National Authority for Tunnels) agency but has zero routes
+   under it, which is the likely source of the confusion.
 2. **Metro line 3 is missing.** The feed has M1 and M2 only. M3 has to be added
    by hand, and it is one of the busiest lines in the city.
 3. **Hundreds of microbus routes share the short name "Microbus"** and have no
@@ -194,6 +204,11 @@ Checked on 2026-09-20: **all 2,997 road stops already have an Arabic name**, via
 1,572 distinct names (many stops share a name across directions). Coverage is
 100%, not zero. Note the feed uses the `field_value` form of `translations.txt`
 — rows match on the original string, not on `record_id`.
+
+OTP serves these itself: send `Accept-Language: ar` and stop names come back
+in Arabic. The API exposes that as `?lang=ar`, so no translation layer was
+needed. Note OTP's stop search is prefix-based and searches in the requested
+language.
 
 What actually still needs Arabic is the **metro feed's 108 stops**, which has no
 `translations.txt` at all. That is a small enough set to do by hand; the planned
@@ -244,7 +259,7 @@ violates OSM's own licence and the community treats it seriously.
 1. Arabic names for the metro feed's 108 stops (the road feed is already
    covered by its `translations.txt`; wire that through to the API/UI)
 2. Add metro line 3
-3. Backend API in front of OTP
+3. ~~Backend API in front of OTP~~ — done, `api/`
 4. Flutter client — search, map, itinerary. No auth, no accounts, no settings
 5. Contribution pipeline: a `submissions` table separate from the main data,
    promoted to confirmed after two independent confirmations, with a

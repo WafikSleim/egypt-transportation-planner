@@ -34,7 +34,9 @@ search had been returning walk-only, even across 25 km:
    [`scripts/fix_gtfs_calendar.py`](scripts/fix_gtfs_calendar.py) shifts both to
    `20260101–20271231`, preserving each service's weekly and seasonal pattern.
 
-The rebuilt graph loads 1,012 routes and 3,105 stops across both feeds.
+The rebuilt graph loads 1,012 routes and 3,105 stops across both feeds, and a
+[backend API](api/README.md) now sits in front of it — trip planning, stop
+search, Arabic, and the licence attribution served rather than hardcoded.
 
 Nothing beyond that has been built. The client, the API and the database below
 are design intent, not code that exists.
@@ -44,7 +46,7 @@ are design intent, not code that exists.
 | Layer | Choice | Why |
 | --- | --- | --- |
 | Client | Flutter | Thin — UI and API calls only, no routing logic |
-| API | Backend service in front of OpenTripPlanner | Keeps OTP internals out of the client |
+| API | FastAPI in front of OpenTripPlanner (`api/`) | Keeps OTP internals out of the client |
 | Database | Postgres + PostGIS | Stops, routes, and later user contributions |
 | NL parsing | An LLM layer for colloquial Arabic queries | A front end over real data — **never** a source of route data |
 | Maps | Self-hosted Protomaps tiles + Photon geocoding | Per-request billing on commercial APIs would sink a free app |
@@ -143,7 +145,7 @@ Two more things worth knowing before building on this feed:
 2. Arabic names for the metro feed's 108 stops, and surfacing the road feed's
    existing `translations.txt` through the API and UI
 3. Add metro line 3 by hand
-4. Backend API in front of OTP
+4. ~~Backend API in front of OTP~~ — done, see [api/](api/README.md)
 5. Flutter client — search, map, itinerary. No auth, no accounts, no settings
 6. Contribution pipeline: a `submissions` table kept separate from the main
    data, promoted to confirmed after two independent confirmations, with a

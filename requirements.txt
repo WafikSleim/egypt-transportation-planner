@@ -1,0 +1,10 @@
+# Backend API. Install into a venv:
+#   python -m venv .venv
+#   .venv/Scripts/python -m pip install -r requirements.txt   # Windows
+#   .venv/bin/python -m pip install -r requirements.txt       # macOS / Linux
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+httpx==0.28.1
+# zoneinfo has no bundled tz database on Windows; without this, Africa/Cairo
+# lookups fail at runtime rather than at import.
+tzdata
