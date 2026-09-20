@@ -28,6 +28,35 @@ All optional, all environment variables.
 | `TIMEZONE` | `Africa/Cairo` | Departure times are rendered in this zone |
 | `CORS_ORIGINS` | `*` | Lock down before this is public |
 
+## Tests
+
+```bash
+.venv/Scripts/python -m pip install -r requirements-dev.txt
+.venv/Scripts/python -m pytest
+```
+
+**No Docker, no graph, no network.** OTP is stubbed with an
+`httpx.MockTransport` injected at `api.otp.TRANSPORT`, and the app is driven
+over an in-process ASGI transport. The whole suite runs in under a second, so
+there is no excuse not to run it.
+
+The stub sits at the transport layer rather than replacing `otp.query`, so the
+tests still exercise the real request path — the `Accept-Language` header,
+HTTP status handling, and GraphQL error unwrapping. Those are the parts most
+likely to break quietly.
+
+Covered: mode mapping by operator, paratransit display names, walk-only
+detection, empty-result explanations, fare suppression (including that fare
+fields are never *requested*), coordinate validation, language forwarding,
+`/stops` truncation and the two-hop route lookup, and degradation when OTP is
+down. `tests/test_fix_gtfs_calendar.py` covers the calendar script separately,
+including the two bugs that already shipped: the non-idempotent re-run, and
+`--daily` quietly quadrupling metro service.
+
+The suite has been mutation-checked — disabling mode mapping, walk-only
+detection, the microbus display name, `Accept-Language`, or the calendar
+overlap guard each makes it fail.
+
 ## Endpoints
 
 | Endpoint | Purpose |

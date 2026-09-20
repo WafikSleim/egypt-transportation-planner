@@ -1,0 +1,6 @@
+# Development and test dependencies.
+#   .venv/Scripts/python -m pip install -r requirements-dev.txt   # Windows
+#   .venv/bin/python -m pip install -r requirements-dev.txt       # macOS / Linux
+-r requirements.txt
+pytest==9.1.1
+pytest-asyncio==1.4.0

@@ -62,10 +62,23 @@ def _why_empty(frm: dict, to: dict, time: str) -> str:
     outside = [n for n, p in (("origin", frm), ("destination", to))
                if not _in_coverage(p)]
     if outside:
+        # Swapped lat/lon is the most common way to get here, and inside Egypt
+        # it cannot be rejected outright: Cairo reversed (31.24, 30.04) is a
+        # point in the Mediterranean, valid-looking and firmly inside the
+        # country's bounding box. If swapping would land in coverage, say so.
+        swapped = [
+            n for n, p in (("origin", frm), ("destination", to))
+            if n in outside and _in_coverage({"lat": p["lon"], "lon": p["lat"]})
+        ]
+        hint = (
+            f" The {' and '.join(swapped)} would be inside coverage with lat "
+            "and lon the other way round — the expected order is 'lat,lon'."
+            if swapped else ""
+        )
         return (
             f"No data for the {' and '.join(outside)}. Coverage is Greater "
             "Cairo only (roughly lat 29.75-30.35, lon 30.85-31.78); no other "
-            "part of Egypt has transit data yet."
+            f"part of Egypt has transit data yet.{hint}"
         )
     try:
         hour = int(time.split(":")[0])

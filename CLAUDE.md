@@ -31,8 +31,16 @@ Helwan to Shubra El-Kheima routes as M1 + interchange + M2, and Giza to New
 Cairo as three microbus legs. The graph holds 1,012 routes and 3,105 stops.
 
 The backend API exists too, as of 2026-09-20: FastAPI in `api/`, in front of
-OTP, verified against the live graph. See [api/README.md](api/README.md). Next
-is the Flutter client.
+OTP, verified against the live graph. See [api/README.md](api/README.md).
+
+Tests live in `tests/` and run with `pytest` — no Docker, no graph, no network,
+under a second. Run them before and after any change to `api/` or
+`scripts/fix_gtfs_calendar.py`. OTP is stubbed at the transport layer via
+`api.otp.TRANSPORT`, which exists purely so tests can drive the real request
+path; leave it `None` in production.
+
+Next: the app design prototype and user stories, then deployment to Oracle
+Cloud. The full plan, including hosting, is in the approved project plan.
 
 Repository: `https://github.com/WafikSleim/egypt-transportation-planner`
 (public, AGPL-3.0). Working directory: `E:\EgyptTransportationPlanner\OTP`

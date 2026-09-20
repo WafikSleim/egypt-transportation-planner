@@ -13,6 +13,13 @@ import httpx
 from . import config
 
 
+# Injection point for tests. Left None in production, so the client behaves
+# exactly as it otherwise would; a test sets it to an httpx.MockTransport and
+# gets the real query() path -- headers, status handling, GraphQL error
+# unwrapping -- instead of a stubbed-out query() that skips all of it.
+TRANSPORT: httpx.BaseTransport | None = None
+
+
 class OTPUnavailable(RuntimeError):
     """OTP could not be reached, or did not answer in time."""
 
@@ -108,7 +115,9 @@ async def query(
     payload = {"query": graphql, "variables": variables or {}}
     headers = {"Content-Type": "application/json", "Accept-Language": lang}
     try:
-        async with httpx.AsyncClient(timeout=config.OTP_TIMEOUT) as client:
+        async with httpx.AsyncClient(
+            timeout=config.OTP_TIMEOUT, transport=TRANSPORT
+        ) as client:
             response = await client.post(
                 config.OTP_URL, json=payload, headers=headers
             )
