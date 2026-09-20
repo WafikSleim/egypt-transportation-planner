@@ -12,7 +12,11 @@ licence requirement, not a preference (see Licensing below).
 Target stack:
 
 - Flutter client (thin — UI and API calls only, no routing logic)
-- Backend API in front of OpenTripPlanner
+- Backend API in front of OpenTripPlanner: **Python + FastAPI**, in `api/`.
+  Settled on 2026-09-20 after weighing Dart (one language with the Flutter
+  client) and TypeScript. Python won on two grounds: the LLM layer below is
+  Python territory, and FastAPI emits the OpenAPI schema the Flutter client
+  generates its models from. Treat this as decided — do not propose porting it
 - Postgres + PostGIS for stops, routes, and later user contributions
 - An LLM layer for parsing colloquial Arabic queries — NOT a source of route
   data, only a natural-language front end over the real data
