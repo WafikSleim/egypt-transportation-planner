@@ -14,20 +14,27 @@ licence requirement of the underlying data, not a preference — see
 
 ## Status
 
-**Pre-alpha. Nothing is usable yet.**
+**Pre-alpha, but routing works.** As of 2026-09-20 OpenTripPlanner returns real
+multi-leg transit itineraries over both the metro and the microbus network —
+Helwan to Shubra El-Kheima via M1/M2 with an interchange, Giza to New Cairo as
+three microbus legs. There is no app around it yet.
 
-The current milestone is getting OpenTripPlanner to return a real transit
-itinerary from the Transport for Cairo GTFS feeds. Every search came back
-walk-only, even across 25 km — OTP was falling back to walking rather than using
-transit at all.
+Getting there took fixing two separate faults, one hiding the other. Every
+search had been returning walk-only, even across 25 km:
 
-The cause looks to be expired service calendars. Both feeds shipped windows that
-have since lapsed — road `20250101–20251231`, metro `20241028–20251027` — and OTP
-honours `calendar.txt` literally: no service on today's date means no transit,
-with no error to say so. [`scripts/fix_gtfs_calendar.py`](scripts/fix_gtfs_calendar.py)
-shifts both onto `20260101–20271231` while preserving each service's weekly and
-seasonal pattern. **The graph still needs rebuilding to confirm the fix end to
-end.**
+1. **OTP was never loading the feeds.** It identifies GTFS by matching the
+   *filename* against `(?i)gtfs`. `road.zip` and `metro.zip` don't contain
+   "gtfs", so OTP ignored both and built a street-only graph — silently, with no
+   error. Querying the running server for `feeds` and `routes` returned zero of
+   each, which is what gave it away. The feeds are now `gtfs-road.zip` and
+   `gtfs-metro.zip`.
+2. **Both calendars had expired** — road `20250101–20251231`, metro
+   `20241028–20251027`. OTP honours `calendar.txt` literally, so this would have
+   produced walk-only results too, the moment the feeds started loading.
+   [`scripts/fix_gtfs_calendar.py`](scripts/fix_gtfs_calendar.py) shifts both to
+   `20260101–20271231`, preserving each service's weekly and seasonal pattern.
+
+The rebuilt graph loads 1,012 routes and 3,105 stops across both feeds.
 
 Nothing beyond that has been built. The client, the API and the database below
 are design intent, not code that exists.

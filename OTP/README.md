@@ -10,8 +10,8 @@ Expected layout once populated:
 ```
 OTP/
 ├── egypt-260919.osm.pbf     OSM extract for Egypt (Geofabrik)
-├── road.zip                 TfC GTFS — road transport
-├── metro.zip                TfC GTFS — Cairo Metro
+├── gtfs-road.zip            TfC GTFS — road transport
+├── gtfs-metro.zip           TfC GTFS — Cairo Metro
 └── graph.obj                built by OTP, not fetched
 ```
 
@@ -27,13 +27,18 @@ stale the graph's base map is.
 - road transport: `https://data.transportforcairo.com/documents/88/download`
 - metro: `https://data.transportforcairo.com/documents/87/download`
 
-Each download is a zip *containing* the real GTFS zip, so unpack twice. Save the
-inner zips here as `road.zip` and `metro.zip`.
+Each download is a zip *containing* the real GTFS zip, so unpack twice.
 
-One packaging detail matters: `routes.txt` and the other `.txt` files must sit at
-the **root** of the zip, not nested inside a folder. A nested layout is the most
-common reason a feed silently fails to enter the graph — check the build log for
-`road.zip` if no transit appears.
+**The filename must contain "gtfs".** OTP decides what a file is by matching its
+name against `(?i)gtfs`; anything else is ignored without so much as a warning.
+A feed saved as `road.zip` is invisible to OTP, and the symptom is not an error
+but walk-only itineraries. Save the inner zips as `gtfs-road.zip` and
+`gtfs-metro.zip`, and keep "gtfs" in the name of any feed added later.
+
+Two more packaging details: `routes.txt` and the other `.txt` files must sit at
+the **root** of the zip, not nested in a folder; and the build log should list
+every feed with a bus glyph, like `- 🚌 gtfs-road.zip`. If a feed is not in
+that list, OTP did not load it.
 
 ## Scripts
 
@@ -41,14 +46,16 @@ common reason a feed silently fails to enter the graph — check the build log f
 date range. Both feeds shipped expired: road `20250101–20251231`, metro
 `20241028–20251027`. OTP honours `calendar.txt` literally, finds nothing running
 today, and silently returns a walk-only itinerary instead of reporting an error.
+(Note this was a second, hidden fault — the feeds were not loading at all until
+they were renamed to match OTP's `gtfs` pattern, above.)
 
 ```bash
-python ../scripts/fix_gtfs_calendar.py road.zip metro.zip --dry-run   # inspect
-python ../scripts/fix_gtfs_calendar.py road.zip metro.zip             # apply
+python ../scripts/fix_gtfs_calendar.py gtfs-road.zip gtfs-metro.zip --dry-run
+python ../scripts/fix_gtfs_calendar.py gtfs-road.zip gtfs-metro.zip
 ```
 
 It reads and writes the zips directly — no unzip/re-zip round trip — and keeps
-the originals as `road.zip.bak` / `metro.zip.bak`. Those backups are the read
+the originals as `gtfs-road.zip.bak` / `gtfs-metro.zip.bak`. Those backups are the read
 source on every run, so re-running does not compound earlier rewrites.
 
 Each service keeps its weekly pattern and seasonal window rather than being

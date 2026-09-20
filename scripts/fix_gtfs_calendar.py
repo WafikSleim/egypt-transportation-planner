@@ -33,9 +33,12 @@ invariant that catches the doubling described above. Note that it permits
 overlap where overlap already existed - the road feed's Ground_Daily and
 Ground_Weekdays do overlap, and that is correct, since different routes use each.
 
+Note the feeds are named gtfs-*.zip: OTP only recognises a file as GTFS if the
+filename matches (?i)gtfs, and ignores it silently otherwise.
+
 Usage:
-    python fix_gtfs_calendar.py ../OTP/road.zip ../OTP/metro.zip
-    python fix_gtfs_calendar.py ../OTP/road.zip --dry-run
+    python fix_gtfs_calendar.py ../OTP/gtfs-road.zip ../OTP/gtfs-metro.zip
+    python fix_gtfs_calendar.py ../OTP/gtfs-road.zip --dry-run
 """
 
 from __future__ import annotations

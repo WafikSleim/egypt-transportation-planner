@@ -21,9 +21,13 @@ Target stack:
 
 ## Current state
 
-We are at step one: get OTP to return a real transit itinerary locally. The
-only code in the repo is `scripts/fix_gtfs_calendar.py`; no application code
-exists yet.
+Step one is **done** as of 2026-09-20: OTP returns real transit itineraries
+locally, over both the metro and the microbus network. Verified end to end —
+Helwan to Shubra El-Kheima routes as M1 + interchange + M2, and Giza to New
+Cairo as three microbus legs. The graph holds 1,012 routes and 3,105 stops.
+
+The only code in the repo is `scripts/fix_gtfs_calendar.py`; no application
+code exists yet. Next is the backend API.
 
 Repository: `https://github.com/WafikSleim/egypt-transportation-planner`
 (public, AGPL-3.0). Working directory: `E:\EgyptTransportationPlanner\OTP`
@@ -33,11 +37,11 @@ Actually on disk today:
 ```
 OTP/
 ├── egypt-260919.osm.pbf     OSM extract for Egypt (Geofabrik), date-stamped
-├── road.zip                 TfC GTFS — road transport
-├── metro.zip                TfC GTFS — Cairo Metro
-├── road.zip.bak             pre-rewrite original, kept by fix_gtfs_calendar.py
-├── metro.zip.bak            pre-rewrite original
-└── graph.obj                built by OTP — STALE, predates the calendar fix
+├── gtfs-road.zip            TfC GTFS — road transport
+├── gtfs-metro.zip           TfC GTFS — Cairo Metro
+├── gtfs-road.zip.bak        pre-rewrite original, kept by fix_gtfs_calendar.py
+├── gtfs-metro.zip.bak       pre-rewrite original
+└── graph.obj                built by OTP
 ```
 
 The OSM filename carries its download date so it is obvious how stale the
@@ -67,31 +71,57 @@ docker run -it --rm -p 8080:8080 `
   opentripplanner/opentripplanner:latest --load --serve
 ```
 
-## Open problem
+## Solved: why every search returned walk-only
 
-Every search returns a walk-only itinerary, even for 25 km trips. OTP is not
-using transit at all.
+_Resolved 2026-09-20. Kept in full because both faults are easy to reintroduce._
 
-Leading hypothesis: expired calendars. OTP honours `calendar.txt` literally,
-finds no service running today, and silently falls back to walking rather than
-reporting an error.
+**Root cause: the feed filenames.** OTP only treats a file as GTFS if its
+*filename* matches the regex `(?i)gtfs`. `road.zip` and `metro.zip` do not
+contain the string "gtfs", so OTP silently ignored both, built a street-only
+graph, and every search fell back to walking. No error, no warning — the feeds
+just never appear in the build log.
 
-The calendars were read on 2026-09-20 and both were indeed expired — but **not**
-from the 2019–2023 fieldwork period, which is what this file used to claim. The
-actual windows were:
+Proven on 2026-09-20 by building the identical bytes under two names:
 
-- road: `20250101–20251231`
-- metro: `20241028–20251027`
+```
+road.zip       -> "Unable to build graph, no transit nor OSM data available."
+gtfs-road.zip  -> "- 🚌 gtfs-road.zip  /var/opentripplanner  5.5 MB"   loaded
+```
 
-This matters for the diagnostic. Setting the trip date to **2023** would show no
-transit either, and would wrongly clear the calendar as the cause. The date that
-discriminates is one inside those windows — **2025-06-15** sits in both.
+The running server confirmed it beforehand: a GraphQL query for `feeds` and
+`routes` returned **zero of each**, so the GTFS had never been in the graph at
+all. That is the check to run first next time — it distinguishes "transit is
+loaded but not being used" from "transit was never loaded", and those have
+completely different causes:
 
-Fix: `scripts/fix_gtfs_calendar.py`, written 2026-09-20 and already applied to
-both feeds, which now run `20260101–20271231`. It reads and writes the zips
-directly, so there is no unzip/re-zip step. Originals are kept as
-`road.zip.bak` / `metro.zip.bak`, and those backups are the read source on every
-run, so re-running is idempotent rather than compounding.
+```bash
+curl -s -X POST http://localhost:8080/otp/gtfs/v1   -H "Content-Type: application/json"   -d '{"query":"{ feeds { feedId } routes { gtfsId } }"}'
+```
+
+So the feeds are now named `gtfs-road.zip` and `gtfs-metro.zip`. Keep "gtfs" in
+the filename of any feed added later — Port Said, Alexandria, anything. The
+alternative is a `build-config.json` with a custom
+`storage.localFileNamePatterns.gtfs`, which is more configuration for no gain.
+
+Note the `.bak` files are correctly ignored by OTP as an unknown type, so
+keeping them in the data directory is safe.
+
+### The expired calendars were real, but were not this bug
+
+Both feeds also shipped calendars that had lapsed — road `20250101–20251231`,
+metro `20241028–20251027`. That would have caused walk-only results too, as soon
+as the feeds loaded at all. It was a genuine second fault hiding behind the
+first, which is why fixing it changed nothing visible.
+
+This also means the old diagnostic in this file was wrong twice over: setting
+the trip date to **2023** shows no transit either, since no service ran in 2023.
+A date inside the original windows — **2025-06-15** — is what discriminates, and
+only once the feeds actually load.
+
+`scripts/fix_gtfs_calendar.py` shifts both feeds to `20260101–20271231`. It reads
+and writes the zips directly, so there is no unzip/re-zip step. Originals are
+kept as `gtfs-road.zip.bak` / `gtfs-metro.zip.bak`, and those backups are the
+read source on every run, so re-running is idempotent rather than compounding.
 
 It does **not** flatten every service to daily, which was the original plan here
 and is a trap. The metro's four services partition the year — `winter_std` and
@@ -104,22 +134,21 @@ script verifies this by checking that every pair of service_ids shares days
 after the rewrite exactly as it did before, and refuses to write if not.
 `--daily` still exists and is correctly rejected on the metro feed.
 
-Note also that neither feed originally had a `calendar_dates.txt` at all, so the
-old instruction to "clear" it was a no-op. The metro now has one, created by the
+Neither feed originally had a `calendar_dates.txt` at all, so the old
+instruction to "clear" it was a no-op. The metro now has one, created by the
 rewrite.
 
-**The graph must be rebuilt** — `graph.obj` predates all of this. Delete it
-first, or OTP loads the stale graph and none of it takes effect.
+**Rebuild after any feed change.** Delete `graph.obj` first, or OTP loads the
+stale graph and nothing takes effect.
 
-Other candidates, in order:
+### Still worth watching
 
-1. ~~The GTFS never entered the graph.~~ **Ruled out** on 2026-09-20: both zips
-   have `routes.txt` and the rest at the root, not nested in a folder. The
-   script re-checks this and errors out if a feed is ever packaged that way.
-2. Stops not linked to the street network. Look for `unlinked` or `isolated`
+1. Stops not linked to the street network. Look for `unlinked` or `isolated`
    warnings in the build log.
-3. Out of memory during the build — raise Docker Desktop's memory to 8 GB, or
+2. Out of memory during the build — raise Docker Desktop's memory to 8 GB, or
    pass `-e JAVA_TOOL_OPTIONS="-Xmx8G"`.
+3. The OSM extract is all of Egypt (170 MB) while the feeds cover Greater Cairo
+   only. Clipping it to the feed bounding box would make every rebuild faster.
 
 ## The data
 

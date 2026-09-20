@@ -11,14 +11,13 @@
 # ---------------------------------------------------------------------------
 *.osm.pbf
 graph.obj
-OTP/road.zip
-OTP/metro.zip
+OTP/*.zip
 OTP/*.bak
 OTP/data/
 otp-*.jar
 
 # OTP's own config files (build-config.json, router-config.json,
-# otp-config.json) are NOT ignored on purpose â they are small, they are how
+# otp-config.json) are NOT ignored on purpose — they are small, they are how
 # the graph build is configured, and they belong in version control.
 
 # Python
