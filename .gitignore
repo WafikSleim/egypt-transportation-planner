@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# Transit data and OTP build artifacts
+#
+# None of this belongs in git. Two reasons:
+#
+#  1. Size. graph.obj is ~490 MB and the OSM extract ~170 MB; GitHub rejects
+#     any single file over 100 MB.
+#  2. Licence. The TfC GTFS feeds are CC BY-NC 4.0. Committing them would make
+#     this repository a redistribution of non-commercial data and pull those
+#     terms over the whole tree. See OTP/README.md for where to fetch them.
+# ---------------------------------------------------------------------------
+*.osm.pbf
+*.zip
+graph.obj
+OTP/data/
+OTP/*.json
+otp-*.jar
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+*.iml
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

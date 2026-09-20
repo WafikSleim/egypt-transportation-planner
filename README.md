@@ -1,0 +1,151 @@
+# Egypt Transportation Planner
+
+A non-profit trip planner for public transport in Egypt, built around the
+**paratransit network** — microbuses, tomnayas and minibuses — that Google Maps
+and most routing tools ignore entirely.
+
+Roughly 500 microbus routes and 70 tomnaya routes carry a large share of Greater
+Cairo's daily trips, and none of them are searchable anywhere. That is the gap
+this project exists to close.
+
+**Not for profit.** No ads, no subscriptions, no in-app purchases. This is a
+licence requirement of the underlying data, not a preference — see
+[Licensing](#licensing).
+
+## Status
+
+**Pre-alpha. Nothing is usable yet.**
+
+The current milestone is getting OpenTripPlanner to return a real transit
+itinerary from the Transport for Cairo GTFS feeds. At present every search comes
+back walk-only, even across 25 km — OTP is falling back to walking rather than
+using transit at all. Diagnosis is in progress; the leading hypothesis is that
+the feeds carry service dates from TfC's 2019–2023 fieldwork period, so OTP
+finds no service running today.
+
+Nothing beyond the OTP graph has been built. The client, the API and the
+database below are design intent, not code that exists.
+
+## Planned architecture
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Client | Flutter | Thin — UI and API calls only, no routing logic |
+| API | Backend service in front of OpenTripPlanner | Keeps OTP internals out of the client |
+| Database | Postgres + PostGIS | Stops, routes, and later user contributions |
+| NL parsing | An LLM layer for colloquial Arabic queries | A front end over real data — **never** a source of route data |
+| Maps | Self-hosted Protomaps tiles + Photon geocoding | Per-request billing on commercial APIs would sink a free app |
+
+## Running OpenTripPlanner locally
+
+The data files are not in this repository (see [Data](#data) for how to get
+them). Place them under `OTP/` as described in [OTP/README.md](OTP/README.md),
+then:
+
+```powershell
+# Build the graph
+docker run --rm -v "E:\EgyptTransportationPlanner\OTP:/var/opentripplanner" `
+  opentripplanner/opentripplanner:latest --build --save
+
+# Serve it on http://localhost:8080
+docker run -it --rm -p 8080:8080 `
+  -v "E:\EgyptTransportationPlanner\OTP:/var/opentripplanner" `
+  opentripplanner/opentripplanner:latest --load --serve
+```
+
+The image supplies the `/var/opentripplanner` path itself. Do **not** pass a
+directory argument, or OTP fails with `You must supply a single directory name`.
+
+If the build runs out of memory, raise Docker Desktop's memory allocation to
+8 GB or pass `-e JAVA_TOOL_OPTIONS="-Xmx8G"`.
+
+## Data
+
+Source: Transport for Cairo's GeoNode portal at `data.transportforcairo.com`.
+**Not** the TfC GitHub repository — that one is stuck on a 2018 feed with only
+217 routes.
+
+| Document | URL | Contents |
+| --- | --- | --- |
+| 88 | `https://data.transportforcairo.com/documents/88/download` | Road transport |
+| 87 | `https://data.transportforcairo.com/documents/87/download` | Cairo Metro |
+
+Each download is a zip containing the real GTFS zip. Unpack twice.
+
+The road feed (fieldwork 2019–2023, updated October 2025) covers Greater Cairo
+only — lat 29.745–30.352, lon 30.846–31.775, nothing outside that box. It has
+roughly 995–1011 routes, 2,983 stops and 1,769 directional variants across some
+35,000 km of network: 511 microbus, 229 CTA bus, 104 CTA minibus, 70 tomnaya,
+49 cooperative, 18 Mwasalat Misr, 9 box and 2 Green Bus.
+
+### Three traps in this feed
+
+1. **Every route is `route_type = 3`**, the metro included. Modes are
+   distinguished by `agency_id`, not `route_type`. Any code branching on
+   `route_type` will classify the metro as a bus.
+2. **Metro line 3 is missing.** The feed has M1 and M2 only. M3 — one of the
+   busiest lines in the city — has to be added by hand.
+3. **Hundreds of microbus routes share the short name "Microbus"** with no route
+   numbers, because real Cairo microbuses have none. The UI cannot show a line
+   number for these; identify them by origin and destination instead.
+
+Two more things worth knowing before building on this feed:
+
+- **Stop names are Latin transliteration only** ("Arabella Square", "3rd
+  Settlement Station"). Zero Arabic. All ~2,983 stops need Arabic names before
+  this is usable in Egypt. The plan is to match stops by coordinate against OSM
+  `name:ar` via Overpass, then translate the remainder by hand.
+- **Fares in the feed are from 2018 and are worthless.** Never display them.
+  Fares belong in a separate table we maintain; show "unavailable" rather than a
+  wrong number.
+
+### Other Egyptian data
+
+- **Port Said** — [`youssefelzedy/PortSaid-Transit-GTFS`](https://github.com/youssefelzedy/PortSaid-Transit-GTFS).
+  13 routes, 678 stops, created December 2025. The freshest Egyptian transit
+  data that exists, and it already has Arabic names. CC BY-NC 4.0, with its own
+  `ATTRIBUTION.md` that must be credited separately.
+- **Alexandria** — exists via Digital Transport for Africa on GitLab, but the
+  licence is unconfirmed; TUMI's mirror lists it as "License not specified".
+  Not to be used until the repository's LICENSE file is checked.
+- **Everywhere else in Egypt** — no transit data exists at all. Not Tanta, not
+  Mansoura, not Aswan, not the railways. That has to be collected.
+
+## Roadmap
+
+1. Get OTP returning a real transit itinerary *(current)*
+2. Arabic stop names via OSM `name:ar` matching
+3. Add metro line 3 by hand
+4. Backend API in front of OTP
+5. Flutter client — search, map, itinerary. No auth, no accounts, no settings
+6. Contribution pipeline: a `submissions` table kept separate from the main
+   data, promoted to confirmed after two independent confirmations, with a
+   `trust_score` per contributor and a `confidence` level surfaced in the UI
+
+The two-source schema — `source` and `confidence` on every route — gets built
+from day one, while only TfC data exists. Retrofitting it later means rewriting
+half the database.
+
+## Licensing
+
+**The TfC data is CC BY-NC 4.0 — non-commercial use only.** Any revenue,
+advertising included, breaks the licence. TfC's FAQ also requires that software
+built on the data be shared under CC BY-NC or another open licence, with
+attribution. This repository is AGPL-3.0 accordingly; see [LICENSE](LICENSE).
+
+The following attribution is required verbatim, and ships in the app:
+
+> This data was created by Transport for Cairo 'TfC' with DigitalMatatus and
+> Takween for Integrated Community Development, under the Digital Cairo Project
+> supported by ExpoLive 2020.
+
+**OpenStreetMap data is ODbL**, which permits commercial use but carries
+share-alike.
+
+**ODbL and CC BY-NC cannot be merged.** Combined into a single derived database,
+ODbL demands the result be ODbL (commercial allowed) while CC BY-NC forbids
+commercial use. The two must stay separate layers and must never be merged into
+one dataset. OTP loads OSM and GTFS independently, so this holds naturally.
+
+**Never upload TfC data into OpenStreetMap.** Putting CC BY-NC data into OSM
+violates OSM's own licence, and the community treats it seriously.
