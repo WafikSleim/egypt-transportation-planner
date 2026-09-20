@@ -24,17 +24,30 @@ Target stack:
 We are at step one: get OTP to return a real transit itinerary locally.
 Nothing else is built yet.
 
-Working directory: `E:\EgyptTransportationPlanner\OTP`
+Repository: `https://github.com/WafikSleim/egypt-transportation-planner`
+(public, AGPL-3.0). Working directory: `E:\EgyptTransportationPlanner\OTP`
+
+Actually on disk today:
 
 ```
 OTP/
-├── egypt-latest.osm.pbf     OSM extract for Egypt (Geofabrik)
+├── egypt-260919.osm.pbf     OSM extract for Egypt (Geofabrik), date-stamped
 ├── road.zip                 TfC GTFS — road transport
 ├── metro.zip                TfC GTFS — Cairo Metro
-├── data/road/               unzipped road feed
-├── data/metro/              unzipped metro feed
 └── graph.obj                built by OTP
 ```
+
+The OSM filename carries its download date so it is obvious how stale the
+graph's base map is — do not assume `egypt-latest.osm.pbf`.
+
+`data/road/` and `data/metro/` do **not** exist yet. They are where the feeds
+get unzipped for the calendar rewrite below; OTP itself reads the zips
+directly and does not need them.
+
+None of the above is tracked in git. `graph.obj` (~490 MB) and the OSM extract
+(~170 MB) are over GitHub's 100 MB file limit, and the TfC feeds are CC BY-NC,
+so committing them would make the repo a redistribution of non-commercial data.
+`OTP/README.md` records where to re-fetch everything.
 
 OTP runs via Docker. The image expects the data mounted at
 `/var/opentripplanner` and supplies that path itself — do NOT pass a directory
@@ -63,10 +76,11 @@ today, and silently falls back to walking.
 Diagnostic that settles it: set the trip date in the OTP web UI to a date in
 2023. If transit appears, it is the calendar.
 
-Fix in progress: `fix_gtfs_calendar.py` rewrites `calendar.txt` so every
-service_id runs daily from 2026-01-01 to 2027-12-31, clears
-`calendar_dates.txt`, and updates `feed_info.txt`. After running it the folders
-must be re-zipped and the graph rebuilt (delete `graph.obj` first).
+Planned fix — `fix_gtfs_calendar.py` is **not written yet**. It should rewrite
+`calendar.txt` so every service_id runs daily from 2026-01-01 to 2027-12-31,
+clear `calendar_dates.txt`, and update `feed_info.txt`. After running it the
+folders must be re-zipped and the graph rebuilt (delete `graph.obj` first, or
+OTP loads the stale one instead of rebuilding).
 
 Other candidates, in order:
 
@@ -88,8 +102,9 @@ doc 88 → https://data.transportforcairo.com/documents/88/download   road trans
 doc 87 → https://data.transportforcairo.com/documents/87/download   metro
 ```
 
-Each download is a zip containing the real GTFS zip. Unpack twice.
-`fetch_tfc_gtfs.py` handles this and prints a report on the feed.
+Each download is a zip containing the real GTFS zip. Unpack twice. This is
+currently manual — `fetch_tfc_gtfs.py`, which would handle the double-unzip and
+print a report on the feed, is **not written yet**.
 
 What is in the road feed (fieldwork 2019–2023, updated October 2025):
 
