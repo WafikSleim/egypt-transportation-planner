@@ -13,6 +13,7 @@
 graph.obj
 OTP/road.zip
 OTP/metro.zip
+OTP/*.bak
 OTP/data/
 otp-*.jar
 

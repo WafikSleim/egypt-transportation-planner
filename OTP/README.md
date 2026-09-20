@@ -37,18 +37,26 @@ common reason a feed silently fails to enter the graph — check the build log f
 
 ## Scripts
 
-Two helpers are planned but **not yet written**:
+**`scripts/fix_gtfs_calendar.py`** — shifts a feed's calendar onto a current
+date range. Both feeds shipped expired: road `20250101–20251231`, metro
+`20241028–20251027`. OTP honours `calendar.txt` literally, finds nothing running
+today, and silently returns a walk-only itinerary instead of reporting an error.
 
-- `fetch_tfc_gtfs.py` — handle the double-unzip and print a report on the feed
-- `fix_gtfs_calendar.py` — rewrite `calendar.txt` so every `service_id` runs
-  daily over a current date range, clear `calendar_dates.txt`, and update
-  `feed_info.txt`
+```bash
+python ../scripts/fix_gtfs_calendar.py road.zip metro.zip --dry-run   # inspect
+python ../scripts/fix_gtfs_calendar.py road.zip metro.zip             # apply
+```
 
-The second one addresses the open routing problem: the TfC feeds carry service
-dates from the 2019–2023 fieldwork period, OTP honours `calendar.txt` literally,
-finds nothing running today, and silently falls back to a walk-only itinerary.
-Setting the trip date in the OTP web UI to a date in 2023 settles whether that is
-the cause — if transit appears, it is the calendar.
+It reads and writes the zips directly — no unzip/re-zip round trip — and keeps
+the originals as `road.zip.bak` / `metro.zip.bak`. Those backups are the read
+source on every run, so re-running does not compound earlier rewrites.
 
-After rewriting the calendar the folders must be re-zipped and the graph rebuilt.
-Delete `graph.obj` first; OTP will load a stale graph rather than rebuild it.
+Each service keeps its weekly pattern and seasonal window rather than being
+flattened to "runs daily"; the script explains why in its module docstring, and
+verifies it by checking that service overlap is unchanged after the rewrite.
+
+**Delete `graph.obj` before rebuilding.** OTP loads a stale graph rather than
+rebuilding, so skipping this makes the fix look like it did nothing.
+
+**`fetch_tfc_gtfs.py`** — still **not written**. It would handle the double-unzip
+and print a report on the feed. For now that is manual.

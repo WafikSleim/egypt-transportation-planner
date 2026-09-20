@@ -21,8 +21,9 @@ Target stack:
 
 ## Current state
 
-We are at step one: get OTP to return a real transit itinerary locally.
-Nothing else is built yet.
+We are at step one: get OTP to return a real transit itinerary locally. The
+only code in the repo is `scripts/fix_gtfs_calendar.py`; no application code
+exists yet.
 
 Repository: `https://github.com/WafikSleim/egypt-transportation-planner`
 (public, AGPL-3.0). Working directory: `E:\EgyptTransportationPlanner\OTP`
@@ -34,7 +35,9 @@ OTP/
 ├── egypt-260919.osm.pbf     OSM extract for Egypt (Geofabrik), date-stamped
 ├── road.zip                 TfC GTFS — road transport
 ├── metro.zip                TfC GTFS — Cairo Metro
-└── graph.obj                built by OTP
+├── road.zip.bak             pre-rewrite original, kept by fix_gtfs_calendar.py
+├── metro.zip.bak            pre-rewrite original
+└── graph.obj                built by OTP — STALE, predates the calendar fix
 ```
 
 The OSM filename carries its download date so it is obvious how stale the
@@ -69,24 +72,50 @@ docker run -it --rm -p 8080:8080 `
 Every search returns a walk-only itinerary, even for 25 km trips. OTP is not
 using transit at all.
 
-Leading hypothesis: the feeds carry service dates from TfC's fieldwork period
-(2019–2023). OTP honours `calendar.txt` literally, finds no service running
-today, and silently falls back to walking.
+Leading hypothesis: expired calendars. OTP honours `calendar.txt` literally,
+finds no service running today, and silently falls back to walking rather than
+reporting an error.
 
-Diagnostic that settles it: set the trip date in the OTP web UI to a date in
-2023. If transit appears, it is the calendar.
+The calendars were read on 2026-09-20 and both were indeed expired — but **not**
+from the 2019–2023 fieldwork period, which is what this file used to claim. The
+actual windows were:
 
-Planned fix — `fix_gtfs_calendar.py` is **not written yet**. It should rewrite
-`calendar.txt` so every service_id runs daily from 2026-01-01 to 2027-12-31,
-clear `calendar_dates.txt`, and update `feed_info.txt`. After running it the
-folders must be re-zipped and the graph rebuilt (delete `graph.obj` first, or
-OTP loads the stale one instead of rebuilding).
+- road: `20250101–20251231`
+- metro: `20241028–20251027`
+
+This matters for the diagnostic. Setting the trip date to **2023** would show no
+transit either, and would wrongly clear the calendar as the cause. The date that
+discriminates is one inside those windows — **2025-06-15** sits in both.
+
+Fix: `scripts/fix_gtfs_calendar.py`, written 2026-09-20 and already applied to
+both feeds, which now run `20260101–20271231`. It reads and writes the zips
+directly, so there is no unzip/re-zip step. Originals are kept as
+`road.zip.bak` / `metro.zip.bak`, and those backups are the read source on every
+run, so re-running is idempotent rather than compounding.
+
+It does **not** flatten every service to daily, which was the original plan here
+and is a trap. The metro's four services partition the year — `winter_std` and
+`summer_std` are both Mon–Thu+Sun and never collide only because their date
+ranges don't. Forcing them daily makes both active every weekday, and since the
+metro is frequency-based that surfaces as roughly halved headways: wrong, and
+plausible enough to miss. So each service keeps its weekly pattern and its
+seasonal window, with out-of-season days removed via `calendar_dates.txt`. The
+script verifies this by checking that every pair of service_ids shares days
+after the rewrite exactly as it did before, and refuses to write if not.
+`--daily` still exists and is correctly rejected on the metro feed.
+
+Note also that neither feed originally had a `calendar_dates.txt` at all, so the
+old instruction to "clear" it was a no-op. The metro now has one, created by the
+rewrite.
+
+**The graph must be rebuilt** — `graph.obj` predates all of this. Delete it
+first, or OTP loads the stale graph and none of it takes effect.
 
 Other candidates, in order:
 
-1. The GTFS never entered the graph. Check the build log for `road.zip`. The
-   zip must have `routes.txt` at its root, not nested inside a folder — this is
-   the most common packaging mistake.
+1. ~~The GTFS never entered the graph.~~ **Ruled out** on 2026-09-20: both zips
+   have `routes.txt` and the rest at the root, not nested in a folder. The
+   script re-checks this and errors out if a feed is ever packaged that way.
 2. Stops not linked to the street network. Look for `unlinked` or `isolated`
    warnings in the build log.
 3. Out of memory during the build — raise Docker Desktop's memory to 8 GB, or

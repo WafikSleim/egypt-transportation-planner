@@ -17,14 +17,20 @@ licence requirement of the underlying data, not a preference — see
 **Pre-alpha. Nothing is usable yet.**
 
 The current milestone is getting OpenTripPlanner to return a real transit
-itinerary from the Transport for Cairo GTFS feeds. At present every search comes
-back walk-only, even across 25 km — OTP is falling back to walking rather than
-using transit at all. Diagnosis is in progress; the leading hypothesis is that
-the feeds carry service dates from TfC's 2019–2023 fieldwork period, so OTP
-finds no service running today.
+itinerary from the Transport for Cairo GTFS feeds. Every search came back
+walk-only, even across 25 km — OTP was falling back to walking rather than using
+transit at all.
 
-Nothing beyond the OTP graph has been built. The client, the API and the
-database below are design intent, not code that exists.
+The cause looks to be expired service calendars. Both feeds shipped windows that
+have since lapsed — road `20250101–20251231`, metro `20241028–20251027` — and OTP
+honours `calendar.txt` literally: no service on today's date means no transit,
+with no error to say so. [`scripts/fix_gtfs_calendar.py`](scripts/fix_gtfs_calendar.py)
+shifts both onto `20260101–20271231` while preserving each service's weekly and
+seasonal pattern. **The graph still needs rebuilding to confirm the fix end to
+end.**
+
+Nothing beyond that has been built. The client, the API and the database below
+are design intent, not code that exists.
 
 ## Planned architecture
 
