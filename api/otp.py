@@ -60,6 +60,10 @@ query Plan($from: InputCoordinates!, $to: InputCoordinates!, $date: String!,
 }
 """
 
+# Deliberately without route lists. OTP's stops(name:) has no limit argument
+# and matches on prefix, so a broad query like "Al" returns 757 stops; asking
+# for each one's routes as well turns a 68 kB response into 2 MB. Stop search
+# is a typeahead, so that cost lands on every keystroke.
 STOPS_QUERY = """
 query Stops($name: String!) {
   stops(name: $name) {
@@ -67,7 +71,16 @@ query Stops($name: String!) {
     name
     lat
     lon
-    routes { gtfsId shortName longName agency { gtfsId name } }
+  }
+}
+"""
+
+# Second hop: routes for the handful of stops actually being returned.
+STOP_ROUTES_QUERY = """
+query StopRoutes($ids: [String]) {
+  stops(ids: $ids) {
+    gtfsId
+    routes { gtfsId agency { gtfsId } }
   }
 }
 """

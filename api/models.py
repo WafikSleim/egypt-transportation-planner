@@ -149,7 +149,16 @@ class StopSummary(BaseModel):
 
 class StopsResponse(BaseModel):
     query: str
-    count: int
+    count: int = Field(..., description="Stops returned, after `limit`.")
+    total_matches: int = Field(
+        0, description="Stops OTP matched before `limit` was applied. A broad "
+                       "prefix matches hundreds."
+    )
+    truncated: bool = Field(
+        False, description="True when `total_matches` exceeds `count`, so the "
+                           "client can prompt for a longer query rather than "
+                           "imply these are all the matches."
+    )
     stops: list[StopSummary]
     attribution: Attribution
 

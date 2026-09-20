@@ -73,8 +73,8 @@ def _why_empty(frm: dict, to: dict, time: str) -> str:
         hour = -1
     if hour >= 22 or hour < 5:
         return (
-            f"No service found around {time}. Most routes in the feed run "
-            "roughly 05:00-22:00, so late-night trips return nothing."
+            f"No service found around {time}. Late-night service is sparse or "
+            "absent across much of the network; try a daytime departure."
         )
     return (
         "No itinerary found. Both points are inside the covered area, so this "
@@ -149,6 +149,9 @@ def _route_info(raw_route: dict, mode: modes.Mode, frm: Place, to: Place) -> Rou
         # what the passenger gets.
         display = f"{mode.en}: {frm.name} → {to.name}"
 
+    # Both conditions, not just the operator: a route whose operator normally
+    # numbers its lines but which has no shortName has no badge to render.
+    # No route in either feed is currently in that state.
     return RouteInfo(
         id=raw_route.get("gtfsId") or "",
         short_name=short,
@@ -383,27 +386,48 @@ async def stops(
     an Arabic query string and `lang=en` a Latin one.
     """
     data = await _otp(otp.STOPS_QUERY, {"name": q}, lang)
-    found = data.get("stops") or []
+    found = (data.get("stops") or [])
+    total = len(found)
+    page = found[:limit]
+
+    # Routes are fetched only for the page being returned. Asking OTP for them
+    # up front costs 2 MB on a broad prefix; this costs a couple of kB.
+    routes_by_stop: dict[str, list[dict]] = {}
+    if page:
+        ids = [s.get("gtfsId") for s in page if s.get("gtfsId")]
+        extra = await _otp(otp.STOP_ROUTES_QUERY, {"ids": ids}, lang)
+        for s in extra.get("stops") or []:
+            if s and s.get("gtfsId"):
+                routes_by_stop[s["gtfsId"]] = s.get("routes") or []
 
     results = []
-    for s in found[:limit]:
+    for s in page:
+        stop_id = s.get("gtfsId") or ""
+        stop_routes = routes_by_stop.get(stop_id, [])
         mode_ids: list[str] = []
-        for r in s.get("routes") or []:
+        for r in stop_routes:
             agency = (r.get("agency") or {}).get("gtfsId")
-            m = modes.resolve(agency, "BUS")
-            if m.id not in mode_ids:
-                mode_ids.append(m.id)
+            # "BUS" is only a fallback for a route whose agency we cannot
+            # place; agency_id is what actually decides the mode.
+            resolved = modes.resolve(agency, "BUS")
+            if resolved.id not in mode_ids:
+                mode_ids.append(resolved.id)
         results.append(
             StopSummary(
-                id=s.get("gtfsId") or "",
+                id=stop_id,
                 name=s.get("name") or "",
                 lat=s.get("lat") or 0.0,
                 lon=s.get("lon") or 0.0,
                 modes=mode_ids,
-                route_count=len(s.get("routes") or []),
+                route_count=len(stop_routes),
             )
         )
 
     return StopsResponse(
-        query=q, count=len(results), stops=results, attribution=ATTRIBUTION
+        query=q,
+        count=len(results),
+        total_matches=total,
+        truncated=total > len(results),
+        stops=results,
+        attribution=ATTRIBUTION,
     )

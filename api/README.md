@@ -81,6 +81,17 @@ Note that OTP's stop search is **prefix-based, not substring**, and it searches
 in the requested language: `q=المنيب&lang=ar` matches, `q=منيب` does not, and
 `q=Moneeb&lang=ar` returns nothing.
 
+`/stops` responses carry `total_matches` and `truncated` alongside `count`,
+because OTP has no limit argument and a broad prefix matches a lot: `q=Al` hits
+757 stops. The client should prompt for a longer query rather than imply the
+first 20 are everything.
+
+That also shapes how the search is implemented: names are fetched first, the
+page is cut to `limit`, and only then are routes fetched for those few stops.
+Asking OTP for every matching stop's routes up front costs 2 MB on `q=Al`
+against about 70 kB this way — and stop search is a typeahead, so that lands on
+every keystroke.
+
 ## Not here on purpose
 
 No auth, no accounts, no settings — the project brief rules them out. No
