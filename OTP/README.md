@@ -15,6 +15,24 @@ OTP/
 └── graph.obj                built by OTP, not fetched
 ```
 
+## Running docker on this machine
+
+Docker Desktop here installs per-user and puts nothing on `PATH`, so a bare
+`docker` in PowerShell fails with "The term 'docker' is not recognized" even
+while Docker Desktop is running. Use the full path, or add it to `PATH` once:
+
+```powershell
+$docker = "C:\Users\wafik\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe"
+& $docker ps
+```
+
+```powershell
+# permanent, for the current user
+[Environment]::SetEnvironmentVariable("PATH",
+  $env:PATH + ";C:\Users\wafik\AppData\Local\Programs\DockerDesktop\resources\bin",
+  "User")
+```
+
 ## Where the files come from
 
 **OSM extract** — download `egypt-latest.osm.pbf` from
