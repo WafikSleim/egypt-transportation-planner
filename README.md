@@ -107,10 +107,13 @@ roughly 995–1011 routes, 2,983 stops and 1,769 directional variants across som
 
 Two more things worth knowing before building on this feed:
 
-- **Stop names are Latin transliteration only** ("Arabella Square", "3rd
-  Settlement Station"). Zero Arabic. All ~2,983 stops need Arabic names before
-  this is usable in Egypt. The plan is to match stops by coordinate against OSM
-  `name:ar` via Overpass, then translate the remainder by hand.
+- **Stop names come with Arabic translations.** `stops.txt` is Latin
+  transliteration ("Arabella Square", "3rd Settlement Station"), but the road
+  feed's `translations.txt` carries 3,106 `language=ar` rows covering stops,
+  routes, trip headsigns and agencies — **all 2,997 road stops are covered**, via
+  1,572 distinct names. It uses the `field_value` form, matching on the original
+  string rather than `record_id`. The metro feed has no `translations.txt`, so
+  its 108 stops are the ones still needing Arabic.
 - **Fares in the feed are from 2018 and are worthless.** Never display them.
   Fares belong in a separate table we maintain; show "unavailable" rather than a
   wrong number.
@@ -130,7 +133,8 @@ Two more things worth knowing before building on this feed:
 ## Roadmap
 
 1. Get OTP returning a real transit itinerary *(current)*
-2. Arabic stop names via OSM `name:ar` matching
+2. Arabic names for the metro feed's 108 stops, and surfacing the road feed's
+   existing `translations.txt` through the API and UI
 3. Add metro line 3 by hand
 4. Backend API in front of OTP
 5. Flutter client — search, map, itinerary. No auth, no accounts, no settings

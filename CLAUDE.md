@@ -156,11 +156,19 @@ What is in the road feed (fieldwork 2019–2023, updated October 2025):
    cannot show a line number for these; identify them by origin and destination
    instead.
 
-Also: all stop names are Latin transliteration ("Arabella Square", "3rd
-Settlement Station"). Zero Arabic. Roughly 2,983 stops need Arabic names before
-this is usable in Egypt. Plan: match stops by coordinates against OSM `name:ar`
-via Overpass to cover most of them automatically, then translate the remainder
-by hand.
+Also: `stops.txt` is Latin transliteration ("Arabella Square", "3rd Settlement
+Station"), but the road feed ships a `translations.txt` that this file previously
+overlooked — 3,106 rows, every one of them `language=ar`, covering stop names,
+route names, trip headsigns and agency names.
+
+Checked on 2026-09-20: **all 2,997 road stops already have an Arabic name**, via
+1,572 distinct names (many stops share a name across directions). Coverage is
+100%, not zero. Note the feed uses the `field_value` form of `translations.txt`
+— rows match on the original string, not on `record_id`.
+
+What actually still needs Arabic is the **metro feed's 108 stops**, which has no
+`translations.txt` at all. That is a small enough set to do by hand; the planned
+Overpass matching against OSM `name:ar` is not needed for the road network.
 
 Fares in the feed are from the 2018 era and are worthless now. Never show them.
 Keep fares in a separate table that we maintain, and show "unavailable" rather
@@ -204,7 +212,8 @@ violates OSM's own licence and the community treats it seriously.
 
 ## Next steps once routing works
 
-1. Arabic stop names via OSM `name:ar` matching
+1. Arabic names for the metro feed's 108 stops (the road feed is already
+   covered by its `translations.txt`; wire that through to the API/UI)
 2. Add metro line 3
 3. Backend API in front of OTP
 4. Flutter client — search, map, itinerary. No auth, no accounts, no settings

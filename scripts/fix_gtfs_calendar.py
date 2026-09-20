@@ -198,7 +198,16 @@ def fix_feed(path, lo, hi, daily, force, dry_run):
     print("\n{}".format(path.name))
     print("-" * max(len(path.name), 62))
 
-    with zipfile.ZipFile(path) as zf:
+    # Once a backup exists it, not the feed, is the input. A second run has to
+    # start where the first one did: reading our own output back would see the
+    # already-widened window, conclude every service is year-round, lose the
+    # seasonal pattern, and compound feed_version on every pass.
+    backup = path.with_suffix(path.suffix + ".bak")
+    source = backup if backup.exists() else path
+    if source != path:
+        print("  reading original from  : {}".format(backup.name))
+
+    with zipfile.ZipFile(source) as zf:
         names = set(zf.namelist())
         if "calendar.txt" not in names and "calendar_dates.txt" not in names:
             print("  ERROR: feed has neither calendar.txt nor calendar_dates.txt")
@@ -335,18 +344,16 @@ def fix_feed(path, lo, hi, daily, force, dry_run):
         print("  --dry-run: nothing written")
         return True
 
-    backup = path.with_suffix(path.suffix + ".bak")
     if not backup.exists():
         backup.write_bytes(path.read_bytes())
         print("  backed up to           : {}".format(backup.name))
 
     # Write to a temp file in the same directory, then swap, so an interrupted
-    # run cannot leave a half-written feed where the real one was. The backup
-    # is the read source, so re-running is idempotent rather than compounding.
+    # run cannot leave a half-written feed where the real one was.
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".zip")
     os.close(fd)
     try:
-        with zipfile.ZipFile(backup) as zin, \
+        with zipfile.ZipFile(source) as zin, \
                 zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
             for item in zin.infolist():
                 if item.filename in replacements:
