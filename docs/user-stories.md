@@ -1,7 +1,9 @@
 # User stories
 
 The backlog for Egypt Transportation Planner, written after the routing core
-was proven working on 2026-09-21.
+was proven working on 2026-09-21. Extended the same day with the design round
+(P-15 to P-17, C-06), which added saved trips, notifications and honest
+background tracking to the v1 scope.
 
 These are deliberately specific to *this* product. A generic trip-planner
 backlog would not mention that hundreds of routes share the name "Microbus", or
@@ -19,7 +21,7 @@ properly. `must` = that phase is not finished without it. `should` = the phase
 is notably worse without it. `later` = genuinely deferrable.
 
 **The v1 release gate is therefore the Phase 2 and Phase 3 `must` stories**, and
-nothing else: fifteen stories, listed at the end.
+nothing else: eighteen stories, listed at the end.
 
 ---
 
@@ -163,14 +165,6 @@ Grounding: fares in the feed are from 2018. The API never requests fare fields.
 - Date and time pickers, defaulting to now in Africa/Cairo
 - "Arrive by" as well as "depart at" (`arrive_by`)
 
-**P-12 — Get back to a trip I do often** · should · Phase 3 · S
-
-> As a commuter, I want my recent trips one tap away, because I make the same
-> journey every day.
-
-- Recent searches stored on device — **no account, no server-side history**
-- Clearable
-
 **P-13 — Use the app on a cheap phone and a bad connection** · must · Phase 3 · M
 
 > As a passenger on a low-end Android with intermittent data, I want the app to
@@ -190,6 +184,62 @@ Grounding: this is a licence obligation, not a nicety.
 - TfC attribution shown verbatim, fetched from `GET /attribution`
 - Reachable from any screen showing transit data
 - Port Said credited separately when that feed lands
+
+### Keeping and repeating trips
+
+**P-15 — Get back to trips I take often** · must · Phase 3 · M
+
+> As a commuter, I want my recent and saved trips one tap away, because I make
+> the same journey twice a day and re-entering it every time is absurd.
+
+- Recent searches kept automatically; any trip can be starred and named
+  (`الشغل`, `البيت`)
+- A saved trip re-runs **for today** in one tap — it stores the endpoints, not
+  a stale itinerary
+- **Entirely on-device.** No account, no server-side history, and the UI says so
+- Clearable; uninstalling removes it
+
+Supersedes P-12, which covered only recents.
+
+### Notifications and tracking
+
+**P-16 — Be reminded, and asked once** · must · Phase 3 · L
+
+> As a passenger, I want the app to tell me when to leave and when to get off,
+> and to ask my opinion once without nagging.
+
+Three kinds, and no others:
+
+1. **Departure reminder** — fires with walking time accounted for
+   (`رحلتك بتبدأ بعد 20 دقيقة`). Snooze and cancel inline
+2. **Next-stop alert** — only while tracking is active (P-17)
+3. **One post-trip question** — kind, skippable, framed as helping other
+   passengers rather than rating us
+
+- **At most one unsolicited prompt per trip.** If ignored, never asked again for
+  that trip. Enforced in code and covered by a test, not left to judgement
+- Notifications are disableable from the notification itself
+- **No growth, re-engagement or marketing pushes.** Ever
+
+**P-17 — Be told the truth while my trip is tracked** · must · Phase 3 · L
+
+> As a passenger, I want to know exactly what the app is doing in the
+> background, what it costs me, and what it genuinely cannot know.
+
+Grounding: **there is no real-time vehicle data for Cairo paratransit, and none
+exists to buy or scrape.** The app cannot know where your microbus is. Most of
+what a tracking feature normally promises would therefore be a lie.
+
+- Tracking is **explicit and per-trip** (`تابع الرحلة`), never automatic
+- Before consent, the UI states: it uses GPS and **costs battery**; location is
+  computed **on the device and sent nowhere**; and we do **not** know where the
+  vehicle is
+- A persistent notification runs for the whole session; one tap stops it; it
+  stops itself on arrival
+- **Never display a vehicle arrival countdown.** Estimates are framed as derived
+  from the user's own position against a recorded route
+- When the user drifts off the recorded route, show a **low-confidence state**
+  (`مش متأكدين إنك في السكة الصح`) offering a re-search and a report — never a guess
 
 ---
 
@@ -232,6 +282,22 @@ Grounding: this is a licence obligation, not a nicety.
 - One tap to confirm or dispute
 - **Two independent confirmations promote a submission to confirmed**
 - A contributor cannot confirm their own submission
+
+**C-06 — Confirm accuracy from the post-trip prompt** · should · Phase 4 · M
+
+> As a passenger who just finished a trip, I want to answer one question about
+> whether it was accurate, because that is the least effort anyone could spend
+> on improving the data.
+
+This is the contribution pipeline with the friction removed — the same
+mechanism as C-01, reached by answering a notification instead of filling a form.
+
+- A yes/no answer becomes a **low-weight submission** in the same `submissions`
+  table, counting toward the two-confirmation threshold
+- **"مش متأكد" is offered as a real answer** and recorded as such. Forcing a
+  guess would poison the data this feeds
+- A "something changed" answer routes into the full C-01 flow
+- Weighted below a deliberate report, since it is answered in passing
 
 **C-05 — Build up standing** · later · Phase 4 · M
 
@@ -386,12 +452,12 @@ Grounding: Oracle can reclaim idle Always-Free instances.
 
 v1 is **Cairo-only, shipped early**, so the `must` column is the release gate.
 
-**The release gate — 15 stories:**
+**The release gate — 18 stories:**
 
 1. **Phase 2 — operability (5).** O-01, O-02, O-04, O-05, O-06. Unglamorous,
    and the reason the last two bugs cost days rather than minutes. Ship nothing
    publicly without them.
-2. **Phase 3 — the app (10).** P-01 to P-04, P-06 to P-08, P-10, P-13, P-14.
+2. **Phase 3 — the app (13).** P-01 to P-04, P-06 to P-08, P-10, P-13 to P-17.
    **P-03** (microbus without a number) and **P-06** (no data for your city) are
    the two that most separate this from a generic trip planner; both are easy to
    skip and each makes the app quietly wrong if skipped.

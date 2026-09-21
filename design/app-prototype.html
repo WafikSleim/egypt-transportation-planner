@@ -1,0 +1,811 @@
+<title>Masar Passenger App</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ---------------------------------------------------------------
+   PAGE CHROME — follows the viewer's theme.
+   The phone inside carries its own token set so both app themes
+   can be reviewed regardless of the host theme.
+   --------------------------------------------------------------- */
+:root{
+  --pg-bg:#EDEBE5; --pg-panel:#FFFFFF; --pg-ink:#1A1915; --pg-ink2:#6B6759;
+  --pg-line:#D8D4C8; --pg-accent:#4A3FA0; --pg-accent-soft:#EDEBFA;
+  --f-display:"Readex Pro",system-ui,sans-serif;
+  --f-ui:"IBM Plex Sans Arabic","Readex Pro",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --pg-bg:#100F0D; --pg-panel:#1A1917; --pg-ink:#EFEDE6; --pg-ink2:#928D7E;
+    --pg-line:#2B2A25; --pg-accent:#9A90F0; --pg-accent-soft:#221F3D;
+  }
+}
+:root[data-theme="dark"]{
+  --pg-bg:#100F0D; --pg-panel:#1A1917; --pg-ink:#EFEDE6; --pg-ink2:#928D7E;
+  --pg-line:#2B2A25; --pg-accent:#9A90F0; --pg-accent-soft:#221F3D;
+}
+*{box-sizing:border-box}
+body{background:var(--pg-bg);color:var(--pg-ink);font-family:var(--f-ui);
+  margin:0;padding-block:40px;padding-left:20px;padding-right:20px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* masthead */
+.mast{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;
+  justify-content:space-between;margin-bottom:8px}
+.mast h1{font-family:var(--f-display);font-weight:600;font-size:clamp(28px,4vw,40px);
+  margin:0;letter-spacing:-.02em;text-wrap:balance}
+.mast p{margin:6px 0 0;color:var(--pg-ink2);max-width:62ch;font-size:15px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--pg-ink2);font-weight:600;margin:0 0 10px}
+.toggles{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tg{font:inherit;font-size:13px;font-weight:500;padding:9px 14px;border-radius:999px;
+  border:1px solid var(--pg-line);background:var(--pg-panel);color:var(--pg-ink);
+  cursor:pointer;transition:background .15s,border-color .15s}
+.tg:hover{border-color:var(--pg-accent)}
+.tg[aria-pressed="true"]{background:var(--pg-accent);border-color:var(--pg-accent);
+  color:var(--pg-bg)}
+.tg:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+
+.stage{display:grid;grid-template-columns:260px minmax(0,1fr);gap:36px;
+  margin-top:34px;align-items:start}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+
+/* screen index — grouped, because the grouping is the flow */
+.index h2{font-family:var(--f-display);font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--pg-ink2);margin:22px 0 8px;font-weight:600}
+.index h2:first-child{margin-top:0}
+.index ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.index button{width:100%;text-align:left;font:inherit;font-size:14px;padding:7px 10px;
+  border:0;border-radius:8px;background:transparent;color:var(--pg-ink);cursor:pointer;
+  display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.index button:hover{background:var(--pg-accent-soft)}
+.index button[aria-current="true"]{background:var(--pg-accent);color:#fff;font-weight:500}
+.index button .sid{font-family:var(--f-mono);font-size:10.5px;opacity:.6}
+.index button:focus-visible{outline:2px solid var(--pg-accent);outline-offset:1px}
+
+.viewer{display:flex;flex-direction:column;align-items:center;gap:18px}
+
+/* ---------------------------------------------------------------
+   THE PHONE — app tokens live here, switched by data-app-theme
+   --------------------------------------------------------------- */
+.phone{
+  --ap-bg:#FBFAF7; --ap-surface:#FFFFFF; --ap-raise:#F4F2EC;
+  --ap-ink:#14130F; --ap-ink2:#67635A; --ap-ink3:#96918A;
+  --ap-line:#E6E2D9; --ap-accent:#4A3FA0; --ap-accent-ink:#FFFFFF;
+  --ap-accent-soft:#EFEDFB;
+  /* mode colours = real Egyptian licence-plate colours */
+  --m-micro:#D2620B;   /* orange plates — 14-seater microbus */
+  --m-tomnaya:#1C6FB8; /* blue plates — 8-seater */
+  --m-coop:#6E6A61;    /* grey plates — 29-seater cooperative */
+  --m-cta:#146A60;     /* public bus operator */
+  --m-walk:#96918A;
+  --m1:#1F6FB2; --m2:#C1272D; --m3:#0E8A4F;
+  --ok:#1E7A4C; --warn:#9A6E06; --crit:#B3261E;
+  width:390px;max-width:100%;
+  background:var(--ap-bg);color:var(--ap-ink);
+  border-radius:38px;border:1px solid var(--pg-line);
+  box-shadow:0 30px 60px -28px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.06);
+  overflow:hidden;direction:rtl;
+}
+.phone[data-app-theme="dark"]{
+  --ap-bg:#121210; --ap-surface:#1C1B18; --ap-raise:#24231F;
+  --ap-ink:#F3F1EA; --ap-ink2:#A6A197; --ap-ink3:#7C776D;
+  --ap-line:#2E2D28; --ap-accent:#9A90F0; --ap-accent-ink:#15122B;
+  --ap-accent-soft:#232041;
+  --m-micro:#FF9F51; --m-tomnaya:#5FAAE8; --m-coop:#A8A399;
+  --m-cta:#3FB5A5; --m-walk:#7C776D;
+  --m1:#5BA3DE; --m2:#F0605F; --m3:#3FBE7C;
+  --ok:#4FC98A; --warn:#E0B341; --crit:#F27168;
+}
+.screen{display:none;min-height:730px;flex-direction:column}
+.screen.on{display:flex}
+
+/* status bar */
+.sbar{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 22px 6px;font-family:var(--f-mono);font-size:12px;color:var(--ap-ink2);
+  font-variant-numeric:tabular-nums}
+.sbar .dots{display:flex;gap:3px;align-items:center}
+.sbar .dots i{width:4px;height:4px;border-radius:50%;background:var(--ap-ink3);display:block}
+
+.body{padding:6px 22px 26px;flex:1;display:flex;flex-direction:column;gap:18px}
+.body.flush{padding-left:0;padding-right:0}
+.body.flush > *{padding-left:22px;padding-right:22px}
+.body.flush > .bleed{padding:0}
+
+h2.title{font-family:var(--f-display);font-weight:500;font-size:27px;margin:8px 0 0;
+  letter-spacing:-.01em;line-height:1.25;text-wrap:balance}
+h3.sub{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+  color:var(--ap-ink3);margin:0}
+p.lede{margin:0;color:var(--ap-ink2);font-size:14.5px}
+
+/* form fields */
+.fields{display:flex;flex-direction:column;gap:1px;background:var(--ap-line);
+  border-radius:16px;overflow:hidden}
+.field{background:var(--ap-surface);display:flex;align-items:center;gap:12px;padding:15px 16px}
+.field .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.field .dot.a{background:var(--ap-accent)}
+.field .dot.b{background:var(--m-micro)}
+.field input{border:0;background:transparent;font:inherit;font-size:16px;color:var(--ap-ink);
+  width:100%;padding:0}
+.field input::placeholder{color:var(--ap-ink3)}
+.field input:focus{outline:none}
+.field:focus-within{background:var(--ap-accent-soft)}
+
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:999px;
+  border:1px solid var(--ap-line);background:var(--ap-surface);color:var(--ap-ink);
+  cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.chip[aria-pressed="true"]{background:var(--ap-ink);color:var(--ap-bg);border-color:var(--ap-ink)}
+.chip:focus-visible,.btn:focus-visible{outline:2px solid var(--ap-accent);outline-offset:2px}
+
+.btn{font:inherit;font-size:16px;font-weight:600;font-family:var(--f-display);
+  padding:16px;border-radius:15px;border:0;background:var(--ap-accent);
+  color:var(--ap-accent-ink);width:100%;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ap-ink);border:1px solid var(--ap-line);font-weight:500}
+.btn.quiet{background:var(--ap-raise);color:var(--ap-ink);font-weight:500}
+.btn.danger{background:transparent;color:var(--crit);border:1px solid var(--crit)}
+
+/* itinerary cards */
+.cards{display:flex;flex-direction:column;gap:11px}
+.card{background:var(--ap-surface);border:1px solid var(--ap-line);border-radius:17px;
+  padding:15px 16px;display:flex;flex-direction:column;gap:12px;cursor:pointer;text-align:right}
+.card:hover{border-color:var(--ap-accent)}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.dur{font-family:var(--f-display);font-size:22px;font-weight:500;
+  font-variant-numeric:tabular-nums}
+.dur small{font-size:13px;font-weight:400;color:var(--ap-ink2);margin-inline-start:3px}
+.times{font-family:var(--f-mono);font-size:13px;color:var(--ap-ink2);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.meta{font-size:12.5px;color:var(--ap-ink3);display:flex;gap:12px;flex-wrap:wrap}
+
+/* mode chips — plate colours, pill form */
+.legs{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.mc{display:inline-flex;align-items:center;gap:6px;padding:5px 11px 5px 9px;
+  border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.mc .glyph{width:7px;height:7px;border-radius:2px;background:currentColor;flex:none}
+.mc.micro{color:var(--m-micro);background:color-mix(in srgb,var(--m-micro) 13%,transparent)}
+.mc.tomnaya{color:var(--m-tomnaya);background:color-mix(in srgb,var(--m-tomnaya) 13%,transparent)}
+.mc.coop{color:var(--m-coop);background:color-mix(in srgb,var(--m-coop) 15%,transparent)}
+.mc.cta{color:var(--m-cta);background:color-mix(in srgb,var(--m-cta) 13%,transparent)}
+.mc.walk{color:var(--m-walk);background:color-mix(in srgb,var(--m-walk) 15%,transparent)}
+/* metro uses a circular badge — different FORM, so M1 blue never reads as tomnaya blue */
+.mline{width:25px;height:25px;border-radius:50%;display:inline-flex;align-items:center;
+  justify-content:center;font-family:var(--f-mono);font-size:11px;font-weight:600;
+  color:#fff;flex:none;letter-spacing:-.02em}
+.mline.l1{background:var(--m1)} .mline.l2{background:var(--m2)} .mline.l3{background:var(--m3)}
+.arrow{color:var(--ap-ink3);font-size:11px}
+
+/* leg timeline */
+.tl{display:flex;flex-direction:column}
+.leg{display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px;position:relative}
+.rail{display:flex;flex-direction:column;align-items:center;gap:0}
+.rail .node{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--ap-ink3);
+  background:var(--ap-bg);flex:none;margin-top:3px}
+.rail .line{flex:1;width:3px;border-radius:2px;background:var(--ap-line);min-height:26px;margin:3px 0}
+.leg.micro .rail .line{background:var(--m-micro)} .leg.micro .rail .node{border-color:var(--m-micro)}
+.leg.tomnaya .rail .line{background:var(--m-tomnaya)} .leg.tomnaya .rail .node{border-color:var(--m-tomnaya)}
+.leg.metro .rail .line{background:var(--m1)} .leg.metro .rail .node{border-color:var(--m1)}
+.leg.metro2 .rail .line{background:var(--m2)} .leg.metro2 .rail .node{border-color:var(--m2)}
+.leg.walk .rail .line{background:repeating-linear-gradient(var(--m-walk) 0 4px,transparent 4px 9px)}
+.legbody{padding-bottom:20px;min-width:0}
+.legbody .stop{font-weight:600;font-size:15.5px;margin:0}
+.legbody .act{margin:7px 0 0;font-size:14px;color:var(--ap-ink2)}
+.legbody .when{font-family:var(--f-mono);font-size:12px;color:var(--ap-ink3);
+  font-variant-numeric:tabular-nums;margin:3px 0 0}
+
+/* the microbus honesty note — this is the product's whole point */
+.hail{margin:10px 0 0;padding:11px 13px;border-radius:12px;
+  background:color-mix(in srgb,var(--m-micro) 11%,transparent);
+  border:1px solid color-mix(in srgb,var(--m-micro) 32%,transparent);
+  font-size:13.5px;color:var(--ap-ink);line-height:1.5}
+.hail b{color:var(--m-micro)}
+
+/* honesty / state panels */
+.panel{border-radius:16px;padding:16px;font-size:14px;line-height:1.55;
+  border:1px solid var(--ap-line);background:var(--ap-surface);color:var(--ap-ink2)}
+.panel b,.panel strong{color:var(--ap-ink);font-weight:600}
+.panel.warn{background:color-mix(in srgb,var(--warn) 10%,transparent);
+  border-color:color-mix(in srgb,var(--warn) 34%,transparent)}
+.panel.accent{background:var(--ap-accent-soft);border-color:color-mix(in srgb,var(--ap-accent) 30%,transparent)}
+.panel h4{margin:0 0 7px;font-size:15px;color:var(--ap-ink);font-weight:600;
+  font-family:var(--f-display)}
+.panel ul{margin:8px 0 0;padding-inline-start:18px;display:flex;flex-direction:column;gap:5px}
+
+.state{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;
+  text-align:center;align-items:center;padding-bottom:40px}
+.state .mark{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;background:var(--ap-raise)}
+.state h2{font-family:var(--f-display);font-size:22px;font-weight:500;margin:0;
+  text-wrap:balance;line-height:1.35}
+.state p{margin:0;color:var(--ap-ink2);font-size:14.5px;max-width:30ch;line-height:1.6}
+
+/* list rows */
+.rows{display:flex;flex-direction:column;gap:1px;background:var(--ap-line);
+  border-radius:16px;overflow:hidden}
+.rrow{background:var(--ap-surface);padding:14px 16px;display:flex;gap:13px;
+  align-items:center;cursor:pointer;text-align:right}
+.rrow:hover{background:var(--ap-raise)}
+.rrow .grow{flex:1;min-width:0}
+.rrow .nm{font-weight:600;font-size:15px;margin:0}
+.rrow .dt{font-size:12.5px;color:var(--ap-ink3);margin:3px 0 0}
+.star{font-size:17px;color:var(--ap-ink3);background:none;border:0;cursor:pointer;padding:4px}
+.star.on{color:var(--warn)}
+
+/* notification cards */
+.notif{background:var(--ap-surface);border:1px solid var(--ap-line);border-radius:16px;
+  padding:14px;display:flex;gap:12px;box-shadow:0 8px 20px -14px rgba(0,0,0,.4)}
+.notif .ic{width:34px;height:34px;border-radius:10px;background:var(--ap-accent);
+  flex:none;display:flex;align-items:center;justify-content:center;color:var(--ap-accent-ink);
+  font-family:var(--f-display);font-weight:600;font-size:13px}
+.notif .nt{font-weight:600;font-size:14.5px;margin:0}
+.notif .nb{margin:3px 0 0;font-size:13.5px;color:var(--ap-ink2);line-height:1.5}
+.notif .na{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+.notif .na button{font:inherit;font-size:12.5px;font-weight:500;padding:7px 12px;
+  border-radius:9px;border:1px solid var(--ap-line);background:transparent;
+  color:var(--ap-ink);cursor:pointer}
+
+/* map */
+.map{height:172px;background:var(--ap-raise);position:relative;overflow:hidden}
+.map svg{width:100%;height:100%;display:block}
+
+/* tracking */
+.track{background:var(--ap-surface);border-radius:18px;border:1px solid var(--ap-line);
+  padding:17px;display:flex;flex-direction:column;gap:13px}
+.pulse{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
+  color:var(--ok)}
+.pulse i{width:8px;height:8px;border-radius:50%;background:var(--ok);display:block;
+  animation:bp 2s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+@media (prefers-reduced-motion:reduce){.pulse i{animation:none}}
+.big{font-family:var(--f-display);font-size:30px;font-weight:500;margin:0;line-height:1.2}
+.kv{display:flex;justify-content:space-between;font-size:13.5px;padding:9px 0;
+  border-top:1px solid var(--ap-line)}
+.kv span:last-child{color:var(--ap-ink2);font-variant-numeric:tabular-nums}
+
+.tabbar{display:flex;border-top:1px solid var(--ap-line);background:var(--ap-surface)}
+.tabbar button{flex:1;background:none;border:0;padding:13px 4px 20px;font:inherit;
+  font-size:11px;color:var(--ap-ink3);cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:5px}
+.tabbar button.on{color:var(--ap-accent);font-weight:600}
+.tabbar .ti{width:19px;height:19px;border-radius:6px;border:2px solid currentColor}
+.tabbar button.on .ti{background:currentColor}
+
+.caption{max-width:390px;text-align:center}
+.caption .cn{font-family:var(--f-display);font-weight:500;font-size:16px;margin:0}
+.caption .cd{margin:6px 0 0;font-size:13.5px;color:var(--pg-ink2);line-height:1.6}
+.caption .cs{display:inline-block;margin-top:9px;font-family:var(--f-mono);font-size:11px;
+  color:var(--pg-accent);border:1px solid var(--pg-accent);border-radius:999px;padding:3px 9px}
+
+footer{margin-top:56px;border-top:1px solid var(--pg-line);padding-top:22px;
+  color:var(--pg-ink2);font-size:13px;line-height:1.65}
+footer b{color:var(--pg-ink)}
+.attrib{font-size:12.5px;font-style:italic;margin-top:10px;
+  border-inline-start:2px solid var(--pg-accent);padding-inline-start:12px}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <div>
+      <p class="eyebrow">Design prototype · v1 Cairo</p>
+      <h1>مسار · Masar</h1>
+      <p>The passenger app for Egypt Transportation Planner. Egyptian colloquial Arabic,
+         RTL, light and dark. Mode colours are real licence-plate colours — the way
+         Cairenes identify a vehicle before they read anything on it.</p>
+    </div>
+    <div class="toggles">
+      <button class="tg" id="lightBtn" aria-pressed="true">App light</button>
+      <button class="tg" id="darkBtn" aria-pressed="false">App dark</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <nav class="index" id="index"></nav>
+
+    <div class="viewer">
+      <div class="phone" id="phone" data-app-theme="light" dir="rtl">
+
+        <!-- 1 · SEARCH -->
+        <section class="screen on" data-k="search">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">رايح فين النهاردة؟</h2>
+            <div class="fields">
+              <div class="field"><span class="dot a"></span><input id="f-from" value="المنيب" aria-label="من فين"></div>
+              <div class="field"><span class="dot b"></span><input id="f-to" placeholder="رايح فين؟" aria-label="رايح فين"></div>
+            </div>
+            <div class="row">
+              <button class="chip" aria-pressed="true">دلوقتي</button>
+              <button class="chip">اختار وقت</button>
+              <button class="chip">أوصل قبل</button>
+            </div>
+            <button class="btn" data-go="results">دوّرلي على طريق</button>
+            <h3 class="sub">آخر رحلاتك</h3>
+            <div class="rows">
+              <div class="rrow" data-go="results"><span class="mc micro"><span class="glyph"></span>ميكروباص</span>
+                <span class="grow"><p class="nm">مدينة نصر</p><p class="dt">من المنيب · إمبارح</p></span></div>
+              <div class="rrow" data-go="results"><span class="mline l1">M1</span>
+                <span class="grow"><p class="nm">شبرا الخيمة</p><p class="dt">من حلوان · الأحد</p></span></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <button class="on"><span class="ti"></span>دوّر</button>
+            <button data-go="saved"><span class="ti"></span>المحفوظة</button>
+            <button data-go="about"><span class="ti"></span>عن التطبيق</button>
+          </div>
+        </section>
+
+        <!-- 2 · RESULTS -->
+        <section class="screen" data-k="results">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">من المنيب لمدينة نصر</h2>
+            <div class="row">
+              <button class="chip" aria-pressed="true">الأسرع</button>
+              <button class="chip">أقل مشي</button>
+              <button class="chip">أقل تبديل</button>
+            </div>
+            <div class="cards">
+              <div class="card" data-go="itinerary">
+                <div class="top"><span class="dur">87<small>دقيقة</small></span>
+                  <span class="times">9:00 ← 10:27</span></div>
+                <div class="legs">
+                  <span class="mc walk"><span class="glyph"></span>4 د</span><span class="arrow">←</span>
+                  <span class="mline l1">M1</span><span class="arrow">←</span>
+                  <span class="mc micro"><span class="glyph"></span>ميكروباص</span><span class="arrow">←</span>
+                  <span class="mc micro"><span class="glyph"></span>ميكروباص</span>
+                </div>
+                <div class="meta"><span>تبديلين</span><span>مشي 1.8 كم</span></div>
+              </div>
+              <div class="card" data-go="itinerary">
+                <div class="top"><span class="dur">102<small>دقيقة</small></span>
+                  <span class="times">9:00 ← 10:41</span></div>
+                <div class="legs">
+                  <span class="mc walk"><span class="glyph"></span>9 د</span><span class="arrow">←</span>
+                  <span class="mc micro"><span class="glyph"></span>ميكروباص</span><span class="arrow">←</span>
+                  <span class="mc micro"><span class="glyph"></span>ميكروباص</span><span class="arrow">←</span>
+                  <span class="mc micro"><span class="glyph"></span>ميكروباص</span>
+                </div>
+                <div class="meta"><span>تبديلين</span><span>مشي 1.7 كم</span></div>
+              </div>
+              <div class="card" data-go="itinerary">
+                <div class="top"><span class="dur">96<small>دقيقة</small></span>
+                  <span class="times">9:12 ← 10:48</span></div>
+                <div class="legs">
+                  <span class="mc walk"><span class="glyph"></span>6 د</span><span class="arrow">←</span>
+                  <span class="mc tomnaya"><span class="glyph"></span>تمنايا</span><span class="arrow">←</span>
+                  <span class="mc cta"><span class="glyph"></span>أتوبيس 381</span>
+                </div>
+                <div class="meta"><span>تبديل واحد</span><span>مشي 1.1 كم</span></div>
+              </div>
+            </div>
+            <p class="lede" style="font-size:13px">الأجرة مش معروضة — الأسعار اللي في البيانات من 2018 وغلط دلوقتي.</p>
+          </div>
+        </section>
+
+        <!-- 3 · ITINERARY -->
+        <section class="screen" data-k="itinerary">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body flush">
+            <div class="bleed map">
+              <svg viewBox="0 0 390 172" role="img" aria-label="خريطة الرحلة">
+                <rect width="390" height="172" fill="var(--ap-raise)"/>
+                <path d="M-10 132 L120 118 L260 96 L400 88" stroke="var(--ap-line)" stroke-width="9" fill="none"/>
+                <path d="M40 160 L74 140" stroke="var(--m-walk)" stroke-width="3.5" fill="none" stroke-dasharray="5 6" stroke-linecap="round"/>
+                <path d="M74 140 L196 108" stroke="var(--m-micro)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M196 108 L318 74" stroke="var(--m-micro)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M318 74 L348 58" stroke="var(--m-walk)" stroke-width="3.5" fill="none" stroke-dasharray="5 6" stroke-linecap="round"/>
+                <circle cx="74" cy="140" r="6" fill="var(--ap-bg)" stroke="var(--m-micro)" stroke-width="3"/>
+                <circle cx="196" cy="108" r="6" fill="var(--ap-bg)" stroke="var(--m-micro)" stroke-width="3"/>
+                <circle cx="318" cy="74" r="6" fill="var(--ap-bg)" stroke="var(--m-micro)" stroke-width="3"/>
+                <circle cx="40" cy="160" r="5" fill="var(--ap-accent)"/>
+                <circle cx="348" cy="58" r="5" fill="var(--ap-ink)"/>
+              </svg>
+            </div>
+            <div class="top" style="display:flex;justify-content:space-between;align-items:baseline">
+              <span class="dur">102<small>دقيقة</small></span>
+              <span class="times">9:00 ← 10:41</span>
+            </div>
+            <div class="tl">
+              <div class="leg walk"><div class="rail"><span class="node"></span><span class="line"></span></div>
+                <div class="legbody"><p class="stop">المنيب</p>
+                  <p class="act">امشي 9 دقايق لحد موقف مترو أم المصريين</p>
+                  <p class="when">9:00 — 704 متر</p></div></div>
+              <div class="leg micro"><div class="rail"><span class="node"></span><span class="line"></span></div>
+                <div class="legbody"><p class="stop">مترو أم المصريين</p>
+                  <p class="act">اركب ميكروباص لحد المنيب · 6 دقايق</p>
+                  <p class="when">9:11 ← 9:17</p>
+                  <div class="hail"><b>الميكروباص ده مالوش رقم.</b> زي كل الميكروباصات في القاهرة —
+                    اسأل السواق أو نادي على <b>«المنيب»</b>.</div></div></div>
+              <div class="leg micro"><div class="rail"><span class="node"></span><span class="line"></span></div>
+                <div class="legbody"><p class="stop">المنيب</p>
+                  <p class="act">اركب ميكروباص لحد كايرو فستيفال سيتي · 30 دقيقة</p>
+                  <p class="when">9:38 ← 10:08</p></div></div>
+              <div class="leg walk"><div class="rail"><span class="node"></span></div>
+                <div class="legbody"><p class="stop">المصراوية</p>
+                  <p class="act">امشي 6 دقايق لحد مكانك</p>
+                  <p class="when">10:35 — 462 متر</p></div></div>
+            </div>
+            <div class="panel">
+              <b>المواعيد دي تقديرية.</b> مفيش بيانات لحظية للمواصلات في مصر، فإحنا مش عارفين
+              الميكروباص فين دلوقتي. الأرقام دي متوسط مسجّل من مسح ميداني.
+            </div>
+            <button class="btn" data-go="track-permission">تابع الرحلة</button>
+            <button class="btn ghost" data-go="report">فيه حاجة غلط؟ بلّغنا</button>
+          </div>
+        </section>
+
+        <!-- 4 · STOP SEARCH -->
+        <section class="screen" data-k="stops">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">دوّر على موقف</h2>
+            <div class="fields"><div class="field"><span class="dot a"></span>
+              <input value="المنيب" aria-label="اسم الموقف"></div></div>
+            <p class="lede" style="font-size:13px">اكتب أول الاسم — البحث بيبدأ من أول الكلمة، يعني «المنيب» تلاقيه و«منيب» لأ.</p>
+            <div class="rows">
+              <div class="rrow"><span class="grow"><p class="nm">المنيب</p>
+                <p class="dt">11 خط · ميكروباص، تمنايا، أتوبيس</p></span></div>
+              <div class="rrow"><span class="grow"><p class="nm">المنيب</p>
+                <p class="dt">20 خط · ميكروباص، أتوبيس</p></span></div>
+              <div class="rrow"><span class="grow"><p class="nm">محطة المنيب</p>
+                <p class="dt">18 خط · ميكروباص، تعاوني</p></span></div>
+            </div>
+            <p class="lede" style="font-size:13px">لقينا 16 موقف بالاسم ده. اكتب اسم أطول عشان تلاقي اللي انت عايزه بسرعة.</p>
+          </div>
+        </section>
+
+        <!-- 5 · SAVED -->
+        <section class="screen" data-k="saved">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">المحفوظة</h2>
+            <div class="rows">
+              <div class="rrow"><button class="star on" aria-label="محفوظة">★</button>
+                <span class="grow"><p class="nm">الشغل</p><p class="dt">المنيب ← مدينة نصر · 87 دقيقة</p></span></div>
+              <div class="rrow"><button class="star on" aria-label="محفوظة">★</button>
+                <span class="grow"><p class="nm">البيت</p><p class="dt">مدينة نصر ← المنيب · 91 دقيقة</p></span></div>
+            </div>
+            <button class="btn quiet" data-go="results">شغّل «الشغل» دلوقتي</button>
+            <h3 class="sub">آخر رحلاتك</h3>
+            <div class="rows">
+              <div class="rrow"><button class="star" aria-label="احفظ">☆</button>
+                <span class="grow"><p class="nm">شبرا الخيمة</p><p class="dt">من حلوان · الأحد</p></span></div>
+              <div class="rrow"><button class="star" aria-label="احفظ">☆</button>
+                <span class="grow"><p class="nm">كايرو فستيفال سيتي</p><p class="dt">من المنيب · الخميس</p></span></div>
+            </div>
+            <div class="panel"><b>كل ده على تليفونك بس.</b> مافيش حساب ومافيش سيرفر بيحفظ رحلاتك —
+              لو مسحت التطبيق كل ده بيروح معاه.</div>
+          </div>
+          <div class="tabbar">
+            <button data-go="search"><span class="ti"></span>دوّر</button>
+            <button class="on"><span class="ti"></span>المحفوظة</button>
+            <button data-go="about"><span class="ti"></span>عن التطبيق</button>
+          </div>
+        </section>
+
+        <!-- 6 · TRACKING PERMISSION -->
+        <section class="screen" data-k="track-permission">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">نتابع رحلتك؟</h2>
+            <p class="lede">قبل ما توافق، لازم تعرف بالظبط بيحصل إيه.</p>
+            <div class="panel accent">
+              <h4>اللي هيحصل</h4>
+              <ul>
+                <li>هنقولك «استعد» قبل محطة نزولك</li>
+                <li>هيفضل فيه إشعار ثابت طول الرحلة، توقفه في أي وقت</li>
+                <li>بيقف لوحده أول ما توصل</li>
+              </ul>
+            </div>
+            <div class="panel warn">
+              <h4>اللي لازم تعرفه</h4>
+              <ul>
+                <li>بيشتغل بالـ GPS، يعني <b>هياكل من البطارية</b></li>
+                <li>موقعك بيتحسب <b>على تليفونك بس</b> ومابيتبعتش لأي حد</li>
+                <li>إحنا <b>مش عارفين الميكروباص فين</b> — مفيش بيانات لحظية في مصر.
+                    بنقارن مكانك انت بخط السير المسجّل، وبس</li>
+              </ul>
+            </div>
+            <button class="btn" data-go="track-live">تمام، تابع الرحلة</button>
+            <button class="btn ghost" data-go="itinerary">لأ، شكرًا</button>
+          </div>
+        </section>
+
+        <!-- 7 · TRACKING LIVE -->
+        <section class="screen" data-k="track-live">
+          <div class="sbar"><span>9:52</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <span class="pulse"><i></i>بنتابع رحلتك</span>
+            <div class="track">
+              <h3 class="sub">نزولك الجاي</h3>
+              <p class="big">المنيب</p>
+              <p class="lede">بعد محطة واحدة · تقريبًا 4 دقايق</p>
+              <div class="kv"><span>ركبت من</span><span>مترو أم المصريين · 9:47</span></div>
+              <div class="kv"><span>الوصول المتوقع</span><span>10:41</span></div>
+            </div>
+            <div class="panel">
+              <b>التقدير ده من مكانك انت</b>، مش من مكان الميكروباص — إحنا مش عارفينه.
+              لو السواق وقف أو غيّر السكة، الوقت هيتغير.
+            </div>
+            <button class="btn quiet" data-go="track-lost">مش في السكة الصح؟</button>
+            <button class="btn danger" data-go="post-trip">وقّف المتابعة</button>
+          </div>
+        </section>
+
+        <!-- 8 · TRACKING LOW CONFIDENCE -->
+        <section class="screen" data-k="track-lost">
+          <div class="sbar"><span>10:04</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <span class="pulse" style="color:var(--warn)"><i style="background:var(--warn)"></i>مش متأكدين</span>
+            <div class="track">
+              <h3 class="sub">الحالة</h3>
+              <p class="big">بعدت عن خط السير</p>
+              <p class="lede">من 3 دقايق مكانك مابقاش على الخط المسجّل. يمكن السواق غيّر السكة،
+                 ويمكن بياناتنا قديمة.</p>
+            </div>
+            <div class="panel warn">
+              <b>مش هنخمّن.</b> بدل ما نقولك معلومة غلط، بنقولك إحنا مش متأكدين.
+              تحب ندوّرلك على طريق تاني من مكانك دلوقتي؟
+            </div>
+            <button class="btn" data-go="results">دوّرلي من هنا</button>
+            <button class="btn ghost" data-go="report">الخط ده اتغير — بلّغ</button>
+            <button class="btn quiet" data-go="track-live">كمّل المتابعة</button>
+          </div>
+        </section>
+
+        <!-- 9 · NOTIFICATIONS -->
+        <section class="screen" data-k="notifs">
+          <div class="sbar"><span>8:40</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">الإشعارات</h2>
+            <p class="lede">3 أنواع بس. مافيش إعلانات ومافيش رسايل عشان نرجّعك للتطبيق.</p>
+            <div class="notif"><span class="ic">1</span><div>
+              <p class="nt">اتحرك دلوقتي</p>
+              <p class="nb">رحلتك لمدينة نصر بتبدأ بعد 20 دقيقة. المشوار لحد الموقف 9 دقايق.</p>
+              <div class="na"><button>فكّرني بعد 5 د</button><button>ألغي الرحلة</button></div></div></div>
+            <div class="notif"><span class="ic">2</span><div>
+              <p class="nt">استعد للنزول</p>
+              <p class="nb">المنيب بعد محطة واحدة.</p>
+              <div class="na"><button>تمام</button></div></div></div>
+            <div class="notif"><span class="ic">3</span><div>
+              <p class="nt">وصلت بالسلامة؟</p>
+              <p class="nb">لو عندك دقيقة، قولنا الرحلة كانت زي ما قلنالك ولا لأ.</p>
+              <div class="na"><button data-go="post-trip">أيوه، أقولكم</button><button>مش دلوقتي</button></div></div></div>
+            <div class="panel"><b>بنسأل مرة واحدة بس.</b> لو مردتش، مش هنسأل تاني على نفس الرحلة.
+              وتقدر تقفل الإشعارات من الإشعار نفسه.</div>
+          </div>
+        </section>
+
+        <!-- 10 · POST TRIP -->
+        <section class="screen" data-k="post-trip">
+          <div class="sbar"><span>10:44</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">وصلت بالسلامة؟</h2>
+            <p class="lede">من المنيب لمدينة نصر · النهاردة 9:00 ← 10:41</p>
+            <div class="row" style="gap:6px;font-size:27px;color:var(--warn)">★ ★ ★ ★ <span style="color:var(--ap-ink3)">☆</span></div>
+            <div class="panel accent"><b>رأيك بيوصل لناس تانية.</b> إحنا مشروع مش ربحي،
+              والبيانات بتتصلّح لما حد زيك يقولنا اتغير إيه.</div>
+            <button class="btn" data-go="accuracy">الرحلة كانت مظبوطة</button>
+            <button class="btn ghost" data-go="report">فيه حاجة اتغيرت</button>
+            <button class="btn quiet" data-go="search">مش دلوقتي</button>
+          </div>
+        </section>
+
+        <!-- 11 · ACCURACY -->
+        <section class="screen" data-k="accuracy">
+          <div class="sbar"><span>10:45</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">سؤال واحد وخلاص</h2>
+            <p class="lede">الميكروباص من مترو أم المصريين للمنيب — لسه شغال زي ما قلنالك؟</p>
+            <button class="btn" data-go="thanks">أيوه، زي ما قلتوا</button>
+            <button class="btn ghost" data-go="report">لأ، فيه حاجة اتغيرت</button>
+            <button class="btn quiet" data-go="thanks">مش متأكد</button>
+            <div class="panel"><b>«مش متأكد» إجابة كويسة برضه.</b> أحسن من تخمين —
+              إحنا بنجمع ردود كتير قبل ما نغيّر أي حاجة.</div>
+          </div>
+        </section>
+
+        <!-- 12 · REPORT -->
+        <section class="screen" data-k="report">
+          <div class="sbar"><span>10:46</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">إيه اللي اتغير؟</h2>
+            <p class="lede">اختار الأقرب لللي شفته. مش محتاج حساب.</p>
+            <div class="rows">
+              <div class="rrow"><span class="grow"><p class="nm">الخط ده مابقاش موجود</p></span></div>
+              <div class="rrow"><span class="grow"><p class="nm">الموقف اتنقل</p></span></div>
+              <div class="rrow"><span class="grow"><p class="nm">الخط بيروح مكان تاني دلوقتي</p></span></div>
+              <div class="rrow"><span class="grow"><p class="nm">فيه خط جديد مش عندكم</p></span></div>
+              <div class="rrow"><span class="grow"><p class="nm">حاجة تانية</p></span></div>
+            </div>
+            <div class="panel"><b>بلاغك مابيتنشرش على طول.</b> بيستنى لحد ما حد تاني يأكده،
+              وساعتها بس بيظهر لباقي الناس.</div>
+            <button class="btn" data-go="thanks">ابعت البلاغ</button>
+          </div>
+        </section>
+
+        <!-- 13 · THANKS -->
+        <section class="screen" data-k="thanks">
+          <div class="sbar"><span>10:47</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <div class="state">
+              <span class="mark" style="background:color-mix(in srgb,var(--ok) 15%,transparent)">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <h2>وصلنا كلامك</h2>
+              <p>هنستنى حد تاني يأكد نفس الحاجة قبل ما نغيّرها للناس كلها. شكرًا إنك ساعدت.</p>
+              <button class="btn quiet" data-go="search" style="width:auto;padding:13px 26px">تمام</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 14 · NO COVERAGE -->
+        <section class="screen" data-k="no-coverage">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <div class="state">
+              <span class="mark"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ap-ink2)" stroke-width="2" stroke-linecap="round"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/><path d="M9 10h6"/></svg></span>
+              <h2>لسه مامعندناش بيانات عن الإسكندرية</h2>
+              <p>إحنا دلوقتي في القاهرة الكبرى بس. مش عايزين نوريك مشوار مشي ساعتين
+                 ونسيبك تفتكر إن دي إجابة.</p>
+              <div class="panel" style="text-align:right">
+                <b>ليه؟</b> بيانات المواصلات الوحيدة المتاحة في مصر هي للقاهرة الكبرى.
+                باقي المحافظات لازم حد ينزل يجمعها — وده اللي بنشتغل عليه.
+              </div>
+              <button class="btn quiet" data-go="search" style="width:auto;padding:13px 26px">رجّعني</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 15 · NO SERVICE -->
+        <section class="screen" data-k="no-service">
+          <div class="sbar"><span>23:32</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <div class="state">
+              <span class="mark"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ap-ink2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+              <h2>مفيش مواصلات دلوقتي</h2>
+              <p>الساعة 23:32، وأغلب الخطوط في بياناتنا بتقف بالليل.</p>
+              <button class="btn" data-go="results" style="width:auto;padding:13px 26px">دوّرلي بكرة الصبح</button>
+              <div class="panel" style="text-align:right">الواقع ممكن يكون غير كده —
+                فيه ميكروباصات بتشتغل بالليل مش مسجّلة عندنا.
+                <b>لو تعرف خط بالليل، قولنا.</b></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 16 · OFFLINE -->
+        <section class="screen" data-k="offline">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i></span></div>
+          <div class="body">
+            <div class="panel warn" style="text-align:right"><b>مافيش نت دلوقتي.</b>
+              دي آخر نتيجة حمّلناها الساعة 9:00. ممكن تكون اتغيرت.</div>
+            <div class="cards">
+              <div class="card" style="opacity:.75">
+                <div class="top"><span class="dur">87<small>دقيقة</small></span>
+                  <span class="times">9:00 ← 10:27</span></div>
+                <div class="legs">
+                  <span class="mc walk"><span class="glyph"></span>4 د</span><span class="arrow">←</span>
+                  <span class="mline l1">M1</span><span class="arrow">←</span>
+                  <span class="mc micro"><span class="glyph"></span>ميكروباص</span>
+                </div>
+                <div class="meta"><span>محفوظة على التليفون</span></div>
+              </div>
+            </div>
+            <button class="btn ghost">حاول تاني</button>
+          </div>
+        </section>
+
+        <!-- 17 · ABOUT -->
+        <section class="screen" data-k="about">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <h2 class="title">عن مسار</h2>
+            <p class="lede">تطبيق مش ربحي لمواصلات مصر، وأساسه الميكروباص والتمنايا —
+              اللي مافيش تطبيق تاني بيغطيها.</p>
+            <div class="panel"><h4>مافيش إعلانات ولا اشتراكات</h4>
+              مش قرار تسويقي — رخصة البيانات نفسها بتمنع أي استخدام تجاري.</div>
+            <h3 class="sub">مصدر البيانات</h3>
+            <div class="panel" dir="ltr" style="text-align:left;font-size:13px">
+              This data was created by Transport for Cairo 'TfC' with DigitalMatatus and
+              Takween for Integrated Community Development, under the Digital Cairo Project
+              supported by ExpoLive 2020.
+            </div>
+            <div class="panel"><h4>اللي إحنا عارفينه واللي لأ</h4>
+              <ul>
+                <li>مفيش بيانات لحظية — مش عارفين العربيات فين</li>
+                <li>الأجرة مش معروضة، بياناتها من 2018</li>
+                <li>الخط الثالث للمترو لسه مش موجود عندنا</li>
+                <li>القاهرة الكبرى بس</li>
+              </ul></div>
+          </div>
+          <div class="tabbar">
+            <button data-go="search"><span class="ti"></span>دوّر</button>
+            <button data-go="saved"><span class="ti"></span>المحفوظة</button>
+            <button class="on"><span class="ti"></span>عن التطبيق</button>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="caption" id="caption"></div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Mode colour = licence-plate colour.</b> Microbus orange, tomnaya blue, cooperative
+    grey — the codes Cairenes already read at the kerb. Metro uses circular line badges
+    instead of pills, so M1's blue is never mistaken for a tomnaya.
+    Metro line hues are provisional pending the operator's own wayfinding.
+    <div class="attrib">This data was created by Transport for Cairo 'TfC' with
+      DigitalMatatus and Takween for Integrated Community Development, under the Digital
+      Cairo Project supported by ExpoLive 2020.</div>
+  </footer>
+</div>
+
+<script>
+const SCREENS = [
+  ["Core flow", [
+    ["search","Search","P-01"],["results","Results","P-01"],
+    ["itinerary","Itinerary","P-02 · P-03"],["stops","Stop search","P-10"],
+    ["saved","Saved & recents","P-15"]]],
+  ["Tracking", [
+    ["track-permission","Tracking consent","P-17"],["track-live","Tracking live","P-17"],
+    ["track-lost","Low confidence","P-17"]]],
+  ["Notifications & feedback", [
+    ["notifs","Notifications","P-16"],["post-trip","Post-trip","P-16"],
+    ["accuracy","Accuracy check","C-06"],["report","Report an issue","C-01"],
+    ["thanks","Submitted","C-01"]]],
+  ["Honest states", [
+    ["no-coverage","No coverage","P-06"],["no-service","No service","P-07"],
+    ["offline","Offline","P-13"],["about","About & attribution","P-14"]]]
+];
+const NOTES = {
+  search:"Opens on the question, not a logo. Recents sit under the fold-free first screen because a commuter repeats the same trip.",
+  results:"Duration leads; the leg strip shows what you'll actually ride. Fares are named as absent rather than silently missing.",
+  itinerary:"The orange note is the product in one paragraph: this microbus has no number, so shout the destination. No other planner can tell you that.",
+  stops:"Says outright that search matches the start of a name — OTP's real behaviour, surfaced instead of quietly failing.",
+  saved:"On-device only, and the panel says so. No account means nothing to explain about privacy beyond this.",
+  "track-permission":"Consent screen states battery cost, that location never leaves the phone, and that we don't know where the vehicle is — before asking.",
+  "track-live":"Estimate framed as derived from YOUR position, never the vehicle's. That distinction is the whole honesty requirement.",
+  "track-lost":"Refuses to guess. Offers a fresh search from where you actually are, and a route to report the change.",
+  notifs:"Exactly three kinds, numbered because they're a sequence through one trip. The cap is stated in the UI, not just enforced in code.",
+  "post-trip":"Asked once, skippable, and framed as helping other people — not as rating us.",
+  accuracy:"\"Not sure\" is offered as a real answer. Forcing a guess would poison the data this feeds.",
+  report:"Five categories drawn from what actually changes in Cairo. States that nothing publishes until a second person confirms.",
+  thanks:"Closes the loop honestly: your report waits for confirmation rather than pretending it's live.",
+  "no-coverage":"The walk-only trap, caught. Explains why no other Egyptian city has data, so it reads as a known limit rather than a bug.",
+  "no-service":"Admits the data may be wrong about night service, and invites a correction.",
+  offline:"Last result stays readable, stamped with when it was fetched.",
+  about:"Lists what we don't know as prominently as what we do. Attribution verbatim in English, as the licence requires."
+};
+const phone=document.getElementById('phone'),idx=document.getElementById('index'),cap=document.getElementById('caption');
+let flat=[];
+SCREENS.forEach(([grp,items])=>{
+  const h=document.createElement('h2');h.textContent=grp;idx.appendChild(h);
+  const ul=document.createElement('ul');
+  items.forEach(([k,label,sid])=>{
+    flat.push([k,label,sid]);
+    const li=document.createElement('li'),b=document.createElement('button');
+    b.dataset.k=k;b.innerHTML='<span>'+label+'</span><span class="sid">'+sid+'</span>';
+    b.addEventListener('click',()=>show(k));li.appendChild(b);ul.appendChild(li);
+  });
+  idx.appendChild(ul);
+});
+function show(k){
+  phone.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.dataset.k===k));
+  idx.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.k===k)));
+  const m=flat.find(f=>f[0]===k)||['','',''];
+  cap.innerHTML='<p class="cn">'+m[1]+'</p><p class="cd">'+(NOTES[k]||'')+
+    '</p><span class="cs">'+m[2]+'</span>';
+  try{history.replaceState(null,'','#'+k)}catch(e){}
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-go]');if(t)show(t.dataset.go);
+});
+const lb=document.getElementById('lightBtn'),db=document.getElementById('darkBtn');
+function theme(t){phone.dataset.appTheme=t;lb.setAttribute('aria-pressed',String(t==='light'));
+  db.setAttribute('aria-pressed',String(t==='dark'));}
+lb.addEventListener('click',()=>theme('light'));
+db.addEventListener('click',()=>theme('dark'));
+const initial=(location.hash||'#search').slice(1);
+show(initial in NOTES ? initial : 'search');
+</script>

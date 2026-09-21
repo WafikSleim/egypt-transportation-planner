@@ -142,7 +142,10 @@ Two more things worth knowing before building on this feed:
 ## Roadmap
 
 The full backlog, with acceptance criteria, is in
-[docs/user-stories.md](docs/user-stories.md).
+[docs/user-stories.md](docs/user-stories.md). The design system — tokens, type,
+Egyptian-Arabic copy and the rules the UI must honour — is in
+[docs/design-system.md](docs/design-system.md), with clickable prototypes for
+the app and the operations console in [`design/`](design/).
 
 1. Get OTP returning a real transit itinerary *(current)*
 2. Arabic names for the metro feed's 108 stops, and surfacing the road feed's

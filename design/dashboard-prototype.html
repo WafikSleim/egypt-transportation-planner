@@ -1,0 +1,647 @@
+<title>Masar Operations Console</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the console below carries its own
+   token set so both console themes can be reviewed from either host theme. */
+:root{
+  --pg-bg:#EDEBE5; --pg-ink:#1A1915; --pg-ink2:#6B6759; --pg-line:#D8D4C8;
+  --pg-accent:#4A3FA0; --pg-panel:#FFFFFF;
+  --f-display:"Readex Pro",system-ui,sans-serif;
+  --f-ui:"IBM Plex Sans Arabic","Readex Pro",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --pg-bg:#100F0D; --pg-ink:#EFEDE6; --pg-ink2:#928D7E; --pg-line:#2B2A25;
+  --pg-accent:#9A90F0; --pg-panel:#1A1917;}}
+:root[data-theme="dark"]{
+  --pg-bg:#100F0D; --pg-ink:#EFEDE6; --pg-ink2:#928D7E; --pg-line:#2B2A25;
+  --pg-accent:#9A90F0; --pg-panel:#1A1917;}
+*{box-sizing:border-box}
+body{background:var(--pg-bg);color:var(--pg-ink);font-family:var(--f-ui);margin:0;
+  padding-block:36px;padding-left:20px;padding-right:20px;line-height:1.5}
+.wrap{max-width:1320px;margin:0 auto}
+.mast{display:flex;flex-wrap:wrap;gap:22px;justify-content:space-between;align-items:flex-end}
+.mast h1{font-family:var(--f-display);font-weight:600;font-size:clamp(26px,3.4vw,36px);
+  margin:0;letter-spacing:-.02em}
+.mast p{margin:6px 0 0;color:var(--pg-ink2);max-width:66ch;font-size:15px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-ink2);
+  font-weight:600;margin:0 0 9px}
+.tg{font:inherit;font-size:13px;font-weight:500;padding:9px 14px;border-radius:999px;
+  border:1px solid var(--pg-line);background:var(--pg-panel);color:var(--pg-ink);cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--pg-accent);border-color:var(--pg-accent);color:var(--pg-bg)}
+.tg:focus-visible{outline:2px solid var(--pg-accent);outline-offset:2px}
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- THE CONSOLE ---------- */
+.console{
+  --c-bg:#F6F5F1; --c-panel:#FFFFFF; --c-raise:#EFEDE6; --c-ink:#16150F;
+  --c-ink2:#63604F; --c-ink3:#93907F; --c-line:#E2DED2; --c-accent:#4A3FA0;
+  --c-accent-soft:#EEECFA; --c-accent-ink:#FFFFFF;
+  --m-micro:#D2620B; --m-tomnaya:#1C6FB8; --m-coop:#6E6A61; --m-cta:#146A60;
+  --m1:#1F6FB2; --m2:#C1272D; --m3:#0E8A4F;
+  --ok:#1E7A4C; --warn:#9A6E06; --crit:#B3261E;
+  --ok-bg:#E6F4EC; --warn-bg:#FBF2DB; --crit-bg:#FBEAE8;
+  margin-top:28px;border:1px solid var(--pg-line);border-radius:16px;overflow:hidden;
+  background:var(--c-bg);color:var(--c-ink);direction:rtl;
+  box-shadow:0 24px 50px -30px rgba(0,0,0,.4);
+}
+.console[data-c-theme="dark"]{
+  --c-bg:#121210; --c-panel:#1B1A17; --c-raise:#23221E; --c-ink:#F2F0E9;
+  --c-ink2:#A5A095; --c-ink3:#7A756B; --c-line:#2E2D27; --c-accent:#9A90F0;
+  --c-accent-soft:#232041; --c-accent-ink:#15122B;
+  --m-micro:#FF9F51; --m-tomnaya:#5FAAE8; --m-coop:#A8A399; --m-cta:#3FB5A5;
+  --m1:#5BA3DE; --m2:#F0605F; --m3:#3FBE7C;
+  --ok:#4FC98A; --warn:#E0B341; --crit:#F27168;
+  --ok-bg:#12291D; --warn-bg:#2C2410; --crit-bg:#2E1715;
+}
+.shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:760px}
+@media (max-width:860px){.shell{grid-template-columns:1fr}}
+
+/* sidebar */
+.side{background:var(--c-panel);border-inline-start:1px solid var(--c-line);
+  padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 10px 18px}
+.brand .bm{width:30px;height:30px;border-radius:9px;background:var(--c-accent);
+  color:var(--c-accent-ink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-weight:600;font-size:14px}
+.brand b{font-family:var(--f-display);font-weight:500;font-size:16px}
+.side .grp{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--c-ink3);font-weight:600;margin:16px 10px 6px}
+.side button{width:100%;text-align:right;font:inherit;font-size:14px;padding:9px 11px;
+  border:0;border-radius:9px;background:transparent;color:var(--c-ink);cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;gap:8px}
+.side button:hover{background:var(--c-raise)}
+.side button[aria-current="true"]{background:var(--c-accent);color:var(--c-accent-ink);font-weight:500}
+.side button:focus-visible{outline:2px solid var(--c-accent);outline-offset:-2px}
+.badge{font-family:var(--f-mono);font-size:10.5px;padding:2px 7px;border-radius:999px;
+  background:var(--c-crit,var(--crit));color:#fff;font-weight:600}
+.side button[aria-current="true"] .badge{background:rgba(255,255,255,.25)}
+
+/* main */
+.main{padding:24px 26px 30px;min-width:0;display:flex;flex-direction:column;gap:20px}
+.view{display:none;flex-direction:column;gap:20px}
+.view.on{display:flex}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.head h2{font-family:var(--f-display);font-weight:500;font-size:24px;margin:0;letter-spacing:-.01em}
+.head p{margin:5px 0 0;color:var(--c-ink2);font-size:14px}
+.tech{font-family:var(--f-mono);font-size:.92em;direction:ltr;display:inline-block}
+
+/* metric tiles — used ONLY where the figure is the point */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px}
+.tile{background:var(--c-panel);border:1px solid var(--c-line);border-radius:13px;
+  padding:14px 15px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden}
+.tile .lbl{font-size:12px;color:var(--c-ink2);display:flex;align-items:center;gap:6px}
+.tile .val{font-family:var(--f-display);font-size:29px;font-weight:500;line-height:1;
+  font-variant-numeric:tabular-nums}
+.tile .val small{font-size:14px;color:var(--c-ink2);font-weight:400;margin-inline-start:3px}
+.tile .sub{font-size:11.5px;color:var(--c-ink3);font-family:var(--f-mono);direction:ltr;text-align:right}
+/* severity stripe — state readable as form, not only colour */
+.tile.hot{border-color:color-mix(in srgb,var(--crit) 45%,transparent);background:var(--crit-bg)}
+.tile.hot::before,.tile.warnT::before{content:"";position:absolute;inset-block:0;
+  inset-inline-start:0;width:4px}
+.tile.hot::before{background:var(--crit)}
+.tile.warnT{border-color:color-mix(in srgb,var(--warn) 45%,transparent);background:var(--warn-bg)}
+.tile.warnT::before{background:var(--warn)}
+.tile.hot .val{color:var(--crit)} .tile.warnT .val{color:var(--warn)}
+
+.pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.crit{background:var(--crit-bg);color:var(--crit)}
+.pill i{width:6px;height:6px;border-radius:50%;background:currentColor;display:block}
+
+.panel{background:var(--c-panel);border:1px solid var(--c-line);border-radius:14px;overflow:hidden}
+.panel > header{padding:13px 16px;border-bottom:1px solid var(--c-line);
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.panel > header h3{font-family:var(--f-display);font-weight:500;font-size:15px;margin:0}
+.panel > header .hint{font-size:12px;color:var(--c-ink3)}
+.pad{padding:16px}
+
+/* chart */
+.chartwrap{padding:14px 16px 10px}
+.chart{width:100%;height:132px;display:block}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:right;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--c-ink3);font-weight:600;padding:9px 16px;border-bottom:1px solid var(--c-line);
+  white-space:nowrap}
+.tbl td{padding:12px 16px;border-bottom:1px solid var(--c-line);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover{background:var(--c-raise)}
+.tbl tbody tr[aria-selected="true"]{background:var(--c-accent-soft);
+  box-shadow:inset 3px 0 0 var(--c-accent)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;direction:ltr;
+  display:inline-block}
+.who{display:flex;flex-direction:column;gap:2px}
+.who b{font-weight:600;font-size:13.5px}
+.who span{font-size:11.5px;color:var(--c-ink3)}
+.trust{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.tbar{width:42px;height:5px;border-radius:3px;background:var(--c-line);overflow:hidden;display:block}
+.tbar i{display:block;height:100%;background:var(--ok)}
+.tbar.mid i{background:var(--warn)} .tbar.low i{background:var(--crit)}
+
+.mc{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;
+  font-size:11.5px;font-weight:600;white-space:nowrap}
+.mc .g{width:6px;height:6px;border-radius:2px;background:currentColor}
+.mc.micro{color:var(--m-micro);background:color-mix(in srgb,var(--m-micro) 13%,transparent)}
+.mc.tomnaya{color:var(--m-tomnaya);background:color-mix(in srgb,var(--m-tomnaya) 13%,transparent)}
+.mc.coop{color:var(--m-coop);background:color-mix(in srgb,var(--m-coop) 16%,transparent)}
+.mc.cta{color:var(--m-cta);background:color-mix(in srgb,var(--m-cta) 13%,transparent)}
+.mline{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;
+  justify-content:center;font-family:var(--f-mono);font-size:10px;font-weight:600;color:#fff}
+.mline.l1{background:var(--m1)} .mline.l2{background:var(--m2)} .mline.l3{background:var(--m3)}
+
+/* review split */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:16px}
+@media (max-width:1080px){.split{grid-template-columns:1fr}}
+.mapbox{background:var(--c-raise);border-radius:12px;overflow:hidden;border:1px solid var(--c-line)}
+.mapbox svg{width:100%;height:290px;display:block}
+.legend{display:flex;gap:16px;padding:11px 14px;font-size:12px;border-top:1px solid var(--c-line);
+  flex-wrap:wrap;background:var(--c-panel)}
+.legend span{display:inline-flex;align-items:center;gap:7px;color:var(--c-ink2)}
+.legend i{width:16px;height:3px;border-radius:2px;display:block}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--c-line);font-size:13px}
+.kv:last-of-type{border-bottom:0}
+.kv b{font-weight:500} .kv span{color:var(--c-ink2);text-align:left}
+.acts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.btn{font:inherit;font-size:14px;font-weight:600;font-family:var(--f-display);padding:11px 14px;
+  border-radius:10px;border:0;background:var(--c-accent);color:var(--c-accent-ink);
+  cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:9px}
+.btn.ghost{background:transparent;border:1px solid var(--c-line);color:var(--c-ink);font-weight:500}
+.btn.danger{background:transparent;border:1px solid var(--crit);color:var(--crit);font-weight:500}
+.btn:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
+kbd{font-family:var(--f-mono);font-size:10.5px;border:1px solid currentColor;border-radius:4px;
+  padding:1px 5px;opacity:.65;direction:ltr}
+
+.note{font-size:13px;color:var(--c-ink2);line-height:1.6;background:var(--c-raise);
+  border-radius:11px;padding:13px 15px}
+.note b{color:var(--c-ink)}
+.note.accent{background:var(--c-accent-soft)}
+.note.crit{background:var(--crit-bg);color:var(--c-ink)}
+
+.runbook{font-family:var(--f-mono);font-size:12px;direction:ltr;text-align:left;
+  background:var(--c-raise);border:1px solid var(--c-line);border-radius:9px;
+  padding:10px 12px;overflow-x:auto;white-space:pre}
+
+.gauge{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.bars{display:flex;gap:3px;align-items:flex-end;height:44px}
+.bars i{width:9px;border-radius:2px 2px 0 0;background:var(--c-line);display:block}
+.bars i.a{background:var(--ok)} .bars i.b{background:var(--crit)}
+
+.cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.caption{margin-top:16px;color:var(--pg-ink2);font-size:13.5px;line-height:1.65;max-width:78ch}
+.caption b{color:var(--pg-ink)}
+footer{margin-top:44px;border-top:1px solid var(--pg-line);padding-top:20px;
+  color:var(--pg-ink2);font-size:13px;line-height:1.65}
+.attrib{font-size:12.5px;font-style:italic;margin-top:10px;
+  border-inline-start:2px solid var(--pg-accent);padding-inline-start:12px}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <div>
+      <p class="eyebrow">Design prototype · internal console</p>
+      <h1>لوحة تشغيل مسار</h1>
+      <p>Arabic UI for the volunteer moderators who do the queue work. Technical terms stay
+         in English — <span class="tech">graph.obj</span>, walk-only rate, OTP — because that
+         is what the logs and runbooks say, and a number on screen should be traceable to a
+         command.</p>
+    </div>
+    <div class="toggles">
+      <button class="tg" id="lightBtn" aria-pressed="true">Console light</button>
+      <button class="tg" id="darkBtn" aria-pressed="false">Console dark</button>
+    </div>
+  </div>
+
+  <div class="console" id="console" data-c-theme="light" dir="rtl">
+    <div class="shell">
+      <aside class="side" id="side">
+        <div class="brand"><span class="bm">م</span><b>مسار</b></div>
+      </aside>
+
+      <main class="main">
+
+        <!-- OPS HEALTH -->
+        <section class="view on" data-k="ops">
+          <div class="head">
+            <div><h2>صحة البيانات والتشغيل</h2>
+              <p>آخر تحديث من 40 ثانية · <span class="tech">OTP 2.11.0</span></p></div>
+            <span class="pill crit"><i></i>محتاج تدخل</span>
+          </div>
+
+          <div class="tiles">
+            <div class="tile hot">
+              <span class="lbl">walk-only rate <span class="pill crit"><i></i>خطر</span></span>
+              <span class="val">61<small>%</small></span>
+              <span class="sub">was 4% · +57pt in 2h</span>
+            </div>
+            <div class="tile">
+              <span class="lbl">routes in graph</span>
+              <span class="val">1,012</span><span class="sub">expected 1,012 ✓</span>
+            </div>
+            <div class="tile">
+              <span class="lbl">stops in graph</span>
+              <span class="val">3,105</span><span class="sub">expected 3,105 ✓</span>
+            </div>
+            <div class="tile warnT">
+              <span class="lbl">calendar expiry</span>
+              <span class="val">83<small>يوم</small></span>
+              <span class="sub">feed_end_date 20271231</span>
+            </div>
+            <div class="tile">
+              <span class="lbl">OTP uptime</span>
+              <span class="val">23<small>س</small></span><span class="sub">p95 240ms</span>
+            </div>
+          </div>
+
+          <div class="note crit">
+            <b>الـ walk-only rate قفز من 4% لـ 61% في ساعتين.</b>
+            ده مش عطل في الشبكة — ده معناه إن OTP بقى بيرجّع مشي بدل المواصلات،
+            يعني على الأغلب الـ feeds مادخلتش الـ graph أصلاً.
+            الـ graph ممكن يتبني كويس وهو فاضي من المواصلات، والنتيجة بتبان «منطقية»، فمحدش بياخد باله.
+            <div class="runbook">curl -s localhost:8000/health | jq '.route_count, .stop_count'
+# 0 and 0 → feeds not loaded. Check filenames match (?i)gtfs
+docker logs otp | grep -E '🚌|Unable to build'</div>
+          </div>
+
+          <div class="panel">
+            <header><h3>walk-only rate · آخر 24 ساعة</h3>
+              <span class="hint">كل عمود = ساعة · الأحمر فوق 20%</span></header>
+            <div class="chartwrap">
+              <svg class="chart" viewBox="0 0 720 132" role="img"
+                   aria-label="walk-only rate over 24 hours, rising sharply in the last two hours">
+                <line x1="36" y1="18" x2="712" y2="18" stroke="var(--c-line)" stroke-width="1"/>
+                <line x1="36" y1="56" x2="712" y2="56" stroke="var(--c-line)" stroke-width="1"/>
+                <line x1="36" y1="94" x2="712" y2="94" stroke="var(--c-line)" stroke-width="1"/>
+                <text x="30" y="22" text-anchor="end" font-size="10" fill="var(--c-ink3)" font-family="monospace">80%</text>
+                <text x="30" y="60" text-anchor="end" font-size="10" fill="var(--c-ink3)" font-family="monospace">40%</text>
+                <text x="30" y="98" text-anchor="end" font-size="10" fill="var(--c-ink3)" font-family="monospace">0%</text>
+                <g id="bars"></g>
+                <text x="44" y="124" font-size="10" fill="var(--c-ink3)" font-family="monospace">10:00</text>
+                <text x="690" y="124" font-size="10" fill="var(--c-ink3)" font-family="monospace" text-anchor="end">now</text>
+              </svg>
+            </div>
+          </div>
+
+          <div class="cols2">
+            <div class="panel"><header><h3>الـ feeds</h3></header>
+              <table class="tbl"><tbody>
+                <tr><td><b>gtfs-road.zip</b><br><span class="num" style="font-size:11.5px;color:var(--c-ink3)">1,011 routes · 2,997 stops</span></td>
+                  <td style="text-align:left"><span class="pill ok"><i></i>محمّل</span></td></tr>
+                <tr><td><b>gtfs-metro.zip</b><br><span class="num" style="font-size:11.5px;color:var(--c-ink3)">2 routes · 108 stops</span></td>
+                  <td style="text-align:left"><span class="pill ok"><i></i>محمّل</span></td></tr>
+                <tr><td><b>egypt-260919.osm.pbf</b><br><span class="num" style="font-size:11.5px;color:var(--c-ink3)">178 MB · all Egypt</span></td>
+                  <td style="text-align:left"><span class="pill warn"><i></i>أكبر من اللازم</span></td></tr>
+              </tbody></table></div>
+
+            <div class="panel"><header><h3>آخر بناء للـ graph</h3></header>
+              <div class="pad">
+                <div class="kv"><b>الحالة</b><span><span class="pill ok"><i></i>نجح</span></span></div>
+                <div class="kv"><b>المدة</b><span class="num">4m 57s</span></div>
+                <div class="kv"><b>الحجم</b><span class="num">529 MB</span></div>
+                <div class="kv"><b>transit في الـ graph</b><span><span class="pill ok"><i></i>اتأكد</span></span></div>
+                <div class="note" style="margin-top:12px"><b>التحقق مش «الملف اتكتب».</b>
+                  البناء بيعدّي وهو فاضي من المواصلات، فبنسأل الـ graph عن عدد الخطوط
+                  قبل ما نعتمده.</div>
+              </div></div>
+          </div>
+        </section>
+
+        <!-- QUEUE -->
+        <section class="view" data-k="queue">
+          <div class="head">
+            <div><h2>البلاغات المستنية</h2>
+              <p>18 بلاغ · 4 وصلوا التأكيد التاني وجاهزين للنشر</p></div>
+            <span class="pill ok"><i></i>الكيبورد شغال: <kbd>J</kbd> <kbd>K</kbd> <kbd>A</kbd> <kbd>R</kbd></span>
+          </div>
+          <div class="panel">
+            <header><h3>الطابور</h3><span class="hint">مرتّب بالأقدم · اضغط صف عشان تراجعه</span></header>
+            <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr><th>البلاغ</th><th>النوع</th><th>المبلّغ</th><th>تأكيدات</th><th>العمر</th></tr></thead>
+              <tbody>
+                <tr aria-selected="true" data-go="review">
+                  <td><b>الميكروباص من المنيب لفيصل بقى بيقف قبل الكوبري</b></td>
+                  <td><span class="mc micro"><span class="g"></span>موقف اتنقل</span></td>
+                  <td><div class="who"><b>مساهم #4412</b><span class="trust">
+                    <span class="tbar"><i style="width:82%"></i></span>0.82</span></div></td>
+                  <td><span class="num">2 / 2</span> <span class="pill ok"><i></i>جاهز</span></td>
+                  <td><span class="num">6d</span></td></tr>
+                <tr data-go="review">
+                  <td><b>خط التمنايا من الهرم للمنيب مابقاش موجود</b></td>
+                  <td><span class="mc tomnaya"><span class="g"></span>خط اتلغى</span></td>
+                  <td><div class="who"><b>مساهم #0918</b><span class="trust">
+                    <span class="tbar mid"><i style="width:48%"></i></span>0.48</span></div></td>
+                  <td><span class="num">1 / 2</span></td><td><span class="num">4d</span></td></tr>
+                <tr data-go="review">
+                  <td><b>أتوبيس 381 بيعدّي من مكرم عبيد دلوقتي</b></td>
+                  <td><span class="mc cta"><span class="g"></span>مسار اتغير</span></td>
+                  <td><div class="who"><b>مساهم #2277</b><span class="trust">
+                    <span class="tbar"><i style="width:91%"></i></span>0.91</span></div></td>
+                  <td><span class="num">2 / 2</span> <span class="pill ok"><i></i>جاهز</span></td>
+                  <td><span class="num">3d</span></td></tr>
+                <tr data-go="review">
+                  <td><b>فيه خط ميكروباص جديد من المعادي للتجمع</b></td>
+                  <td><span class="mc micro"><span class="g"></span>خط جديد</span></td>
+                  <td><div class="who"><b>مساهم #7731</b><span class="trust">
+                    <span class="tbar low"><i style="width:19%"></i></span>0.19</span></div></td>
+                  <td><span class="num">0 / 2</span></td><td><span class="num">1d</span></td></tr>
+                <tr data-go="review">
+                  <td><b>محطة العتبة مقفولة للتطوير</b></td>
+                  <td><span class="mline l2">M2</span> <span style="font-size:12px">محطة مقفولة</span></td>
+                  <td><div class="who"><b>مساهم #3390</b><span class="trust">
+                    <span class="tbar"><i style="width:74%"></i></span>0.74</span></div></td>
+                  <td><span class="num">3 / 2</span> <span class="pill ok"><i></i>جاهز</span></td>
+                  <td><span class="num">9h</span></td></tr>
+              </tbody>
+            </table></div>
+          </div>
+          <div class="note accent"><b>التأكيد التاني هو اللي بينشر، مش المراجع.</b>
+            دور المراجع إنه يمنع الغلط الواضح ويشوف الحاجات اللي البيانات مش بتوصلها —
+            مش إنه يحكم على كل بلاغ لوحده.</div>
+        </section>
+
+        <!-- REVIEW -->
+        <section class="view" data-k="review">
+          <div class="head">
+            <div><h2>مراجعة بلاغ <span class="num" style="color:var(--c-ink3)">#4412-a</span></h2>
+              <p>الميكروباص من المنيب لفيصل بقى بيقف قبل الكوبري</p></div>
+            <span class="pill ok"><i></i>2 / 2 تأكيد</span>
+          </div>
+          <div class="split">
+            <div class="mapbox">
+              <svg viewBox="0 0 700 290" role="img" aria-label="الخط الحالي مقابل المقترح">
+                <rect width="700" height="290" fill="var(--c-raise)"/>
+                <g stroke="var(--c-line)" stroke-width="10" fill="none" stroke-linecap="round">
+                  <path d="M-20 232 L180 214 L380 180 L720 150"/>
+                  <path d="M120 300 L160 180 L200 40"/>
+                </g>
+                <path d="M80 250 L250 206 L430 168 L600 140" stroke="var(--c-ink3)"
+                      stroke-width="4" fill="none" stroke-dasharray="9 7" stroke-linecap="round"/>
+                <path d="M80 250 L250 206 L400 176" stroke="var(--m-micro)"
+                      stroke-width="5" fill="none" stroke-linecap="round"/>
+                <circle cx="80" cy="250" r="7" fill="var(--c-panel)" stroke="var(--m-micro)" stroke-width="3.5"/>
+                <circle cx="600" cy="140" r="7" fill="var(--c-panel)" stroke="var(--c-ink3)" stroke-width="3.5"/>
+                <circle cx="400" cy="176" r="9" fill="var(--m-micro)"/>
+                <text x="400" y="203" font-size="12" fill="var(--c-ink)" text-anchor="middle"
+                      font-family="IBM Plex Sans Arabic, sans-serif">الموقف المقترح</text>
+                <text x="600" y="126" font-size="12" fill="var(--c-ink3)" text-anchor="middle"
+                      font-family="IBM Plex Sans Arabic, sans-serif">الموقف الحالي</text>
+              </svg>
+              <div class="legend">
+                <span><i style="background:var(--c-ink3)"></i>الحالي في البيانات</span>
+                <span><i style="background:var(--m-micro)"></i>المقترح في البلاغ</span>
+                <span><i style="background:var(--c-line);height:7px"></i>الشوارع</span>
+              </div>
+            </div>
+            <div>
+              <div class="panel"><div class="pad">
+                <div class="kv"><b>الخط</b><span class="num">2:r511</span></div>
+                <div class="kv"><b>المشغّل</b><span><span class="mc micro"><span class="g"></span>ميكروباص</span></span></div>
+                <div class="kv"><b>المسافة</b><span class="num">‎−1.9 km</span></div>
+                <div class="kv"><b>المبلّغ</b><span class="num">#4412 · 0.82</span></div>
+                <div class="kv"><b>أكّدوه</b><span class="num">#0918 · #2277</span></div>
+                <div class="kv"><b>بلاغات قريبة</b><span class="num">3 في 400 م</span></div>
+              </div></div>
+              <div class="note" style="margin-top:12px"><b>3 بلاغات تانية في نفس المنطقة</b>
+                خلال أسبوعين، كلها بتقول إن الموقف اتنقل. ده بيقوّي البلاغ.</div>
+              <div class="acts">
+                <button class="btn" data-go="published">اعتمد وانشر <kbd>A</kbd></button>
+                <button class="btn ghost">محتاج تفاصيل أكتر</button>
+                <button class="btn danger">ارفض — بسبب <kbd>R</kbd></button>
+              </div>
+              <div class="note" style="margin-top:12px;font-size:12.5px">
+                الاعتماد بيكتب <span class="tech">source: community</span> و
+                <span class="tech">confidence: reported</span>، وبيفضل ممكن يترجع.
+                البيانات الأصلية من TfC مابتتغيّرش.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PUBLISHED -->
+        <section class="view" data-k="published">
+          <div class="head"><div><h2>اتنشر</h2>
+            <p>البلاغ <span class="num">#4412-a</span> بقى ظاهر للناس</p></div></div>
+          <div class="tiles">
+            <div class="tile"><span class="lbl">rebuild</span><span class="val">جاري</span>
+              <span class="sub">eta 5m · graph swap on verify</span></div>
+            <div class="tile"><span class="lbl">source</span><span class="val" style="font-size:19px">community</span>
+              <span class="sub">confidence: reported</span></div>
+            <div class="tile"><span class="lbl">تراجع</span><span class="val" style="font-size:19px">متاح</span>
+              <span class="sub">audit id 4412-a</span></div>
+          </div>
+          <div class="note accent"><b>الـ graph بيتبني على جنب الأول.</b>
+            مابيتبدلش غير لما نتأكد إن المواصلات جوّاه فعلاً — عشان بناء فاضي بيعدّي
+            من غير أي رسالة خطأ.</div>
+          <div class="note"><b>ثقة المبلّغ #4412 زادت</b> من 0.82 لـ 0.84.
+            الثقة العالية بتقلل عدد التأكيدات المطلوبة، مش بتلغيها.</div>
+          <button class="btn ghost" style="width:auto;align-self:flex-start;padding:11px 22px"
+                  data-go="queue">رجوع للطابور</button>
+        </section>
+
+        <!-- NETWORK -->
+        <section class="view" data-k="network">
+          <div class="head"><div><h2>تصفّح الشبكة</h2>
+            <p>1,012 خط · 3,105 موقف · القاهرة الكبرى</p></div></div>
+          <div class="tiles">
+            <div class="tile"><span class="lbl">ميكروباص</span><span class="val">511</span>
+              <span class="sub">P_O_14 · orange plates</span></div>
+            <div class="tile"><span class="lbl">أتوبيس CTA</span><span class="val">244</span>
+              <span class="sub">CTA</span></div>
+            <div class="tile"><span class="lbl">ميني باص</span><span class="val">107</span>
+              <span class="sub">CTA_M</span></div>
+            <div class="tile"><span class="lbl">تمنايا</span><span class="val">70</span>
+              <span class="sub">P_B_8 · blue plates</span></div>
+            <div class="tile warnT"><span class="lbl">مواقف من غير اسم عربي</span>
+              <span class="val">108</span><span class="sub">metro feed · no translations.txt</span></div>
+          </div>
+          <div class="panel">
+            <header><h3>الخطوط</h3><span class="hint">البحث بيبدأ من أول الاسم</span></header>
+            <div style="overflow-x:auto"><table class="tbl">
+              <thead><tr><th>الخط</th><th>المشغّل</th><th>مواقف</th><th>الاسم العربي</th><th>المصدر</th></tr></thead>
+              <tbody>
+                <tr><td><b>ميكروباص: المنيب ← فيصل</b><br>
+                  <span style="font-size:11.5px;color:var(--c-ink3)">مافيش رقم خط</span></td>
+                  <td><span class="mc micro"><span class="g"></span>ميكروباص</span></td>
+                  <td><span class="num">18</span></td>
+                  <td><span class="pill ok"><i></i>كامل</span></td>
+                  <td><span class="num">tfc</span></td></tr>
+                <tr><td><b>M1 — حلوان ← المرج الجديدة</b></td>
+                  <td><span class="mline l1">M1</span></td>
+                  <td><span class="num">35</span></td>
+                  <td><span class="pill crit"><i></i>ناقص</span></td>
+                  <td><span class="num">tfc</span></td></tr>
+                <tr><td><b>أتوبيس 381 — رمسيس ← المعادي</b></td>
+                  <td><span class="mc cta"><span class="g"></span>CTA</span></td>
+                  <td><span class="num">27</span></td>
+                  <td><span class="pill ok"><i></i>كامل</span></td>
+                  <td><span class="num">tfc</span></td></tr>
+                <tr><td><b>تمنايا: الهرم ← المنيب</b></td>
+                  <td><span class="mc tomnaya"><span class="g"></span>تمنايا</span></td>
+                  <td><span class="num">9</span></td>
+                  <td><span class="pill ok"><i></i>كامل</span></td>
+                  <td><span class="num">tfc</span></td></tr>
+              </tbody></table></div>
+          </div>
+          <div class="note"><b>الخط الثالث للمترو مش موجود خالص في البيانات.</b>
+            من أكتر الخطوط زحمة في القاهرة، ولازم يتضاف بالإيد — مش هيظهر هنا لحد ما يتعمل.</div>
+        </section>
+
+        <!-- CONTRIBUTORS -->
+        <section class="view" data-k="people">
+          <div class="head"><div><h2>المساهمين</h2>
+            <p>من غير حسابات — التعريف بالجهاز بس</p></div></div>
+          <div class="panel">
+            <header><h3>الأعلى ثقة</h3><span class="hint">الثقة بتقلل التأكيدات المطلوبة، مش بتلغيها</span></header>
+            <div style="overflow-x:auto"><table class="tbl">
+              <thead><tr><th>المساهم</th><th>الثقة</th><th>اتقبل</th><th>اترفض</th><th>آخر بلاغ</th></tr></thead>
+              <tbody>
+                <tr><td><b>#2277</b></td>
+                  <td><span class="trust"><span class="tbar"><i style="width:91%"></i></span>0.91</span></td>
+                  <td><span class="num">47</span></td><td><span class="num">2</span></td>
+                  <td><span class="num">3d</span></td></tr>
+                <tr><td><b>#4412</b></td>
+                  <td><span class="trust"><span class="tbar"><i style="width:84%"></i></span>0.84</span></td>
+                  <td><span class="num">31</span></td><td><span class="num">3</span></td>
+                  <td><span class="num">6d</span></td></tr>
+                <tr><td><b>#0918</b></td>
+                  <td><span class="trust"><span class="tbar mid"><i style="width:48%"></i></span>0.48</span></td>
+                  <td><span class="num">9</span></td><td><span class="num">7</span></td>
+                  <td><span class="num">4d</span></td></tr>
+                <tr><td><b>#7731</b></td>
+                  <td><span class="trust"><span class="tbar low"><i style="width:19%"></i></span>0.19</span></td>
+                  <td><span class="num">1</span></td><td><span class="num">11</span></td>
+                  <td><span class="num">1d</span></td></tr>
+              </tbody></table></div>
+          </div>
+          <div class="note"><b>الحظر مابيمسحش اللي اتأكد قبل كده.</b>
+            لو حد اتحظر، بلاغاته اللي اتأكدت باللي تاني بتفضل — لأنها اتأكدت، مش لأنه هو اللي بعتها.</div>
+        </section>
+
+        <!-- PUBLIC -->
+        <section class="view" data-k="public">
+          <div class="head"><div><h2>صفحة الشفافية</h2>
+            <p>الصفحة الوحيدة من غير تسجيل دخول · <span class="tech">masar.eg/data</span></p></div></div>
+          <div class="tiles">
+            <div class="tile"><span class="lbl">خطوط</span><span class="val">1,012</span>
+              <span class="sub">updated 2026-09-21</span></div>
+            <div class="tile"><span class="lbl">مواقف</span><span class="val">3,105</span>
+              <span class="sub">Greater Cairo only</span></div>
+            <div class="tile"><span class="lbl">بلاغات اتنشرت</span><span class="val">312</span>
+              <span class="sub">community-sourced</span></div>
+            <div class="tile"><span class="lbl">التغطية</span><span class="val" style="font-size:19px">القاهرة الكبرى</span>
+              <span class="sub">29.75–30.35 N</span></div>
+          </div>
+          <div class="panel"><header><h3>اللي إحنا مش عارفينه</h3></header><div class="pad">
+            <div class="kv"><b>الخط الثالث للمترو</b><span>مش موجود في البيانات</span></div>
+            <div class="kv"><b>الأجرة</b><span>بيانات 2018، مش بنعرضها</span></div>
+            <div class="kv"><b>الأسماء العربية للمترو</b><span>108 موقف من غير ترجمة</span></div>
+            <div class="kv"><b>المواقع اللحظية</b><span>مافيش مصدر في مصر</span></div>
+            <div class="kv"><b>باقي المحافظات</b><span>مافيش بيانات مواصلات أصلاً</span></div>
+          </div></div>
+          <div class="note accent" dir="ltr" style="text-align:left;font-size:13px">
+            This data was created by Transport for Cairo 'TfC' with DigitalMatatus and Takween
+            for Integrated Community Development, under the Digital Cairo Project supported by
+            ExpoLive 2020.</div>
+        </section>
+
+        <!-- SIGN IN -->
+        <section class="view" data-k="signin">
+          <div class="head"><div><h2>تسجيل الدخول</h2>
+            <p>للمراجعين بس — الركاب مش محتاجين حساب خالص</p></div></div>
+          <div style="max-width:380px">
+            <div class="panel"><div class="pad">
+              <div class="kv"><b>الدور</b><span>مراجع / أدمن</span></div>
+              <div class="kv"><b>الصلاحية</b><span>اعتماد ورفض البلاغات</span></div>
+              <div class="kv"><b>الأدمن كمان</b><span>الثقة والحظر والنشر</span></div>
+            </div></div>
+            <div class="acts">
+              <button class="btn">ادخل</button>
+              <button class="btn ghost" data-go="public">صفحة الشفافية من غير دخول</button>
+            </div>
+            <div class="note" style="margin-top:14px"><b>ليه فيه دخول هنا بس؟</b>
+              اللي بيتعمل هنا بيغيّر اللي كل الناس بتشوفه. أما التطبيق نفسه فمافيهوش
+              حسابات ومابيعرفش مين انت.</div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <p class="caption" id="caption"></p>
+
+  <footer>
+    <b>The ops surface leads on purpose.</b> Every fault this project has had produced
+    plausible output — a walk-only itinerary looks like an answer, and an empty graph builds
+    without an error. The walk-only rate is the single number that would have caught it on
+    day one, so it gets the largest tile, a severity stripe, and the runbook command directly
+    underneath.
+    <div class="attrib">This data was created by Transport for Cairo 'TfC' with
+      DigitalMatatus and Takween for Integrated Community Development, under the Digital
+      Cairo Project supported by ExpoLive 2020.</div>
+  </footer>
+</div>
+
+<script>
+const NAV=[
+  ["المراقبة",[["ops","صحة التشغيل","O-01"]]],
+  ["البلاغات",[["queue","الطابور","M-02",4],["review","مراجعة بلاغ","M-03"],
+               ["published","بعد النشر","M-04"],["people","المساهمين","M-05"]]],
+  ["الشبكة",[["network","تصفّح الشبكة","M-06"]]],
+  ["عام",[["public","صفحة الشفافية","—"],["signin","تسجيل الدخول","M-01"]]]
+];
+const NOTES={
+ ops:"Walk-only rate gets the biggest tile and a severity stripe because it is the one number that detects a silently empty graph. The runbook command sits under the alert, so a figure on screen leads straight to a command in a terminal.",
+ queue:"Trust is a bar, not just a decimal — comparable down a column at a glance. Keyboard shortcuts are advertised, because a moderator working 50 submissions should never reach for the mouse.",
+ review:"Proposed against current on one map, in the mode's own plate colour. Nearby corroborating reports are surfaced, since they usually decide it.",
+ published:"Says plainly that the graph is built aside and only swapped once transit is verified present — an empty build passes silently otherwise.",
+ network:"Where a maintainer finds problems before a user reports one. Missing Arabic names are counted as a metric, not buried.",
+ people:"No accounts anywhere — device identifiers only. Banning someone does not retract what others already confirmed.",
+ public:"The only surface without auth, and it leads with what we do NOT know. Attribution verbatim in English, as the licence requires.",
+ signin:"Auth exists here and nowhere else, and the screen explains why: this console changes what everyone sees; the app does not."
+};
+const side=document.getElementById('side'),root=document.getElementById('console'),
+      cap=document.getElementById('caption');
+let flat=[];
+NAV.forEach(([g,items])=>{
+  const h=document.createElement('div');h.className='grp';h.textContent=g;side.appendChild(h);
+  items.forEach(([k,label,sid,badge])=>{
+    flat.push([k,label,sid]);
+    const b=document.createElement('button');b.dataset.k=k;
+    b.innerHTML='<span>'+label+'</span>'+(badge?'<span class="badge">'+badge+'</span>':'');
+    b.addEventListener('click',()=>show(k));side.appendChild(b);
+  });
+});
+function show(k){
+  root.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.dataset.k===k));
+  side.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.k===k)));
+  const m=flat.find(f=>f[0]===k)||['','',''];
+  cap.innerHTML='<b>'+m[1]+' · '+m[2]+'</b> — '+(NOTES[k]||'');
+  try{history.replaceState(null,'','#'+k)}catch(e){}
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go]');if(t)show(t.dataset.go);});
+const lb=document.getElementById('lightBtn'),db=document.getElementById('darkBtn');
+function theme(t){root.dataset.cTheme=t;lb.setAttribute('aria-pressed',String(t==='light'));
+  db.setAttribute('aria-pressed',String(t==='dark'));}
+lb.addEventListener('click',()=>theme('light'));
+db.addEventListener('click',()=>theme('dark'));
+// walk-only chart: quiet all day, then the spike that means the feeds stopped loading
+const vals=[3,4,3,5,4,3,4,6,4,3,4,5,4,3,4,5,4,3,4,6,5,18,44,61];
+const g=document.getElementById('bars');
+vals.forEach((v,i)=>{
+  const x=44+i*28, h=Math.max(2,(v/80)*76), y=94-h;
+  const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+  r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',18);
+  r.setAttribute('height',h);r.setAttribute('rx',3);
+  r.setAttribute('fill',v>20?'var(--crit)':'var(--ok)');
+  g.appendChild(r);
+});
+const initial=(location.hash||'#ops').slice(1);
+show(initial in NOTES?initial:'ops');
+</script>

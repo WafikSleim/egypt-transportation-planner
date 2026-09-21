@@ -39,10 +39,23 @@ under a second. Run them before and after any change to `api/` or
 `api.otp.TRANSPORT`, which exists purely so tests can drive the real request
 path; leave it `None` in production.
 
-The backlog is in [docs/user-stories.md](docs/user-stories.md) — 31 stories
+The backlog is in [docs/user-stories.md](docs/user-stories.md) — 34 stories
 across passenger, contributor, moderator and maintainer. Priority there is
-scoped to each story's own phase; the v1 release gate is the 15 Phase 2 and
+scoped to each story's own phase; the v1 release gate is the 18 Phase 2 and
 Phase 3 `must` stories.
+
+Design is done and is **core product value here, not surface**. The tokens,
+type, Egyptian-Arabic copy and the non-negotiable rules live in
+[docs/design-system.md](docs/design-system.md) — build from that, not by
+reading colours out of the prototypes in `design/`.
+
+Two things in there are easy to undo by accident:
+
+- **Mode colours are real licence-plate colours** (microbus orange, tomnaya
+  blue, cooperative grey), because that is how Cairenes identify a vehicle
+  before reading it. Mode comes from `agency_id`, never `route_type`.
+- **Metro uses circular line badges, not pills.** That form difference is the
+  only thing keeping M1's blue from reading as a tomnaya.
 
 Next: the app design prototype, then deployment to Oracle Cloud Always Free
 (chosen because the licence forbids revenue; OTP measures 3.4 GB serving, and
