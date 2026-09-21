@@ -70,7 +70,7 @@ Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
 and `Radii` are scaled getters rather than constants — which is why widgets
 using them are not `const`.
 
-Tests live in `tests/` (Python, 74) and `app/test/` (Dart, 63). The Dart
+Tests live in `tests/` (Python, 47) and `app/test/` (Dart, 63). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
