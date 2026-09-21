@@ -223,6 +223,54 @@ async def test_lang_is_forwarded_to_otp_as_accept_language(fake_otp, client):
     assert fake_otp.requests[0]["lang"] == "ar"
 
 
+async def test_arabic_itinerary_uses_translated_stop_names(fake_otp, client):
+    """OTP applies translations.txt inconsistently: stop(id:) returns Arabic
+    while the same stop inside a plan leg comes back Latin. Verified against
+    2.11.0-SNAPSHOT on 2026-09-21. Names are fetched separately and merged, so
+    an Arabic itinerary is actually in Arabic."""
+    fake_otp.itineraries = [microbus_itinerary()]
+    fake_otp.stop_names = {"2:1145": "المنيب",
+                           "2:2001": "كايرو فستيفال"}
+    async with client as c:
+        body = (await c.get("/plan", params={**CAIRO, "lang": "ar"})).json()
+
+    leg = [l for l in body["itineraries"][0]["legs"] if l["is_transit"]][0]
+    assert leg["from"]["name"] == "المنيب"
+    assert leg["to"]["name"] == "كايرو فستيفال"
+    # The microbus display name is built from those stops, so it must follow.
+    assert "المنيب" in leg["route"]["display_name"]
+    assert "ميكروباص" in leg["route"]["display_name"]
+
+
+async def test_english_itinerary_skips_the_extra_lookup(fake_otp, client):
+    """The name query is a wasted round trip for English."""
+    fake_otp.itineraries = [microbus_itinerary()]
+    async with client as c:
+        await c.get("/plan", params={**CAIRO, "lang": "en"})
+    assert not any("StopNames" in r["query"] for r in fake_otp.requests)
+
+
+async def test_origin_and_destination_labels_translated(fake_otp, client):
+    """OTP labels the caller's own coordinates "Origin"/"Destination" -- the
+    only part of an itinerary the feed's translations do not cover."""
+    fake_otp.itineraries = [microbus_itinerary()]
+    async with client as c:
+        body = (await c.get("/plan", params={**CAIRO, "lang": "ar"})).json()
+    assert body["itineraries"][0]["legs"][0]["from"]["name"] == "نقطة البداية"
+
+
+async def test_untranslated_stop_keeps_its_latin_name(fake_otp, client):
+    """The metro feed has no translations.txt at all -- its 108 stops must
+    still render, not come back blank."""
+    fake_otp.itineraries = [microbus_itinerary()]
+    fake_otp.stop_names = {}
+    async with client as c:
+        body = (await c.get("/plan", params={**CAIRO, "lang": "ar"})).json()
+
+    leg = [l for l in body["itineraries"][0]["legs"] if l["is_transit"]][0]
+    assert leg["from"]["name"] == "Moneeb"
+
+
 async def test_unsupported_language_rejected(fake_otp, client):
     async with client as c:
         r = await c.get("/plan", params={**CAIRO, "lang": "fr"})

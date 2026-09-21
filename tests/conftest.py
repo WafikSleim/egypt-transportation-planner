@@ -161,6 +161,9 @@ class FakeOTP:
         self.itineraries: list[dict] = []
         self.stops: list[dict] = []
         self.stop_routes: dict[str, list[dict]] = {}
+        # Localised names by stop id, as OTP's stops(ids:) resolver returns
+        # them. OTP will not supply these inside a plan response.
+        self.stop_names: dict[str, str] = {}
         self.health = HEALTH_DATA
         self.status_code = 200
         self.graphql_errors: list[dict] | None = None
@@ -189,6 +192,12 @@ class FakeOTP:
             data = {"stops": [
                 {"gtfsId": i, "routes": self.stop_routes.get(i, [])}
                 for i in ids
+            ]}
+        elif "StopNames" in q:
+            ids = body["variables"].get("ids") or []
+            data = {"stops": [
+                {"gtfsId": i, "name": self.stop_names[i]}
+                for i in ids if i in self.stop_names
             ]}
         elif "stops(name:" in q or "Stops(" in q:
             data = {"stops": self.stops}

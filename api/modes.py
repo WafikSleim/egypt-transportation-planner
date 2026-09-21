@@ -25,6 +25,9 @@ class Mode(NamedTuple):
     seats: int | None  # nominal capacity, None where it varies
     has_line_number: bool  # whether a route number exists to show the user
 
+    def label(self, lang: str) -> str:
+        return self.ar if lang == "ar" else self.en
+
 
 # Keyed on agency_id as it appears in the feeds' agency.txt.
 BY_AGENCY: dict[str, Mode] = {
@@ -45,6 +48,18 @@ BY_AGENCY: dict[str, Mode] = {
 }
 
 WALK = Mode("walk", "Walk", "سيرًا", None, False)
+
+# OTP labels the caller's own coordinates -- the ends of the trip that are not
+# stops -- with these literal English strings. They are the only part of an
+# itinerary not covered by the feed's translations.
+ENDPOINT_LABELS = {
+    "Origin": {"ar": "نقطة البداية"},
+    "Destination": {"ar": "الوجهة"},
+}
+
+
+def endpoint_label(name: str, lang: str) -> str:
+    return ENDPOINT_LABELS.get(name, {}).get(lang, name)
 
 # Fallback when OTP reports a transit leg whose agency we do not recognise --
 # a feed added later, most likely. Better a vague label than a crash.

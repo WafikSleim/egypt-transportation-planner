@@ -102,9 +102,15 @@ not even request fare fields, and every itinerary carries
 codes against this shape, and adding them once a second data source arrives
 would mean revising the client too.
 
-**Serves Arabic.** `lang=ar` is forwarded to OTP as `Accept-Language`, which
-applies the road feed's `translations.txt` — all 2,997 road stops have an
-Arabic name. The metro feed has no translations, so its 108 stops stay Latin.
+**Serves Arabic — including in itineraries, which OTP will not do.**
+`lang=ar` is forwarded as `Accept-Language`, applying the road feed's
+`translations.txt`; all 2,997 road stops have an Arabic name. But OTP applies
+it inconsistently: `stop(id:)` returns Arabic while the *same stop* inside a
+plan leg returns Latin. So localised names are fetched by id and merged in
+before the itinerary is built — which also localises the microbus display
+name, since that is built from its origin and destination. The metro feed has
+no translations at all, so its 108 stops stay Latin and are passed through
+unchanged rather than coming back blank.
 
 Note that OTP's stop search is **prefix-based, not substring**, and it searches
 in the requested language: `q=المنيب&lang=ar` matches, `q=منيب` does not, and

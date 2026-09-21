@@ -82,6 +82,24 @@ query Stops($name: String!) {
 }
 """
 
+# Localised stop names by id.
+#
+# Needed because OTP applies translations.txt inconsistently: with
+# Accept-Language: ar the top-level stop(id:) resolver returns the Arabic name,
+# but the same stop reached through plan { legs { from { stop { name } } } }
+# comes back in Latin -- verified in a single request against 2.11.0-SNAPSHOT
+# on 2026-09-21. Itineraries would otherwise be English-only, which is fatal
+# for an Arabic-first app. This resolver does translate, so names are fetched
+# separately and merged in.
+STOP_NAMES_QUERY = """
+query StopNames($ids: [String]) {
+  stops(ids: $ids) {
+    gtfsId
+    name
+  }
+}
+"""
+
 # Second hop: routes for the handful of stops actually being returned.
 STOP_ROUTES_QUERY = """
 query StopRoutes($ids: [String]) {

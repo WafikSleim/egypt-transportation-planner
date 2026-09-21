@@ -217,10 +217,28 @@ Checked on 2026-09-20: **all 2,997 road stops already have an Arabic name**, via
 100%, not zero. Note the feed uses the `field_value` form of `translations.txt`
 — rows match on the original string, not on `record_id`.
 
-OTP serves these itself: send `Accept-Language: ar` and stop names come back
-in Arabic. The API exposes that as `?lang=ar`, so no translation layer was
-needed. Note OTP's stop search is prefix-based and searches in the requested
-language.
+OTP serves these, but **inconsistently**, and this bit. With
+`Accept-Language: ar`:
+
+- `stop(id:)` and `stops(ids:)` return the Arabic name — correct
+- the same stop reached through `plan { legs { from { stop { name } } } }`
+  returns Latin
+
+Verified in a single request against 2.11.0-SNAPSHOT on 2026-09-21: stop
+`2:1145` came back as `المنيب` from `stop(id:)` and `Moneeb` from the plan leg.
+So itineraries — the thing the whole app is — were English-only while stop
+search looked fine, which is why this was easy to miss.
+
+`api/main.py` works around it: `_stop_names()` fetches localised names by id
+before the itinerary is built, so names derived from stops (a microbus route's
+display name is its origin and destination) are localised too. Skipped for
+English, where it would be a wasted round trip. If a later OTP fixes the
+resolver, this can go.
+
+OTP also labels the caller's own coordinates `Origin` / `Destination` in
+English; `modes.endpoint_label()` translates those. And OTP's stop search is
+prefix-based and searches in the requested language — `منيب` finds nothing,
+`المنيب` finds 16.
 
 What actually still needs Arabic is the **metro feed's 108 stops**, which has no
 `translations.txt` at all. That is a small enough set to do by hand; the planned

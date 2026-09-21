@@ -135,17 +135,22 @@ def _iso(epoch_millis: int | None) -> str:
     return dt.datetime.fromtimestamp(epoch_millis / 1000, tz=TZ).isoformat()
 
 
-def _place(raw: dict) -> Place:
+def _place(raw: dict, names: dict[str, str], lang: str) -> Place:
     stop = raw.get("stop") or {}
+    stop_id = stop.get("gtfsId")
     return Place(
-        name=raw.get("name") or "",
+        # `names` carries localised stop names fetched separately; see
+        # otp.STOP_NAMES_QUERY for why OTP cannot supply them inline.
+        name=(names.get(stop_id)
+              or modes.endpoint_label(raw.get("name") or "", lang)),
         lat=raw.get("lat") or 0.0,
         lon=raw.get("lon") or 0.0,
-        stop_id=stop.get("gtfsId"),
+        stop_id=stop_id,
     )
 
 
-def _route_info(raw_route: dict, mode: modes.Mode, frm: Place, to: Place) -> RouteInfo:
+def _route_info(raw_route: dict, mode: modes.Mode, frm: Place, to: Place,
+                lang: str) -> RouteInfo:
     """Build something displayable, which for paratransit means not relying on
     a route number that does not exist."""
     short = (raw_route.get("shortName") or "").strip() or None
@@ -160,7 +165,7 @@ def _route_info(raw_route: dict, mode: modes.Mode, frm: Place, to: Place) -> Rou
         # Hundreds of routes are literally named "Microbus". Origin and
         # destination are the only things that distinguish them, so that is
         # what the passenger gets.
-        display = f"{mode.en}: {frm.name} → {to.name}"
+        display = f"{mode.label(lang)}: {frm.name} → {to.name}"
 
     # Both conditions, not just the operator: a route whose operator normally
     # numbers its lines but which has no shortName has no badge to render.
@@ -178,13 +183,14 @@ def _route_info(raw_route: dict, mode: modes.Mode, frm: Place, to: Place) -> Rou
     )
 
 
-def _leg(raw: dict) -> Leg:
+def _leg(raw: dict, names: dict[str, str], lang: str) -> Leg:
     raw_route = raw.get("route") or {}
     agency = (raw_route.get("agency") or {}).get("gtfsId")
     otp_mode = raw.get("mode") or "WALK"
     mode = modes.resolve(agency, otp_mode)
 
-    frm, to = _place(raw.get("from") or {}), _place(raw.get("to") or {})
+    frm = _place(raw.get("from") or {}, names, lang)
+    to = _place(raw.get("to") or {}, names, lang)
     trip = raw.get("trip") or {}
 
     return Leg(
@@ -202,14 +208,14 @@ def _leg(raw: dict) -> Leg:
         distance_m=round(raw.get("distance") or 0),
         **{"from": frm},
         to=to,
-        route=_route_info(raw_route, mode, frm, to) if raw_route else None,
+        route=_route_info(raw_route, mode, frm, to, lang) if raw_route else None,
         headsign=raw.get("headsign") or trip.get("tripHeadsign") or None,
         intermediate_stops=len(raw.get("intermediatePlaces") or []),
     )
 
 
-def _itinerary(raw: dict) -> Itinerary:
-    legs = [_leg(leg) for leg in raw.get("legs") or []]
+def _itinerary(raw: dict, names: dict[str, str], lang: str) -> Itinerary:
+    legs = [_leg(leg, names, lang) for leg in raw.get("legs") or []]
     transit_legs = sum(1 for leg in legs if leg.is_transit)
     return Itinerary(
         start_time=_iso(raw.get("startTime")),
@@ -239,6 +245,35 @@ def _coords(value: str, field: str) -> dict[str, float]:
             "lat,lon.",
         )
     return {"lat": lat, "lon": lon}
+
+
+async def _stop_names(raw_itineraries: list[dict], lang: str) -> dict[str, str]:
+    """Fetch localised names for every stop the itineraries touch.
+
+    Done before the itineraries are built rather than patched afterwards, so
+    that names derived from stops -- a microbus route's display name, which is
+    origin and destination -- are localised too.
+
+    Skipped entirely for English, where it would be a wasted round trip.
+    """
+    if lang == "en":
+        return {}
+    ids = {
+        stop["gtfsId"]
+        for itin in raw_itineraries
+        for leg in itin.get("legs") or []
+        for end in ("from", "to")
+        for stop in [(leg.get(end) or {}).get("stop") or {}]
+        if stop.get("gtfsId")
+    }
+    if not ids:
+        return {}
+    data = await _otp(otp.STOP_NAMES_QUERY, {"ids": sorted(ids)}, lang)
+    return {
+        s["gtfsId"]: s["name"]
+        for s in data.get("stops") or []
+        if s and s.get("gtfsId") and s.get("name")
+    }
 
 
 async def _otp(query: str, variables: dict, lang: str) -> dict:
@@ -362,7 +397,8 @@ async def plan(
     }
     data = await _otp(otp.PLAN_QUERY, variables, lang)
     raw = (data.get("plan") or {}).get("itineraries") or []
-    itineraries = [_itinerary(i) for i in raw]
+    names = await _stop_names(raw, lang)
+    itineraries = [_itinerary(i, names, lang) for i in raw]
     # A walk-only itinerary is not an answer to "how do I get there by
     # transit". Outside Greater Cairo OTP returns them readily, because the
     # OSM extract covers the whole country while the feeds do not.
