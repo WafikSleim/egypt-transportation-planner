@@ -91,12 +91,23 @@ Keep that table **separate from the TfC data**. OSM is ODbL, TfC is CC BY-NC,
 and the two cannot be merged into one derived database.
 
 Work is tracked on the **Masar** project board (project 2 on the repo), as
-issues #1–#34. `Status` means: `Done` shipped, `Ready` nothing is stopping
-it, `Backlog` waiting on another issue named in the body. `P0` is the
-critical path — #11 storage, #14 `/places`, #19 map rendering, #21
-notifications — and everything in Backlog waits on one of those.
-`scripts/project_board.py` re-syncs the board after new issues are filed; it
-is idempotent and needs `gh auth refresh -s project`.
+issues #1–#34. The full specification is in [docs/board.md](docs/board.md) —
+read it before moving anything.
+
+The two rules that are not obvious: **`Backlog` means blocked by a named
+issue**, not "someday" (that is the `After v1` milestone); and **`In review`
+means the maintainer has to look**, because the claim rests on native
+Egyptian Arabic or on behaviour on real hardware. Nothing in this project has
+ever run on a phone — only widget tests and an APK build — so anything
+resting on that belongs in `In review`, not `Done`.
+
+`P0` is the critical path: #11 storage, #14 `/places`, #19 map rendering, #21
+notifications. Every Backlog item waits on one of those.
+
+`scripts/project_board.py` re-syncs the board; it is idempotent and needs
+`gh auth refresh -s project`. **Its `DONE` / `REVIEW` / `BLOCKED` sets are
+what it enforces**, so a status changed by hand is reverted on the next run —
+move an issue for good by editing those sets in the same commit as the work.
 
 The backlog is in [docs/user-stories.md](docs/user-stories.md) — 36 stories
 across passenger, contributor, moderator and maintainer. Priority there is

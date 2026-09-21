@@ -4,7 +4,10 @@
 Works with the Team-planning template's own fields rather than adding
 parallel ones:
 
-  Status    Done      the ten shipped issues
+  Status    Done      shipped, and verifiable without a human
+            In review shipped, but the claim rests on judgement only the
+                      maintainer can apply - native Egyptian Arabic, or how
+                      it behaves on real hardware
             Ready     work that can be picked up today
             Backlog   work waiting on another issue
   Priority  P0        on the critical path: blocks the v1 gate and blocks
@@ -39,7 +42,16 @@ AREA = {
     'Design & data': [33, 34],
 }
 
-DONE = set(range(1, 11))
+# Shipped and machine-verified: analyze, tests and a build settle these, so
+# there is nothing left for a person to judge.
+DONE = {1, 4, 5, 10}
+
+# Shipped, but "done" here is a claim I cannot check myself. Two things need
+# the maintainer: whether the Arabic reads as Egyptian speech rather than
+# translated English, and how any of it behaves on a real phone - nothing in
+# this project has ever run on hardware, only in widget tests and an APK
+# build. Each carries a comment saying exactly what to check.
+REVIEW = {2, 3, 6, 7, 8, 9}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = {12, 13, 15, 16, 17, 20, 22, 23, 24, 25}
@@ -53,7 +65,7 @@ SIZE = {
     19: 'L', 20: 'M', 21: 'M', 22: 'S', 23: 'M', 24: 'L', 25: 'M', 26: 'M',
     27: 'M', 28: 'S', 29: 'S', 30: 'S', 31: 'M', 32: 'XS', 33: 'XS', 34: 'M',
 }
-# Closed issues get Status and Area only. Estimating work that is already
+# Shipped issues get Status and Area only. Estimating work that is already
 # finished would be inventing numbers.
 
 
@@ -146,10 +158,14 @@ def main():
     area_of = {n: a for a, nums in AREA.items() for n in nums}
 
     for number in sorted(issues):
-        status = 'Done' if number in DONE else ('Backlog' if number in BLOCKED else 'Ready')
-        priority = None if number in DONE else ('P0' if number in P0
-                                                else 'P2' if number in P2 else 'P1')
-        size = None if number in DONE else SIZE.get(number)
+        shipped = number in DONE or number in REVIEW
+        status = ('Done' if number in DONE
+                  else 'In review' if number in REVIEW
+                  else 'Backlog' if number in BLOCKED
+                  else 'Ready')
+        priority = None if shipped else ('P0' if number in P0
+                                         else 'P2' if number in P2 else 'P1')
+        size = None if shipped else SIZE.get(number)
         a = area_of.get(number)
         new = number not in on_board
 
