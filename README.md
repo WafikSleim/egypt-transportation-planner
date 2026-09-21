@@ -108,8 +108,9 @@ roughly 995–1011 routes, 2,983 stops and 1,769 directional variants across som
 1. **Every route is `route_type = 3`**, the metro included. Modes are
    distinguished by `agency_id`, not `route_type`. Any code branching on
    `route_type` will classify the metro as a bus.
-2. **Metro line 3 is missing.** The feed has M1 and M2 only. M3 — one of the
-   busiest lines in the city — has to be added by hand.
+2. **Metro line 3 is missing from this feed.** It has M1 and M2 only. M3 — one
+   of the busiest lines in the city — is supplied by a feed of our own, built
+   from [`data/metro-l3/`](data/metro-l3/README.md). Do not add it here.
 3. **Hundreds of microbus routes share the short name "Microbus"** with no route
    numbers, because real Cairo microbuses have none. The UI cannot show a line
    number for these; identify them by origin and destination instead.
@@ -150,7 +151,7 @@ the app and the operations console in [`design/`](design/).
 1. ~~Get OTP returning a real transit itinerary~~ — done
 2. Arabic names for the metro feed's 108 stops, and surfacing the road feed's
    existing `translations.txt` through the API and UI
-3. Add metro line 3 by hand
+3. ~~Add metro line 3~~ — done, as its own feed. See [data/metro-l3/](data/metro-l3/README.md)
 4. ~~Backend API in front of OTP~~ — done, see [api/](api/README.md)
 5. Flutter client — started, see [app/](app/README.md). Search, stop picker,
    results and itinerary detail run against the live API *(current)*. Still to

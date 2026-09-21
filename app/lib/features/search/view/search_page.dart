@@ -259,7 +259,9 @@ class _DepartureRow extends StatelessWidget {
     final date = await showDatePicker(
       context: context,
       initialDate: base,
-      firstDate: now.subtract(const Duration(days: 1)),
+      // No past departures: the router would answer, and the answer
+      // would be about a trip that has already gone.
+      firstDate: DateTime(now.year, now.month, now.day),
       // The feeds' calendars run to the end of 2027; beyond that there is no
       // service defined and every answer would be an empty one.
       lastDate: DateTime(2027, 12, 31),

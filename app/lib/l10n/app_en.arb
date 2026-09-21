@@ -1,8 +1,6 @@
 {
   "@@locale": "en",
-
   "appTitle": "Transit",
-
   "searchTitle": "Where are you going today?",
   "fromLabel": "From",
   "toLabel": "To",
@@ -14,14 +12,12 @@
   "changeTime": "Change time",
   "findTrips": "Find a trip",
   "myLocation": "My location",
-
   "resultsTitle": "Trips",
   "searching": "Looking for the best way…",
   "durationMinutes": "{minutes} min",
   "transfersCount": "{count, plural, =0{No changes} =1{1 change} other{{count} changes}}",
   "walkTotal": "{meters} m walking",
   "stopsCount": "{count, plural, =0{No stops} =1{1 stop} other{{count} stops}}",
-
   "itineraryTitle": "Trip detail",
   "boardHere": "Take the {mode}",
   "alightHere": "Get off here",
@@ -29,14 +25,12 @@
   "walkLeg": "Walk {minutes} min · {meters} m",
   "operatorLabel": "Operator: {name}",
   "noRouteNumber": "Microbuses in Egypt carry no route number — they are identified by where they start and end",
-
   "nothingFoundTitle": "No trip found",
   "noServiceNow": "Nothing running right now",
   "noCoverage": "We don't have data for this area yet",
   "walkOnlyExplain": "All we found was a walk, and that isn't an answer. It means we have no recorded route between these two points.",
   "tryAgain": "Try again",
   "changeSearch": "Change the search",
-
   "stopSearchTitle": "Find a stop",
   "stopSearchHint": "Type a stop name",
   "stopSearchPrefixNote": "Search matches from the start of a name. Type \"Moneeb\", not \"neeb\".",
@@ -44,10 +38,8 @@
   "stopSearchTruncated": "{count} stops match. Type more of the name to narrow it down.",
   "routesServed": "{count, plural, =1{1 route} other{{count} routes}}",
   "startTyping": "Type at least two letters",
-
   "honestyNoRealtime": "These times are estimates from recorded schedules. There is no live vehicle tracking in Egypt, and we won't tell you a bus is three minutes away when we don't know that.",
   "honestyLatinName": "This name is in English because the source data has no Arabic name for this stop.",
-
   "aboutTitle": "About",
   "aboutIntro": "A free trip planner for Egyptian public transport, built around the microbuses and tomnayas that no other app covers.",
   "aboutNonProfit": "Non-profit, with no ads and no subscriptions — ever. That is a condition of the data licence, not a preference.",
@@ -59,13 +51,15 @@
   "language": "Language",
   "arabic": "العربية",
   "english": "English",
-
   "errorOffline": "No internet connection",
   "errorOfflineHelp": "Check your connection and try again.",
   "errorServerDown": "The service isn't responding",
   "errorServerDownHelp": "That's on us, not you. Try again shortly.",
   "errorUnexpected": "Something unexpected went wrong",
-
   "notBuiltYet": "Not built yet",
-  "notBuiltYetBody": "This screen is designed but not wired up. See design/app-prototype.html."
+  "notBuiltYetBody": "This screen is designed but not wired up. See design/app-prototype.html.",
+  "noCoverageBody": "Coverage today is Greater Cairo only. No other part of Egypt has transit data at all, and we won't guess a route we aren't sure of.",
+  "noServiceBody": "Service thins out or stops across most of the network at this hour. Try a daytime departure.",
+  "noRouteTitle": "No route between these two points",
+  "noRouteBody": "Both points are inside the covered area, so this is more likely a gap in our data than a gap in the network."
 }

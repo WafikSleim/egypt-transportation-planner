@@ -255,20 +255,48 @@ class Itinerary extends Equatable {
       [startTime, endTime, durationMinutes, walkDistanceM, transfers, isWalkOnly, legs];
 }
 
+/// Why an empty result is empty.
+///
+/// The server sends this alongside `note` so the client can write its own
+/// sentence. `note` is English diagnostic prose carrying detail a code cannot
+/// — which endpoint was outside coverage, whether the coordinates look
+/// swapped — and showing it to a passenger in Cairo would make the
+/// empty-result screen the one place this app stops speaking Arabic.
+enum NoteCode {
+  outOfCoverage,
+  outsideServiceHours,
+  noRoute,
+
+  /// A code this build does not know. Fall back to `note`: an English
+  /// sentence is worse than Arabic copy, and much better than nothing.
+  unknown;
+
+  static NoteCode? parse(String? wire) => switch (wire) {
+        null => null,
+        'out_of_coverage' => NoteCode.outOfCoverage,
+        'outside_service_hours' => NoteCode.outsideServiceHours,
+        'no_route' => NoteCode.noRoute,
+        _ => NoteCode.unknown,
+      };
+}
+
 class PlanResponse extends Equatable {
   const PlanResponse({
     required this.itineraries,
     required this.attribution,
     this.note,
+    this.noteCode,
   });
 
   final List<Itinerary> itineraries;
   final Attribution attribution;
 
-  /// Set only when nothing was found, explaining the likely reason —
-  /// coverage, or time of day. An empty result is usually not an error, and
-  /// this text is what the user should read instead of a blank screen.
+  /// English prose from the server. A fallback for display, not the first
+  /// choice — see [noteCode].
   final String? note;
+
+  /// Set whenever [note] is.
+  final NoteCode? noteCode;
 
   factory PlanResponse.fromJson(Map<String, dynamic> json) => PlanResponse(
         itineraries: (_as<List<dynamic>>(json['itineraries']) ?? const [])
@@ -277,10 +305,11 @@ class PlanResponse extends Equatable {
         attribution: Attribution.fromJson(
             _as<Map<String, dynamic>>(json['attribution']) ?? const {}),
         note: _as<String>(json['note']),
+        noteCode: NoteCode.parse(_as<String>(json['note_code'])),
       );
 
   @override
-  List<Object?> get props => [itineraries, attribution, note];
+  List<Object?> get props => [itineraries, attribution, note, noteCode];
 }
 
 class StopSummary extends Equatable {

@@ -83,8 +83,8 @@ separates the register, colour separates the member within it. Keep that
 distinction; do not render a metro line as a pill.
 
 > **Unverified:** these line hues are placeholders. Confirm against the
-> operator's own wayfinding before the Flutter build. M3 does not exist in the
-> feed yet.
+> operator's own wayfinding before the Flutter build. (M3 is in the graph as of
+> 2026-09-21, via a feed of our own, so the M3 token is now reachable.)
 
 ### Semantic — separate from the accent
 

@@ -28,15 +28,22 @@ class _AboutPageState extends State<AboutPage> {
   Attribution? _attribution;
   ApiFailure? _failure;
 
+  bool _requested = false;
+
   @override
-  void initState() {
-    super.initState();
-    _load();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Not initState: the repository is read from an inherited widget, and
+    // this is the callback where that is legal. The flag keeps it to one
+    // request rather than one per dependency change.
+    if (_requested) return;
+    _requested = true;
+    _load(context.read<PlannerRepository>());
   }
 
-  Future<void> _load() async {
+  Future<void> _load(PlannerRepository repository) async {
     try {
-      final a = await context.read<PlannerRepository>().attribution();
+      final a = await repository.attribution();
       if (mounted) setState(() => _attribution = a);
     } on ApiFailure catch (e) {
       if (mounted) setState(() => _failure = e);

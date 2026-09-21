@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/presentation/trip_presenter.dart';
 import '../../../core/presentation/view_models.dart';
+import '../../../data/models/models.dart';
 import '../../../core/text/bidi.dart';
 import '../../../core/theme/mode_theme.dart';
 import '../../../core/theme/tokens.dart';
@@ -154,8 +155,14 @@ class _ResultList extends StatelessWidget {
 /// This is not an error state. Either the trip is outside Greater Cairo —
 /// the only place in Egypt with transit data at all — or nothing runs at the
 /// hour asked for, or the only thing the router could offer was a walk, which
-/// was dropped because a walk is not an answer. The server knows which, and
-/// its `note` says so; a blank list with a spinner that stopped would not.
+/// was dropped because a walk is not an answer.
+///
+/// This is also the emptiest screen a passenger will meet, and the most
+/// common one outside the covered area — so it is written in Arabic like
+/// every other screen. The server sends a `note_code`; the copy is ours. Its
+/// English `note` is shown only when the code is missing or from a newer
+/// server than this build knows, because an English sentence beats a blank
+/// screen and loses to Arabic copy.
 class _NothingFound extends StatelessWidget {
   const _NothingFound({required this.plan});
 
@@ -165,21 +172,30 @@ class _NothingFound extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
 
+    final (title, body) = switch (plan.noteCode) {
+      NoteCode.outOfCoverage => (l.noCoverage, l.noCoverageBody),
+      NoteCode.outsideServiceHours => (l.noServiceNow, l.noServiceBody),
+      NoteCode.noRoute => (l.noRouteTitle, l.noRouteBody),
+      NoteCode.unknown || null => (
+          l.nothingFoundTitle,
+          plan.note ?? l.walkOnlyExplain,
+        ),
+    };
+
     return ListView(
       padding: EdgeInsetsDirectional.all(Insets.lg),
       children: [
         SizedBox(height: Insets.xl),
         Icon(Icons.explore_off_outlined, size: 34, color: context.colors.ink3),
         SizedBox(height: Insets.lg),
-        Text(l.nothingFoundTitle,
+        Text(title,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall),
         SizedBox(height: Insets.md),
         Text(
-          // The server's own explanation, in English — it is a diagnostic
-          // sentence, not copy, and paraphrasing it here would let the two
-          // drift apart. Translating these notes is a task on the backend.
-          plan.note ?? l.walkOnlyExplain,
+          // Isolated because the fallback is English prose carrying decimal
+          // coordinates in brackets, which reorder inside an RTL column.
+          bidiIsolate(body),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium,
         ),

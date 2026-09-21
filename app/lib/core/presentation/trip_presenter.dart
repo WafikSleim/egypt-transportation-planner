@@ -50,6 +50,7 @@ class TripPresenter {
       itineraries: answers,
       attribution: response.attribution,
       note: response.note,
+      noteCode: response.noteCode,
     );
   }
 

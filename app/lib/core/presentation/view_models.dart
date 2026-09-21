@@ -115,6 +115,7 @@ class PlanVm extends Equatable {
     required this.itineraries,
     required this.attribution,
     this.note,
+    this.noteCode,
   });
 
   /// Walk-only itineraries have already been removed. What is left are
@@ -123,12 +124,18 @@ class PlanVm extends Equatable {
 
   final Attribution attribution;
 
-  /// Why there is nothing to show. Comes from the server, which knows
-  /// whether the cause was coverage or the time of day.
+  /// Why there is nothing to show, as a key the screen can write Arabic copy
+  /// for. Comes from the server, which knows whether the cause was coverage
+  /// or the time of day.
+  final NoteCode? noteCode;
+
+  /// The server's English prose. Shown only when [noteCode] is missing or
+  /// unrecognised — an English sentence beats a blank screen, but it loses
+  /// to Arabic copy.
   final String? note;
 
   bool get hasResults => itineraries.isNotEmpty;
 
   @override
-  List<Object?> get props => [itineraries, attribution, note];
+  List<Object?> get props => [itineraries, attribution, note, noteCode];
 }

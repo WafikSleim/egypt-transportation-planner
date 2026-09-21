@@ -110,6 +110,7 @@ async def test_walk_only_is_flagged_and_explained(fake_otp, client):
     assert body["itinerary_count"] == 1
     assert body["itineraries"][0]["is_walk_only"] is True
     assert body["note"] and "Greater" in body["note"]
+    assert body["note_code"] == "out_of_coverage"
 
 
 async def test_late_night_empty_result_blames_the_hour(fake_otp, client):
@@ -119,6 +120,19 @@ async def test_late_night_empty_result_blames_the_hour(fake_otp, client):
 
     assert body["itinerary_count"] == 0
     assert "Late-night" in body["note"]
+    assert body["note_code"] == "outside_service_hours"
+
+
+async def test_note_code_accompanies_every_note(fake_otp, client):
+    """The prose is English and carries detail a code cannot. The code is what
+    the Arabic client switches on -- without it the emptiest, most common
+    screen in the app would be the one place it stops speaking Arabic."""
+    fake_otp.itineraries = []
+    async with client as c:
+        body = (await c.get("/plan", params=CAIRO)).json()
+
+    assert body["note"] is not None
+    assert body["note_code"] == "no_route"
 
 
 async def test_good_result_has_no_note(fake_otp, client):
@@ -126,6 +140,7 @@ async def test_good_result_has_no_note(fake_otp, client):
     async with client as c:
         body = (await c.get("/plan", params=CAIRO)).json()
     assert body["note"] is None
+    assert body["note_code"] is None
 
 
 # --------------------------------------------------------------------------
@@ -209,6 +224,7 @@ async def test_swapped_cairo_coordinates_are_explained(fake_otp, client):
     assert body["itinerary_count"] == 0
     assert "other way round" in body["note"]
     assert "lat,lon" in body["note"]
+    assert body["note_code"] == "out_of_coverage"
 
 
 # --------------------------------------------------------------------------

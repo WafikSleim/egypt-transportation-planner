@@ -20,6 +20,22 @@ from pydantic import BaseModel, Field
 Source = Literal["tfc", "portsaid", "osm", "community"]
 Confidence = Literal["confirmed", "reported", "unverified"]
 
+# Why an empty result is empty, as a value the client can switch on.
+#
+# `note` beside it is English prose and stays that way: it carries the detail
+# (which endpoint was outside coverage, whether the coordinates look swapped)
+# and it is a diagnostic. But the client is Arabic-first, and the empty-result
+# screen is the most common thing a passenger in an uncovered area will see.
+# Making it render English with a bounding box in decimal degrees is the one
+# place the app would stop speaking to its user. So the client switches on
+# this code to choose its own copy, and falls back to `note` only for a code
+# it does not recognise.
+NoteCode = Literal[
+    "out_of_coverage",
+    "outside_service_hours",
+    "no_route",
+]
+
 
 class Attribution(BaseModel):
     text: str = Field(..., description="Required verbatim wherever data is shown.")
@@ -128,7 +144,15 @@ class PlanResponse(BaseModel):
         description="Set only when no itinerary was found, explaining the "
                     "likely reason. An empty result is usually coverage or "
                     "time of day, not an error, and the client should say so "
-                    "rather than show a blank screen.",
+                    "rather than show a blank screen. English prose, and "
+                    "carries detail `note_code` cannot.",
+    )
+    note_code: NoteCode | None = Field(
+        None,
+        description="The same reason as a stable key, so a localised client "
+                    "can write its own sentence rather than showing English "
+                    "prose to an Arabic-speaking user. Always set whenever "
+                    "`note` is.",
     )
     attribution: Attribution
 

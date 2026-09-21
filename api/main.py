@@ -56,9 +56,14 @@ def _in_coverage(point: dict[str, float]) -> bool:
             and COVERAGE["min_lon"] <= point["lon"] <= COVERAGE["max_lon"])
 
 
-def _why_empty(frm: dict, to: dict, time: str) -> str:
+def _why_empty(frm: dict, to: dict, time: str) -> tuple[str, str]:
     """Explain a result with no transit in it. Coverage first: it is the
-    permanent reason, and the one a user cannot do anything about."""
+    permanent reason, and the one a user cannot do anything about.
+
+    Returns `(code, prose)`. The code is what a localised client switches on;
+    the prose carries the detail a code cannot -- which endpoint was outside
+    coverage, and whether the coordinates look swapped.
+    """
     outside = [n for n, p in (("origin", frm), ("destination", to))
                if not _in_coverage(p)]
     if outside:
@@ -75,7 +80,7 @@ def _why_empty(frm: dict, to: dict, time: str) -> str:
             "and lon the other way round — the expected order is 'lat,lon'."
             if swapped else ""
         )
-        return (
+        return "out_of_coverage", (
             f"No data for the {' and '.join(outside)}. Coverage is Greater "
             "Cairo only (roughly lat 29.75-30.35, lon 30.85-31.78); no other "
             f"part of Egypt has transit data yet.{hint}"
@@ -85,11 +90,11 @@ def _why_empty(frm: dict, to: dict, time: str) -> str:
     except (ValueError, IndexError):
         hour = -1
     if hour >= 22 or hour < 5:
-        return (
+        return "outside_service_hours", (
             f"No service found around {time}. Late-night service is sparse or "
             "absent across much of the network; try a daytime departure."
         )
-    return (
+    return "no_route", (
         "No itinerary found. Both points are inside the covered area, so this "
         "is more likely a gap in the network data than an error."
     )
@@ -403,7 +408,7 @@ async def plan(
     # transit". Outside Greater Cairo OTP returns them readily, because the
     # OSM extract covers the whole country while the feeds do not.
     has_transit = any(not i.is_walk_only for i in itineraries)
-    note = None if has_transit else _why_empty(
+    note_code, note = (None, None) if has_transit else _why_empty(
         variables["from"], variables["to"], variables["time"]
     )
 
@@ -419,6 +424,7 @@ async def plan(
         itinerary_count=len(itineraries),
         itineraries=itineraries,
         note=note,
+        note_code=note_code,
         attribution=ATTRIBUTION,
     )
 

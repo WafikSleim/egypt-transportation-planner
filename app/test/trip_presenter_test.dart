@@ -122,9 +122,26 @@ void main() {
       expect(plan.hasResults, isFalse);
     });
 
-    test('and keeps the server note so the screen can say why', () {
+    test('and keeps the reason so the screen can say why', () {
       final plan = ar.plan(PlanResponse.fromJson(planNoCoverage));
+      expect(plan.noteCode, NoteCode.outOfCoverage);
       expect(plan.note, contains('Greater Cairo'));
+    });
+
+    test('a late-night plan is coded as service hours, not coverage', () {
+      final plan = ar.plan(PlanResponse.fromJson(planWalkOnly));
+      expect(plan.noteCode, NoteCode.outsideServiceHours);
+    });
+
+    test('an unrecognised code degrades to the server prose', () {
+      // A newer server than this build. The English sentence is worse than
+      // Arabic copy and much better than an empty screen.
+      final raw = Map<String, dynamic>.from(planNoCoverage)
+        ..['note_code'] = 'some_future_reason';
+      final plan = ar.plan(PlanResponse.fromJson(raw));
+
+      expect(plan.noteCode, NoteCode.unknown);
+      expect(plan.note, isNotEmpty);
     });
 
     test('a late-night plan is dropped the same way', () {

@@ -93,6 +93,13 @@ transit data at all. A blank or walking result is otherwise indistinguishable
 from a routing failure — which is exactly the confusion that cost this project
 several days.
 
+`note` is English prose and carries the detail — which endpoint fell outside
+coverage, and whether the coordinates look swapped. Alongside it, `note_code`
+gives the same reason as a stable key (`out_of_coverage`,
+`outside_service_hours`, `no_route`), so the Arabic client can write its own
+sentence instead of showing a passenger a bounding box in decimal degrees.
+Both are set together, or neither is.
+
 **Never serves a fare.** The feeds carry 2018 prices. The GraphQL query does
 not even request fare fields, and every itinerary carries
 `fare: {available: false}` with a reason.

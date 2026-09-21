@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 59 tests, no device, no network, a few seconds
+flutter test      # 63 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -90,6 +90,15 @@ in `bidiIsolate` so a Latin run cannot reorder the Arabic around it.
 **Western digits everywhere**, formatted by hand rather than through `intl`,
 which renders Arabic-Indic digits under an `ar` locale. `8:15` is what Egyptian
 phones and road signs use.
+
+**The empty-results screen is written in Arabic, not relayed from the server.**
+`/plan` returns both `note` (English diagnostic prose, with a bounding box in
+decimal degrees) and `note_code` (`out_of_coverage`, `outside_service_hours`,
+`no_route`). The client switches on the code and writes its own copy, falling
+back to `note` only for a code this build does not recognise. That screen is
+the most common thing a passenger outside the covered area will see; relaying
+the server's sentence would make it the one place the app stops speaking
+Arabic.
 
 **No fare, anywhere.** Not omitted for space — the source fares are from 2018
 and the API does not even request the fields.

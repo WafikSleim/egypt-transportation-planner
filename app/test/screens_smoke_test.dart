@@ -4,6 +4,8 @@ import 'package:egypt_transport/core/theme/app_theme.dart';
 import 'package:egypt_transport/data/models/models.dart';
 import 'package:egypt_transport/domain/repositories/planner_repository.dart';
 import 'package:egypt_transport/features/itinerary/view/itinerary_page.dart';
+import 'package:egypt_transport/features/results/view/results_page.dart';
+import 'package:egypt_transport/domain/entities/trip_endpoint.dart';
 import 'package:egypt_transport/features/search/view/search_page.dart';
 import 'package:egypt_transport/features/stops/view/stop_picker_page.dart';
 import 'package:egypt_transport/l10n/generated/app_localizations.dart';
@@ -139,6 +141,48 @@ void main() {
       );
 
       expect(find.textContaining('Transport for Cairo'), findsWidgets);
+    });
+  });
+
+  group('nothing-found screen', () {
+    Widget results(FakeRepository repo, {Locale locale = const Locale('ar')}) =>
+        host(
+          withRepo(
+            ResultsPage(
+              from: const TripEndpoint(label: 'A', point: GeoPoint(25.68, 32.63)),
+              to: const TripEndpoint(label: 'B', point: GeoPoint(25.70, 32.65)),
+              departAt: DateTime(2026, 9, 21, 8),
+            ),
+            repo,
+          ),
+          locale: locale,
+        );
+
+    testWidgets('speaks Arabic rather than the server diagnostic',
+        (tester) async {
+      // The emptiest screen in the app, and the most common one outside the
+      // covered area. Showing the server's diagnostic here would make it the
+      // one place an Arabic-first app switches to English - with a bounding
+      // box in decimal degrees, inside an RTL column.
+      final repo =
+          FakeRepository(planResponse: PlanResponse.fromJson(planNoCoverage));
+
+      await tester.pumpWidget(results(repo));
+      await tester.pumpAndSettle();
+
+      expect(find.text('لسه مامعندناش بيانات عن المنطقة دي'), findsOneWidget);
+      expect(find.textContaining('Coverage is Greater Cairo'), findsNothing);
+    });
+
+    testWidgets('a late-night search blames the hour, in Arabic',
+        (tester) async {
+      final repo =
+          FakeRepository(planResponse: PlanResponse.fromJson(planWalkOnly));
+
+      await tester.pumpWidget(results(repo));
+      await tester.pumpAndSettle();
+
+      expect(find.text('مفيش مواصلات دلوقتي'), findsOneWidget);
     });
   });
 
