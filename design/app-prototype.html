@@ -219,6 +219,27 @@ p.lede{margin:0;color:var(--ap-ink2);font-size:14.5px}
   text-wrap:balance;line-height:1.35}
 .state p{margin:0;color:var(--ap-ink2);font-size:14.5px;max-width:30ch;line-height:1.6}
 
+/* place vs stop — different marks, because they behave differently in search */
+.pmark{width:32px;height:32px;border-radius:10px;flex:none;display:flex;
+  align-items:center;justify-content:center;background:var(--ap-raise)}
+.pmark.stop{background:color-mix(in srgb,var(--m-micro) 15%,transparent);color:var(--m-micro)}
+.pmark.place{background:var(--ap-accent-soft);color:var(--ap-accent)}
+.pmark.recent{background:var(--ap-raise);color:var(--ap-ink3)}
+.pmark.home{background:color-mix(in srgb,var(--m-cta) 15%,transparent);color:var(--m-cta)}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.qbtn{font:inherit;font-size:13.5px;font-weight:500;padding:13px 10px;border-radius:13px;
+  border:1px solid var(--ap-line);background:var(--ap-surface);color:var(--ap-ink);
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.qbtn:hover{border-color:var(--ap-accent)}
+.qbtn svg{color:var(--ap-accent)}
+.latin{direction:ltr;display:inline-block}
+.pickmap{position:relative;height:266px;background:var(--ap-raise);overflow:hidden}
+.pickmap svg.base{width:100%;height:100%;display:block}
+.centrepin{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);
+  pointer-events:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.28))}
+.crosshair{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;
+  border-radius:50%;background:var(--ap-ink);opacity:.45}
+
 /* list rows */
 .rows{display:flex;flex-direction:column;gap:1px;background:var(--ap-line);
   border-radius:16px;overflow:hidden}
@@ -310,8 +331,18 @@ footer b{color:var(--pg-ink)}
           <div class="body">
             <h2 class="title">رايح فين النهاردة؟</h2>
             <div class="fields">
-              <div class="field"><span class="dot a"></span><input id="f-from" value="المنيب" aria-label="من فين"></div>
-              <div class="field"><span class="dot b"></span><input id="f-to" placeholder="رايح فين؟" aria-label="رايح فين"></div>
+              <div class="field" data-go="picker"><span class="dot a"></span>
+                <input id="f-from" value="المنيب" aria-label="من فين" readonly></div>
+              <div class="field" data-go="picker"><span class="dot b"></span>
+                <input id="f-to" placeholder="رايح فين؟" aria-label="رايح فين" readonly></div>
+            </div>
+            <div class="quick">
+              <button class="qbtn" data-go="map-pick">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3Z"/><path d="M9 7v13"/><path d="M15 4v13"/></svg>
+                اختار من الخريطة</button>
+              <button class="qbtn" data-go="results">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                مكاني الحالي</button>
             </div>
             <div class="row">
               <button class="chip" aria-pressed="true">دلوقتي</button>
@@ -331,6 +362,94 @@ footer b{color:var(--pg-ink)}
             <button class="on"><span class="ti"></span>دوّر</button>
             <button data-go="saved"><span class="ti"></span>المحفوظة</button>
             <button data-go="about"><span class="ti"></span>عن التطبيق</button>
+          </div>
+        </section>
+
+        <!-- 1b · PLACE PICKER -->
+        <section class="screen" data-k="picker">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body">
+            <div class="fields"><div class="field"><span class="dot b"></span>
+              <input value="التجمع" aria-label="رايح فين"></div></div>
+            <div class="quick">
+              <button class="qbtn" data-go="map-pick"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3Z"/><path d="M9 7v13"/><path d="M15 4v13"/></svg>
+                اختار من الخريطة</button>
+              <button class="qbtn" data-go="results"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                مكاني الحالي</button>
+            </div>
+            <div class="row">
+              <button class="chip" aria-pressed="true">الكل</button>
+              <button class="chip">مواقف</button>
+              <button class="chip">أماكن</button>
+            </div>
+            <div class="rows">
+              <div class="rrow" data-go="results"><span class="pmark stop"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 17h16M6 17V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10M7 21v-2M17 21v-2"/></svg></span>
+                <span class="grow"><p class="nm">التجمع الخامس</p>
+                  <p class="dt">موقف · 14 خط · 6.2 كم</p></span></div>
+              <div class="rrow" data-go="results"><span class="pmark place"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <span class="grow"><p class="nm">كايرو فستيفال سيتي مول</p>
+                  <p class="dt">مركز تجاري · التجمع الخامس · 7.1 كم</p></span></div>
+              <div class="rrow" data-go="results"><span class="pmark place"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <span class="grow"><p class="nm latin">American University in Cairo</p>
+                  <p class="dt">جامعة · التجمع الخامس · 9.4 كم — <b>مافيش اسم عربي في الخريطة</b></p></span></div>
+              <div class="rrow" data-go="results"><span class="pmark place"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <span class="grow"><p class="nm">شارع التسعين الجنوبي</p>
+                  <p class="dt">شارع · التجمع الخامس · 6.8 كم</p></span></div>
+            </div>
+            <div class="panel" style="font-size:13px">
+              <b>المواقف بتتلاقى من أول الاسم، والأماكن بأي جزء منه.</b>
+              يعني «التجمع» هتجيب موقف «التجمع الخامس»، لكن «خامس» لوحدها هتجيب الأماكن بس.
+            </div>
+            <h3 class="sub">أماكنك</h3>
+            <div class="rows">
+              <div class="rrow" data-go="results"><span class="pmark home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9H4Z"/></svg></span>
+                <span class="grow"><p class="nm">البيت</p><p class="dt">المنيب</p></span></div>
+              <div class="rrow" data-go="results"><span class="pmark recent"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                <span class="grow"><p class="nm">كايرو فستيفال سيتي</p><p class="dt">آخر مرة · الخميس</p></span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1c · MAP PICK -->
+        <section class="screen" data-k="map-pick">
+          <div class="sbar"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="body flush">
+            <div class="bleed pickmap">
+              <svg class="base" viewBox="0 0 390 266" role="img" aria-label="اختار نقطة على الخريطة">
+                <rect width="390" height="266" fill="var(--ap-raise)"/>
+                <g stroke="var(--ap-line)" fill="none" stroke-linecap="round">
+                  <path d="M-10 76 L400 50" stroke-width="13"/>
+                  <path d="M-10 194 L400 170" stroke-width="9"/>
+                  <path d="M96 -10 L128 276" stroke-width="9"/>
+                  <path d="M268 -10 L246 276" stroke-width="7"/>
+                  <path d="M-10 134 L400 118" stroke-width="5"/>
+                </g>
+                <rect x="150" y="86" width="88" height="52" rx="5" fill="var(--ap-line)" opacity=".5"/>
+                <rect x="286" y="188" width="64" height="42" rx="5" fill="var(--ap-line)" opacity=".5"/>
+                <circle cx="112" cy="204" r="7" fill="var(--ap-bg)" stroke="var(--m-micro)" stroke-width="3"/>
+                <text x="112" y="226" font-size="10" fill="var(--ap-ink2)" text-anchor="middle"
+                      font-family="IBM Plex Sans Arabic, sans-serif">المصراوية</text>
+              </svg>
+              <span class="crosshair"></span>
+              <svg class="centrepin" width="30" height="38" viewBox="0 0 30 38" aria-hidden="true">
+                <path d="M15 37C15 37 27 22.5 27 14A12 12 0 1 0 3 14c0 8.5 12 23 12 23Z" fill="var(--ap-accent)"/>
+                <circle cx="15" cy="14" r="4.6" fill="var(--ap-bg)"/>
+              </svg>
+            </div>
+            <h2 class="title" style="font-size:21px">حرّك الخريطة على المكان</h2>
+            <div class="panel" style="background:var(--ap-surface)">
+              <h4>شارع التسعين الجنوبي</h4>
+              <p style="margin:0;font-size:13.5px">التجمع الخامس، القاهرة الجديدة</p>
+              <div class="kv" style="margin-top:9px"><span>أقرب موقف</span>
+                <span>المصراوية · 240 م</span></div>
+            </div>
+            <div class="panel warn" style="font-size:13px">
+              <b>الاسم ده من خريطة OpenStreetMap، مش من بيانات المواصلات.</b>
+              ساعات بيكون ناقص أو بالإنجليزي بس. المهم هو المكان نفسه —
+              لو الاسم غلط، الرحلة هتفضل مظبوطة.
+            </div>
+            <button class="btn" data-go="results">أكد المكان ده</button>
+            <button class="btn ghost" data-go="picker">أدوّر بالاسم بدل كده</button>
           </div>
         </section>
 
@@ -744,7 +863,8 @@ footer b{color:var(--pg-ink)}
 <script>
 const SCREENS = [
   ["Core flow", [
-    ["search","Search","P-01"],["results","Results","P-01"],
+    ["search","Search","P-01"],["picker","Place picker","P-10 · P-19"],
+    ["map-pick","Pick on map","P-18"],["results","Results","P-01"],
     ["itinerary","Itinerary","P-02 · P-03"],["stops","Stop search","P-10"],
     ["saved","Saved & recents","P-15"]]],
   ["Tracking", [
@@ -760,6 +880,8 @@ const SCREENS = [
 ];
 const NOTES = {
   search:"Opens on the question, not a logo. Recents sit under the fold-free first screen because a commuter repeats the same trip.",
+  picker:"One picker for stops, places and recents. Says outright that stops match from the start of a name while places match anywhere \u2014 two different indexes, one field. A place with no Arabic name shows its Latin name and says why.",
+  "map-pick":"For the many Cairo destinations with no useful address. Shows the nearest stop and distance, and flags that the name comes from OpenStreetMap rather than the transit data \u2014 so a wrong name never implies a wrong trip.",
   results:"Duration leads; the leg strip shows what you'll actually ride. Fares are named as absent rather than silently missing.",
   itinerary:"The orange note is the product in one paragraph: this microbus has no number, so shout the destination. No other planner can tell you that.",
   stops:"Says outright that search matches the start of a name — OTP's real behaviour, surfaced instead of quietly failing.",

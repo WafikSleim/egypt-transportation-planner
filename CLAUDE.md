@@ -39,9 +39,19 @@ under a second. Run them before and after any change to `api/` or
 `api.otp.TRANSPORT`, which exists purely so tests can drive the real request
 path; leave it `None` in production.
 
-The backlog is in [docs/user-stories.md](docs/user-stories.md) — 34 stories
+**Geocoding is a v1 dependency, not a later nicety.** The passenger search
+covers stops, places and map-picking, so it needs a place index. Do **not**
+stand up Photon — it needs Elasticsearch on top of OTP's 3.4 GB. Build a
+`places` table from the OSM extract already on disk (`OTP/*.osm.pbf`), clipped
+to the Cairo bbox, with `pg_trgm` for fuzzy matching and OSM `name:ar` for
+Arabic. Postgres was Phase 4; this pulls it into Phase 3.
+
+Keep that table **separate from the TfC data**. OSM is ODbL, TfC is CC BY-NC,
+and the two cannot be merged into one derived database.
+
+The backlog is in [docs/user-stories.md](docs/user-stories.md) — 36 stories
 across passenger, contributor, moderator and maintainer. Priority there is
-scoped to each story's own phase; the v1 release gate is the 18 Phase 2 and
+scoped to each story's own phase; the v1 release gate is the 20 Phase 2 and
 Phase 3 `must` stories.
 
 Design is done and is **core product value here, not surface**. The tokens,

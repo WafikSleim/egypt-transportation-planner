@@ -2,8 +2,8 @@
 
 The backlog for Egypt Transportation Planner, written after the routing core
 was proven working on 2026-09-21. Extended the same day with the design round
-(P-15 to P-17, C-06), which added saved trips, notifications and honest
-background tracking to the v1 scope.
+(P-15 to P-19, C-06), which added saved trips, notifications, honest background
+tracking, place search and map picking to the v1 scope.
 
 These are deliberately specific to *this* product. A generic trip-planner
 backlog would not mention that hundreds of routes share the name "Microbus", or
@@ -21,7 +21,7 @@ properly. `must` = that phase is not finished without it. `should` = the phase
 is notably worse without it. `later` = genuinely deferrable.
 
 **The v1 release gate is therefore the Phase 2 and Phase 3 `must` stories**, and
-nothing else: eighteen stories, listed at the end.
+nothing else: twenty stories, listed at the end.
 
 ---
 
@@ -145,17 +145,60 @@ Grounding: fares in the feed are from 2018. The API never requests fare fields.
 
 ### Practicalities
 
-**P-10 — Search for a stop by name** · must · Phase 3 · S
+**P-10 — Find where I'm going, however I know it** · must · Phase 3 · L
 
-> As a passenger, I want to type part of a stop name and pick it, so I don't
-> have to find it on a map.
+> As a passenger, I want to name my destination the way I actually think of it —
+> a stop, a mall, a street, somewhere I went last week — not translate it into a
+> transit stop first.
 
-- Typeahead against `GET /stops`
-- **Search is prefix-based** (OTP behaviour): المنيب matches, منيب does not —
-  the UI must not imply substring search
+One field, three sources, in one list:
+
+- **Stops**, from `GET /stops`. **Prefix-matched** (OTP behaviour): المنيب matches,
+  منيب does not. Results show the modes served
+- **Places** — malls, universities, streets, landmarks (P-19)
+- **Recents and saved places**, on-device (P-15)
+
+- Stops and places carry **different marks**, because they behave differently:
+  a stop is somewhere a vehicle calls, a place is somewhere you're going
+- The differing match behaviour is **stated in the UI**, not left to be
+  discovered: stops match from the start of a name, places match anywhere
 - `truncated: true` prompts for a longer query rather than implying the first
   20 are all of them
-- Each result shows the modes served
+
+**P-18 — Point at it on the map** · must · Phase 3 · M
+
+> As a passenger going somewhere with no useful address — a building site, a
+> friend's flat, a spot on the ring road — I want to just point at it.
+
+Grounding: large parts of Greater Cairo have no addressing a stranger could use.
+Naming a destination is often genuinely harder than pointing at it.
+
+- Drag-the-map with a fixed centre pin; reverse geocode on settle
+- Shows the **nearest stop and its distance**, so the user can judge whether the
+  point is reachable before committing
+- States that the name comes from **OpenStreetMap, not the transit data** — so a
+  wrong or missing name never implies a wrong trip
+- **A point with no name is still usable.** Fall back to coordinates rather than
+  blocking; the trip does not depend on the label
+- Reachable from the search screen and from the picker
+
+**P-19 — Search for places, not just stops** · must · Phase 3 · L
+
+> As a passenger, I want to type "كايرو فستيفال" and get the mall, because I
+> have no idea which stop serves it.
+
+- Malls, universities, hospitals, streets, landmarks, neighbourhoods
+- **Fuzzy, substring matching** — unlike stop search
+- Arabic names where OSM has `name:ar`; **where it doesn't, show the Latin name
+  and say so** rather than hiding the result
+- Results ordered by distance from the user, with category and area shown
+- Restricted to the covered bounding box — a place outside Greater Cairo is not
+  offered, since no trip to it can be planned
+
+**Depends on a geocoder** — see `docs/design-system.md` and the project plan.
+The recommendation is a `places` table built from the OSM extract already on
+disk, not a Photon/Elasticsearch deployment. **This pulls Postgres forward from
+Phase 4 into Phase 3.**
 
 **P-11 — Plan for a later time** · should · Phase 3 · S
 
@@ -452,12 +495,12 @@ Grounding: Oracle can reclaim idle Always-Free instances.
 
 v1 is **Cairo-only, shipped early**, so the `must` column is the release gate.
 
-**The release gate — 18 stories:**
+**The release gate — 20 stories:**
 
 1. **Phase 2 — operability (5).** O-01, O-02, O-04, O-05, O-06. Unglamorous,
    and the reason the last two bugs cost days rather than minutes. Ship nothing
    publicly without them.
-2. **Phase 3 — the app (13).** P-01 to P-04, P-06 to P-08, P-10, P-13 to P-17.
+2. **Phase 3 — the app (15).** P-01 to P-04, P-06 to P-08, P-10, P-13 to P-19.
    **P-03** (microbus without a number) and **P-06** (no data for your city) are
    the two that most separate this from a generic trip planner; both are easy to
    skip and each makes the app quietly wrong if skipped.

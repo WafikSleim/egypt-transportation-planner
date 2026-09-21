@@ -149,12 +149,15 @@ These come from the data, not from taste. Breaking one makes the product lie.
 2. **Never show a fare.** 2018 data. The API does not even request the fields.
 3. **A walk-only itinerary is not a result.** When every itinerary has
    `is_walk_only`, show the API's `note` instead of the list.
-4. **Never imply real-time vehicle position.** No such source exists in Egypt.
+4. **Place names come from OSM (ODbL), stop names from TfC (CC BY-NC).** Keep
+   them in separate tables and label them separately in the UI. They must never
+   be merged into one dataset — the licences are incompatible.
+5. **Never imply real-time vehicle position.** No such source exists in Egypt.
    Estimates derive from the user's own GPS against a recorded route — say so.
-5. **Attribution verbatim, in English, on any screen showing data.** Licence
+6. **Attribution verbatim, in English, on any screen showing data.** Licence
    requirement. Fetch from `/attribution`.
-6. **One unsolicited prompt per trip.** Enforce in code, not judgement.
-7. **Both themes are designed.** Dark is not inverted light — it has its own
+7. **One unsolicited prompt per trip.** Enforce in code, not judgement.
+8. **Both themes are designed.** Dark is not inverted light — it has its own
    surface elevations and desaturated mode colours, or the plate hues vibrate.
 
 ---
@@ -168,8 +171,19 @@ white mono label.
 **Card** — `surface`, 1px `line`, 17px radius. Reserve borders and shadow for
 things that are genuinely separate objects; not every block is a card.
 
-**Honesty panel** — the pattern carrying rules 3–4. Neutral by default, `warn`
+**Honesty panel** — the pattern carrying rules 3 and 5. Neutral by default, `warn`
 tint when stating a limitation. Always says what we do not know, in plain words.
+
+**Place picker** — one field over two indexes. Stops and places get different
+32px marks (`.pmark.stop` in microbus orange, `.pmark.place` in accent) because
+they behave differently: a stop is where a vehicle calls, a place is where
+you're going. The differing match behaviour is stated in the UI, since a user
+who types منيب and gets nothing will otherwise assume the app is broken.
+
+**Latin fallback** — a place with no `name:ar` renders its Latin name in an
+LTR span with a note saying the map has no Arabic name for it. Never hide the
+result, and never transliterate automatically — a wrong Arabic name is worse
+than an honest English one.
 
 **Severity stripe** — 4px inline-start bar on a tile whose metric is out of
 range. Makes state readable as form, so it survives greyscale and colour-blind

@@ -49,7 +49,7 @@ are design intent, not code that exists.
 | API | FastAPI in front of OpenTripPlanner (`api/`) | Keeps OTP internals out of the client |
 | Database | Postgres + PostGIS | Stops, routes, and later user contributions |
 | NL parsing | An LLM layer for colloquial Arabic queries | A front end over real data — **never** a source of route data |
-| Maps | Self-hosted Protomaps tiles + Photon geocoding | Per-request billing on commercial APIs would sink a free app |
+| Maps | Self-hosted Protomaps tiles; geocoding from a `places` table built off the OSM extract | Per-request billing on commercial APIs would sink a free app. Photon was rejected — Elasticsearch on top of OTP's 3.4 GB |
 
 ## Running OpenTripPlanner locally
 
