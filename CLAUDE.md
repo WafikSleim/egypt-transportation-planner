@@ -32,7 +32,9 @@ Target stack:
 Step one is **done** as of 2026-09-20: OTP returns real transit itineraries
 locally, over both the metro and the microbus network. Verified end to end —
 Helwan to Shubra El-Kheima routes as M1 + interchange + M2, and Giza to New
-Cairo as three microbus legs. The graph holds 1,012 routes and 3,105 stops.
+Cairo as three microbus legs. The graph holds 1,013 routes and 3,139 stops
+across three feeds — the two TfC ones and our own metro line 3, added
+2026-09-21 and verified in the graph the same day.
 
 The backend API exists too, as of 2026-09-20: FastAPI in `api/`, in front of
 OTP, verified against the live graph. See [api/README.md](api/README.md).
@@ -87,6 +89,14 @@ Arabic. Postgres was Phase 4; this pulls it into Phase 3.
 
 Keep that table **separate from the TfC data**. OSM is ODbL, TfC is CC BY-NC,
 and the two cannot be merged into one derived database.
+
+Work is tracked on the **Masar** project board (project 2 on the repo), as
+issues #1–#34. `Status` means: `Done` shipped, `Ready` nothing is stopping
+it, `Backlog` waiting on another issue named in the body. `P0` is the
+critical path — #11 storage, #14 `/places`, #19 map rendering, #21
+notifications — and everything in Backlog waits on one of those.
+`scripts/project_board.py` re-syncs the board after new issues are filed; it
+is idempotent and needs `gh auth refresh -s project`.
 
 The backlog is in [docs/user-stories.md](docs/user-stories.md) — 36 stories
 across passenger, contributor, moderator and maintainer. Priority there is
@@ -370,6 +380,12 @@ Three things in here are easy to break:
 The feed also ships a `translations.txt` giving all 34 stations their Arabic
 name, in the `field_value` form the road feed uses. That makes M3 the only metro
 line with Arabic stop names so far; M1 and M2 are still Latin.
+
+**`source` and `confidence` are derived from the feed id**, in
+`config.FEED_PROVENANCE`. M3 comes back as `source: "project"`,
+`confidence: "reported"` — not `tfc`/`confirmed`, which would credit TfC with
+data they did not produce and claim we verified times we modelled. Any feed
+added later needs an entry there, or it inherits the TfC labels by default.
 
 Not in this feed: fares, real track geometry (shapes are straight lines between
 stations), and the unbuilt Sheraton/Airport extension stations.
