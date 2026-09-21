@@ -39,8 +39,15 @@ under a second. Run them before and after any change to `api/` or
 `api.otp.TRANSPORT`, which exists purely so tests can drive the real request
 path; leave it `None` in production.
 
-Next: the app design prototype and user stories, then deployment to Oracle
-Cloud. The full plan, including hosting, is in the approved project plan.
+The backlog is in [docs/user-stories.md](docs/user-stories.md) — 31 stories
+across passenger, contributor, moderator and maintainer. Priority there is
+scoped to each story's own phase; the v1 release gate is the 15 Phase 2 and
+Phase 3 `must` stories.
+
+Next: the app design prototype, then deployment to Oracle Cloud Always Free
+(chosen because the licence forbids revenue; OTP measures 3.4 GB serving, and
+the official image has an arm64 build). The full plan is in the approved
+project plan.
 
 Repository: `https://github.com/WafikSleim/egypt-transportation-planner`
 (public, AGPL-3.0). Working directory: `E:\EgyptTransportationPlanner\OTP`

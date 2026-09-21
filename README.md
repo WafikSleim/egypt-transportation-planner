@@ -141,6 +141,9 @@ Two more things worth knowing before building on this feed:
 
 ## Roadmap
 
+The full backlog, with acceptance criteria, is in
+[docs/user-stories.md](docs/user-stories.md).
+
 1. Get OTP returning a real transit itinerary *(current)*
 2. Arabic names for the metro feed's 108 stops, and surfacing the road feed's
    existing `translations.txt` through the API and UI
