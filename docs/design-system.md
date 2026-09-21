@@ -145,7 +145,14 @@ These come from the data, not from taste. Breaking one makes the product lie.
 
 1. **No route-number badge when `has_line_number` is false.** Hundreds of
    microbus routes are named literally "Microbus". Show origin → destination
-   from `route.display_name`.
+   from `route.display_name`. Metro legs are the exception in the other
+   direction — they have numbers, but the circular badge already carries it.
+
+   These rules are derived from data fields, so in the Flutter build they are
+   decided once in `app/lib/core/presentation/trip_presenter.dart` and the
+   widgets receive view models with no field left to re-interpret. Rules 1, 3
+   and 5 are all things that fail *plausibly* on screen; keeping them in four
+   different `build()` methods is how one of them eventually gets it wrong.
 2. **Never show a fare.** 2018 data. The API does not even request the fields.
 3. **A walk-only itinerary is not a result.** When every itinerary has
    `is_walk_only`, show the API's `note` instead of the list.
@@ -167,6 +174,11 @@ These come from the data, not from taste. Breaking one makes the product lie.
 **Mode chip** — pill, `13%` tint of the mode colour as background, mode colour
 as text, 6px square glyph. **Metro badge** — 25px circle, solid line colour,
 white mono label.
+
+The metro badge **is** the line number. Do not also draw a number chip beside
+it: the Flutter build did, briefly, and rendered `M1` twice on every metro leg.
+Rule 1 below governs the chip; the circle is a different thing wearing the same
+text.
 
 **Card** — `surface`, 1px `line`, 17px radius. Reserve borders and shadow for
 things that are genuinely separate objects; not every block is a card.

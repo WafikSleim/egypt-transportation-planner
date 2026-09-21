@@ -11,7 +11,11 @@ licence requirement, not a preference (see Licensing below).
 
 Target stack:
 
-- Flutter client (thin — UI and API calls only, no routing logic)
+- Flutter client in `app/`, **MVVM with Bloc/Cubit**. Thin — UI and API calls
+  only, no routing logic. Settled on 2026-09-21: a Cubit is the ViewModel,
+  `data/` + `domain/` are the Model, `features/*/view/` is the View. Treat
+  both the pattern and the state solution as decided — do not introduce a
+  second state library
 - Backend API in front of OpenTripPlanner: **Python + FastAPI**, in `api/`.
   Settled on 2026-09-20 after weighing Dart (one language with the Flutter
   client) and TypeScript. Python won on two grounds: the LLM layer below is
@@ -33,9 +37,38 @@ Cairo as three microbus legs. The graph holds 1,012 routes and 3,105 stops.
 The backend API exists too, as of 2026-09-20: FastAPI in `api/`, in front of
 OTP, verified against the live graph. See [api/README.md](api/README.md).
 
-Tests live in `tests/` and run with `pytest` — no Docker, no graph, no network,
-under a second. Run them before and after any change to `api/` or
-`scripts/fix_gtfs_calendar.py`. OTP is stubbed at the transport layer via
+The Flutter client was started on 2026-09-21 and lives in `app/`. What runs
+end to end today: search → stop picker over `/stops` → results over `/plan` →
+itinerary detail, in Arabic and English, light and dark. See
+[app/README.md](app/README.md) — read the section on `TripPresenter` before
+changing any screen.
+
+**The design-system rules are enforced in one place**,
+`app/lib/core/presentation/trip_presenter.dart`, and the Views are handed
+view models with no wire fields left to interpret. That is deliberate: the
+rules are derived from data fields, and every one of them fails plausibly
+rather than visibly. A microbus with a route-number badge looks like an
+answer.
+
+Two client-side traps found on 2026-09-21, both now covered by tests:
+
+- **`lang` is injected by `ApiClient`, never by a call site.** Stop and route
+  names are localised server-side, so a request missing `lang` renders a
+  fully Arabic screen with Latin stop names — indistinguishable from an app
+  that works.
+- **The metro circle already *is* the line number.** Drawing a number chip
+  beside it printed "M1" twice; the presenter now suppresses the chip for
+  metro legs.
+
+Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
+and `Radii` are scaled getters rather than constants — which is why widgets
+using them are not `const`.
+
+Tests live in `tests/` (Python) and `app/test/` (Dart, 59 of them). The Dart
+suite runs with no device, no emulator and no network, against real API
+responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no network,
+and `cd app && flutter test`, before and after any change to `api/`,
+`app/` or `scripts/fix_gtfs_calendar.py`. OTP is stubbed at the transport layer via
 `api.otp.TRANSPORT`, which exists purely so tests can drive the real request
 path; leave it `None` in production.
 
@@ -67,7 +100,7 @@ Two things in there are easy to undo by accident:
 - **Metro uses circular line badges, not pills.** That form difference is the
   only thing keeping M1's blue from reading as a tomnaya.
 
-Next: the app design prototype, then deployment to Oracle Cloud Always Free
+Next: deployment to Oracle Cloud Always Free
 (chosen because the licence forbids revenue; OTP measures 3.4 GB serving, and
 the official image has an arm64 build). The full plan is in the approved
 project plan.
@@ -320,7 +353,12 @@ violates OSM's own licence and the community treats it seriously.
    covered by its `translations.txt`; wire that through to the API/UI)
 2. Add metro line 3
 3. ~~Backend API in front of OTP~~ — done, `api/`
-4. Flutter client — search, map, itinerary. No auth, no accounts, no settings
+4. Flutter client — started, `app/`. Search, stop picker, results and
+   itinerary detail work. Still missing: map tiles, place search and map
+   picking (blocked on the `places` table), recents and saved trips,
+   notifications, background tracking. No auth, no accounts, no settings
+   screen — language and theme are the only two choices offered, and they
+   live on the About screen
 5. Contribution pipeline: a `submissions` table separate from the main data,
    promoted to confirmed after two independent confirmations, with a
    `trust_score` per contributor and a `confidence` level exposed in the UI

@@ -1,0 +1,11 @@
+# Arabic is the template, not English.
+#
+# The copy deck in docs/design-system.md is written in Egyptian colloquial
+# first and ported to English second. Making app_ar.arb the template file
+# encodes that: every new string starts in Arabic, and a missing English
+# translation is the thing that shows up as a gap.
+arb-dir: lib/l10n
+template-arb-file: app_ar.arb
+output-localization-file: app_localizations.dart
+output-dir: lib/l10n/generated
+nullable-getter: false

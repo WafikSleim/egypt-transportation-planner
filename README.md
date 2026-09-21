@@ -45,7 +45,7 @@ are design intent, not code that exists.
 
 | Layer | Choice | Why |
 | --- | --- | --- |
-| Client | Flutter | Thin — UI and API calls only, no routing logic |
+| Client | Flutter, MVVM + Bloc/Cubit (`app/`) | Thin — UI and API calls only, no routing logic |
 | API | FastAPI in front of OpenTripPlanner (`api/`) | Keeps OTP internals out of the client |
 | Database | Postgres + PostGIS | Stops, routes, and later user contributions |
 | NL parsing | An LLM layer for colloquial Arabic queries | A front end over real data — **never** a source of route data |
@@ -147,12 +147,15 @@ Egyptian-Arabic copy and the rules the UI must honour — is in
 [docs/design-system.md](docs/design-system.md), with clickable prototypes for
 the app and the operations console in [`design/`](design/).
 
-1. Get OTP returning a real transit itinerary *(current)*
+1. ~~Get OTP returning a real transit itinerary~~ — done
 2. Arabic names for the metro feed's 108 stops, and surfacing the road feed's
    existing `translations.txt` through the API and UI
 3. Add metro line 3 by hand
 4. ~~Backend API in front of OTP~~ — done, see [api/](api/README.md)
-5. Flutter client — search, map, itinerary. No auth, no accounts, no settings
+5. Flutter client — started, see [app/](app/README.md). Search, stop picker,
+   results and itinerary detail run against the live API *(current)*. Still to
+   come: map tiles, place search, saved trips, notifications, tracking.
+   No auth, no accounts, no settings screen
 6. Contribution pipeline: a `submissions` table kept separate from the main
    data, promoted to confirmed after two independent confirmations, with a
    `trust_score` per contributor and a `confidence` level surfaced in the UI

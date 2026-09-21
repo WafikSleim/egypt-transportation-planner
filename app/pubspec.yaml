@@ -1,0 +1,75 @@
+name: egypt_transport
+description: >
+  Trip planning for Egyptian public transport, built around the paratransit
+  network — microbuses, tomnayas, minibuses — that other tools ignore.
+  Non-profit: the source data is CC BY-NC 4.0, so there is no revenue model.
+publish_to: 'none'
+
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management. The ViewModel layer of MVVM is a Cubit — see
+  # lib/features/*/view_model. Settled 2026-09-21; do not mix in a second
+  # state solution.
+  flutter_bloc: ^9.1.1
+  bloc: ^9.0.1
+  equatable: ^2.0.7
+
+  # Responsive sizing. The design is drawn at 390x844; screenutil scales it
+  # to the real device. The target is low-end Android, where screens run from
+  # small 5" phones upward, so a layout pinned to raw logical pixels either
+  # crowds or wastes space on most of the fleet.
+  flutter_screenutil: ^5.9.3
+
+  # HTTP. `http` rather than dio: the target is low-end Android on patchy
+  # data, and the API surface is four endpoints.
+  http: ^1.5.0
+
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  bloc_test: ^10.0.0
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    # Captured from the live API. Used by tests, and by nothing else — the
+    # app never falls back to canned data.
+    - test/fixtures/
+
+  # Bundled, not fetched at runtime via google_fonts: a first run on a weak
+  # connection would otherwise fall back to a system font with no Arabic
+  # shaping of the quality this app depends on.
+  fonts:
+    - family: ReadexPro
+      fonts:
+        - asset: assets/fonts/ReadexPro-Variable.ttf
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
+          weight: 600

@@ -34,6 +34,24 @@ build/
 *.iml
 .flutter-plugins
 .flutter-plugins-dependencies
+app/build/
+app/.dart_tool/
+app/.fvm/
+app/.flutter-plugins*
+app/ios/Pods/
+app/ios/.symlinks/
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+**/Flutter/ephemeral/
+**/Flutter/Flutter.podspec
+**/Flutter/Generated.xcconfig
+**/Flutter/flutter_export_environment.sh
+app/lib/l10n/generated/
+
+# app/pubspec.lock IS tracked on purpose - this is an application, not a
+# library, and the whole point of a lock file is that two machines build the
+# same bytes.
 
 # Editors / OS
 .vscode/
