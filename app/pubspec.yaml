@@ -50,6 +50,14 @@ dev_dependencies:
   bloc_test: ^10.0.0
   flutter_lints: ^6.0.0
 
+  # Generators, not runtime code - they expand assets/icon/*.png into the
+  # platform sets and are never shipped. Re-run them after
+  # `python scripts/build_app_icon.py`:
+  #   dart run flutter_launcher_icons
+  #   dart run flutter_native_splash:create
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
+
 flutter:
   uses-material-design: true
   generate: true
@@ -82,3 +90,41 @@ flutter:
           weight: 400
         - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
           weight: 600
+
+# Generated from assets/icon/, which is generated in turn by
+# scripts/build_app_icon.py. Do not hand-edit the platform icon sets: they are
+# output, and the next run overwrites them.
+flutter_launcher_icons:
+  android: ic_launcher
+  ios: true
+  image_path: assets/icon/icon.png
+
+  # Adaptive icons are two layers. The background is the flat accent and the
+  # foreground is the mark, sized to survive being masked to a circle, a
+  # squircle or a rounded square - different launchers choose differently.
+  adaptive_icon_background: "#4A3FA0"
+  adaptive_icon_foreground: assets/icon/icon-foreground.png
+
+  # Android 13 themed icons: the launcher recolours a monochrome layer to the
+  # user's wallpaper palette. Reusing the foreground works because the mark is
+  # a single solid shape with no internal colour to lose.
+  adaptive_icon_monochrome: assets/icon/icon-foreground.png
+
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  # The `bg` tokens from docs/design-system.md, so the very first frame is
+  # already the app's own background. A white default would flash before a
+  # dark-themed app - which is the one thing a splash must not do.
+  color: "#FBFAF7"
+  color_dark: "#121210"
+  image: assets/icon/splash.png
+  image_dark: assets/icon/splash-dark.png
+
+  android_12:
+    color: "#FBFAF7"
+    color_dark: "#121210"
+    image: assets/icon/splash.png
+    image_dark: assets/icon/splash-dark.png
+    icon_background_color: "#FBFAF7"
+    icon_background_color_dark: "#121210"

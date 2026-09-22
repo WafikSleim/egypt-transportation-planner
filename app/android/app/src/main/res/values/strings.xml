@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shown under the launcher icon. The Arabic form is in values-ar and is
+         what an Egyptian phone will actually show; this is the fallback for
+         every other locale. -->
+    <string name="app_name">Mowasalat</string>
+</resources>

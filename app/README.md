@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 103 tests, no device, no network, a few seconds
+flutter test      # 120 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -136,6 +136,42 @@ weak connection falling back to a system face with worse Arabic shaping.
 declared once in `app.dart`; `Insets` and `Radii` are scaled getters, so no
 screen can opt out. They are therefore not compile-time constants — that is why
 widgets using them are not `const`.
+
+## Identity and versions
+
+The icon, the adaptive foreground and both splash marks are **generated**:
+
+```bash
+python ../scripts/build_app_icon.py      # assets/icon/*.svg + *.png
+dart run flutter_launcher_icons          # the platform icon sets
+dart run flutter_native_splash:create    # the platform splash
+```
+
+Both the SVG and the PNG for each asset come out of that one script, so they
+cannot drift. Do not hand-edit anything under `android/app/src/main/res/` or
+`ios/Runner/Assets.xcassets/` — those are output and the next run overwrites
+them.
+
+The mark is one idea: a trip. A small node where you are, a route that turns
+twice, a larger node where you are going. No vehicle, no map, no lettering —
+all three turn to mush at 48dp, which is the size that decides whether an
+icon works. It runs **right to left**, because every screen in this app is
+RTL. It is drawn in the **accent**, which is chosen in the design system
+precisely because it is neither a licence-plate colour nor a metro line
+colour — spending one of those on branding would make the launcher icon
+claim a mode.
+
+**Launcher label:** `مواصلات` on an Arabic phone, `Mowasalat` everywhere else,
+via `values-ar/strings.xml`.
+
+**Version scheme** — `MAJOR.MINOR.PATCH+BUILD`, currently `0.1.0+1`:
+
+| Part | Bumps when |
+| --- | --- |
+| `MAJOR` | stays `0` until v1 ships — the 20 Phase 2 and Phase 3 `must` stories |
+| `MINOR` | a user-visible capability lands |
+| `PATCH` | fixes only |
+| `BUILD` | every upload, monotonic, never reused — Play rejects a repeat |
 
 ## Tests
 
