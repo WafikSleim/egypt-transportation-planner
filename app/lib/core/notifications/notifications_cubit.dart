@@ -35,10 +35,7 @@ class NotificationsState extends Equatable {
 class NotificationsCubit extends Cubit<NotificationsState> {
   NotificationsCubit(this._service)
     : super(
-        NotificationsState(
-          permission: null,
-          allowed: _service.preferences.all,
-        ),
+        NotificationsState(permission: null, allowed: _service.preferences.all),
       );
 
   final NotificationService _service;
@@ -76,7 +73,10 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     return permission.isAllowed;
   }
 
-  Future<void> setAllowed(NotificationKind kind, {required bool allowed}) async {
+  Future<void> setAllowed(
+    NotificationKind kind, {
+    required bool allowed,
+  }) async {
     await _service.preferences.setAllowed(kind, allowed: allowed);
     if (isClosed) return;
     emit(

@@ -53,11 +53,8 @@ final class FakeNotificationService extends NotificationService {
   NotificationText? lastText;
 
   /// Drives the same path the platform callback does.
-  Future<void> tap(
-    NotificationKind kind, {
-    int slot = 0,
-    String? actionId,
-  }) => handleResponse(kind, slot: slot, actionId: actionId);
+  Future<void> tap(NotificationKind kind, {int slot = 0, String? actionId}) =>
+      handleResponse(kind, slot: slot, actionId: actionId);
 
   static NotificationCopy _copy() => const _StubCopy();
 }

@@ -55,7 +55,10 @@ class NotificationPreferences {
   }
 
   /// Returns false, and writes nothing, for a kind that may not be silenced.
-  Future<bool> setAllowed(NotificationKind kind, {required bool allowed}) async {
+  Future<bool> setAllowed(
+    NotificationKind kind, {
+    required bool allowed,
+  }) async {
     if (!kind.canBeSilenced) return false;
 
     final stored = _store.readJson(_key) ?? <String, dynamic>{};

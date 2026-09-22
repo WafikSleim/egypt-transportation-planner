@@ -36,26 +36,33 @@ void main() {
       ]);
     });
 
-    test('the three messages can be switched off; the tracking notice cannot', () {
-      // Silencing the ongoing notice would let a GPS subscription run with
-      // nothing on screen admitting it. The way out of that one is to stop
-      // following the trip.
-      expect(NotificationKind.departureReminder.canBeSilenced, isTrue);
-      expect(NotificationKind.nextStopAlert.canBeSilenced, isTrue);
-      expect(NotificationKind.postTripQuestion.canBeSilenced, isTrue);
-      expect(NotificationKind.tripInProgress.canBeSilenced, isFalse);
-    });
+    test(
+      'the three messages can be switched off; the tracking notice cannot',
+      () {
+        // Silencing the ongoing notice would let a GPS subscription run with
+        // nothing on screen admitting it. The way out of that one is to stop
+        // following the trip.
+        expect(NotificationKind.departureReminder.canBeSilenced, isTrue);
+        expect(NotificationKind.nextStopAlert.canBeSilenced, isTrue);
+        expect(NotificationKind.postTripQuestion.canBeSilenced, isTrue);
+        expect(NotificationKind.tripInProgress.canBeSilenced, isFalse);
+      },
+    );
 
     test('ids are derived from the kind, so two features cannot collide', () {
       final ids = {
         for (final kind in NotificationKind.values)
           switch (kind) {
-            NotificationKind.departureReminder =>
-              DepartureReminder(at: _never, tripLabel: '').id,
-            NotificationKind.tripInProgress =>
-              const TripInProgressNotice(tripLabel: '').id,
-            NotificationKind.nextStopAlert =>
-              const NextStopAlert(stopName: '').id,
+            NotificationKind.departureReminder => DepartureReminder(
+              at: _never,
+              tripLabel: '',
+            ).id,
+            NotificationKind.tripInProgress => const TripInProgressNotice(
+              tripLabel: '',
+            ).id,
+            NotificationKind.nextStopAlert => const NextStopAlert(
+              stopName: '',
+            ).id,
             NotificationKind.postTripQuestion => const PostTripQuestion().id,
           },
       };
@@ -129,24 +136,27 @@ void main() {
   });
 
   group('turning them off is one tap from the notification', () {
-    test('the silence action switches that kind off and takes it back', () async {
-      final store = InMemoryStore();
-      final service = build(store: store);
+    test(
+      'the silence action switches that kind off and takes it back',
+      () async {
+        final store = InMemoryStore();
+        final service = build(store: store);
 
-      await service.tap(
-        NotificationKind.postTripQuestion,
-        actionId: NotificationService.silenceActionId,
-      );
+        await service.tap(
+          NotificationKind.postTripQuestion,
+          actionId: NotificationService.silenceActionId,
+        );
 
-      expect(
-        service.preferences.isAllowed(NotificationKind.postTripQuestion),
-        isFalse,
-      );
-      expect(service.retracted, [const PostTripQuestion().id]);
+        expect(
+          service.preferences.isAllowed(NotificationKind.postTripQuestion),
+          isFalse,
+        );
+        expect(service.retracted, [const PostTripQuestion().id]);
 
-      // And it sticks: the next one is not shown either.
-      expect(await service.post(const PostTripQuestion()), isFalse);
-    });
+        // And it sticks: the next one is not shown either.
+        expect(await service.post(const PostTripQuestion()), isFalse);
+      },
+    );
 
     test('it survives a restart', () async {
       final store = InMemoryStore();
@@ -215,41 +225,50 @@ void main() {
       );
 
       final service = build(store: store);
-      expect(await service.post(const NextStopAlert(stopName: 'رمسيس')), isFalse);
-    });
-
-    test('the background handler ignores a tap that is not the opt-out', () async {
-      final store = InMemoryStore();
-
       expect(
-        await silenceFromBackground(
-          store,
-          actionId: null,
-          payload: 'nextStopAlert/0',
-        ),
+        await service.post(const NextStopAlert(stopName: 'رمسيس')),
         isFalse,
       );
-      expect(
-        await silenceFromBackground(
-          store,
-          actionId: NotificationService.silenceActionId,
-          payload: 'somethingElse/0',
-        ),
-        isFalse,
-      );
-      expect(store.contents, isEmpty);
     });
 
-    test('a payload names the kind and the slot, and nothing about the trip', () {
-      // It sits on disk until the notification fires. Where somebody is going
-      // is not something this app keeps anywhere, least of all there.
-      expect(decodeNotificationPayload('departureReminder/2'), (
-        kind: NotificationKind.departureReminder,
-        slot: 2,
-      ));
-      expect(decodeNotificationPayload('nonsense'), isNull);
-      expect(decodeNotificationPayload(null), isNull);
-    });
+    test(
+      'the background handler ignores a tap that is not the opt-out',
+      () async {
+        final store = InMemoryStore();
+
+        expect(
+          await silenceFromBackground(
+            store,
+            actionId: null,
+            payload: 'nextStopAlert/0',
+          ),
+          isFalse,
+        );
+        expect(
+          await silenceFromBackground(
+            store,
+            actionId: NotificationService.silenceActionId,
+            payload: 'somethingElse/0',
+          ),
+          isFalse,
+        );
+        expect(store.contents, isEmpty);
+      },
+    );
+
+    test(
+      'a payload names the kind and the slot, and nothing about the trip',
+      () {
+        // It sits on disk until the notification fires. Where somebody is going
+        // is not something this app keeps anywhere, least of all there.
+        expect(decodeNotificationPayload('departureReminder/2'), (
+          kind: NotificationKind.departureReminder,
+          slot: 2,
+        ));
+        expect(decodeNotificationPayload('nonsense'), isNull);
+        expect(decodeNotificationPayload(null), isNull);
+      },
+    );
 
     test('a plain tap is handed to whichever feature owns that kind', () async {
       final service = build();
@@ -282,10 +301,7 @@ void main() {
     test('the tracking notice refuses to be stored as off', () async {
       final prefs = NotificationPreferences(InMemoryStore());
       expect(
-        await prefs.setAllowed(
-          NotificationKind.tripInProgress,
-          allowed: false,
-        ),
+        await prefs.setAllowed(NotificationKind.tripInProgress, allowed: false),
         isFalse,
       );
       expect(prefs.isAllowed(NotificationKind.tripInProgress), isTrue);
@@ -303,24 +319,27 @@ void main() {
       expect(await allowed.needsExplaining, isFalse);
     });
 
-    test('a refusal after the prompt has been spent points at settings', () async {
-      // Android never says "never again" for POST_NOTIFICATIONS, so the app
-      // remembers that it asked. Offering the prompt a second time would be a
-      // button that does nothing.
-      final store = InMemoryStore();
-      final service = build(
-        store: store,
-        permitted: const NotificationsDenied(permanently: false),
-      );
-      final cubit = NotificationsCubit(service);
+    test(
+      'a refusal after the prompt has been spent points at settings',
+      () async {
+        // Android never says "never again" for POST_NOTIFICATIONS, so the app
+        // remembers that it asked. Offering the prompt a second time would be a
+        // button that does nothing.
+        final store = InMemoryStore();
+        final service = build(
+          store: store,
+          permitted: const NotificationsDenied(permanently: false),
+        );
+        final cubit = NotificationsCubit(service);
 
-      expect(await cubit.askPermission(), isFalse);
-      expect(service.preferences.hasBeenAsked, isTrue);
+        expect(await cubit.askPermission(), isFalse);
+        expect(service.preferences.hasBeenAsked, isTrue);
 
-      service.permitted = const NotificationsDenied(permanently: true);
-      await cubit.refresh();
-      expect(cubit.state.blockedInSettings, isTrue);
-    });
+        service.permitted = const NotificationsDenied(permanently: true);
+        await cubit.refresh();
+        expect(cubit.state.blockedInSettings, isTrue);
+      },
+    );
 
     test('granting it is reflected in the switches', () async {
       final cubit = NotificationsCubit(build());
@@ -371,10 +390,7 @@ void main() {
 
     test('the Arabic asks the question the design system settled on', () {
       final copy = AppNotificationCopy.forLocale(const Locale('ar'));
-      expect(
-        copy.forRequest(const PostTripQuestion()).title,
-        'وصلت بالسلامة؟',
-      );
+      expect(copy.forRequest(const PostTripQuestion()).title, 'وصلت بالسلامة؟');
     });
   });
 

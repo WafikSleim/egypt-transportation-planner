@@ -78,7 +78,8 @@ final class LocalNotificationService extends NotificationService {
       // notification is usually read. An action with no user interface taps
       // through to a *separate* Flutter engine with none of this app's state
       // in it, so it gets its own entry point below rather than this one.
-      onDidReceiveBackgroundNotificationResponse: notificationBackgroundResponse,
+      onDidReceiveBackgroundNotificationResponse:
+          notificationBackgroundResponse,
     );
 
     await _createChannels(words);
@@ -306,7 +307,9 @@ final class LocalNotificationService extends NotificationService {
 /// the two cannot drift. The notification itself is dismissed by the
 /// platform, because every action is declared `cancelNotification: true`.
 @pragma('vm:entry-point')
-Future<void> notificationBackgroundResponse(NotificationResponse response) async {
+Future<void> notificationBackgroundResponse(
+  NotificationResponse response,
+) async {
   // Nothing is registered in a fresh isolate, including shared_preferences.
   DartPluginRegistrant.ensureInitialized();
 
@@ -332,7 +335,5 @@ Future<bool> silenceFromBackground(
   final parsed = decodeNotificationPayload(payload);
   if (parsed == null) return false;
 
-  return NotificationPreferences(
-    store,
-  ).setAllowed(parsed.kind, allowed: false);
+  return NotificationPreferences(store).setAllowed(parsed.kind, allowed: false);
 }
