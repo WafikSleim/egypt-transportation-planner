@@ -63,7 +63,7 @@ P2 = {28, 34}          # milestone "After v1"
 SIZE = {
     11: 'M', 12: 'S', 13: 'S', 14: 'L', 15: 'L', 16: 'M', 17: 'M', 18: 'S',
     19: 'L', 20: 'M', 21: 'M', 22: 'S', 23: 'M', 24: 'L', 25: 'M', 26: 'M',
-    28: 'S', 29: 'S', 30: 'S', 31: 'M', 32: 'XS', 33: 'XS', 34: 'M', 35: 'S',
+    27: 'M', 28: 'S', 29: 'S', 30: 'S', 31: 'M', 32: 'XS', 33: 'XS', 34: 'M', 35: 'S',
 }
 # Shipped issues get Status and Area only. Estimating work that is already
 # finished would be inventing numbers.
