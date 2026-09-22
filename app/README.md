@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 63 tests, no device, no network, a few seconds
+flutter test      # 87 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -34,9 +34,11 @@ Settled 2026-09-21. Treat it as decided.
 lib/
 ├── core/
 │   ├── config/         base URL, coverage box
+│   ├── location/       one-off fixes, on demand only
 │   ├── network/        ApiClient, failure classification
 │   ├── presentation/   TripPresenter + the view models it emits  ← read this first
 │   ├── settings/       language and theme (the only two settings passengers get)
+│   ├── storage/        KeyValueStore - the seam over shared_preferences
 │   ├── text/           bidi isolation, Western-digit formatting
 │   ├── theme/          tokens, both palettes, mode colours
 │   └── widgets/        ModeBadge, HonestyPanel, AttributionNote, AppErrorView
@@ -103,6 +105,25 @@ Arabic.
 **No fare, anywhere.** Not omitted for space — the source fares are from 2018
 and the API does not even request the fields.
 
+**Storage is `shared_preferences` behind an interface, not `drift`.** The
+three things this app keeps on a phone — language and theme, recent
+endpoints, a few saved trips — are read whole and shown in order, never
+queried. `core/storage/key_value_store.dart` records the reasoning and what
+would justify revisiting it. Nothing above that interface knows what is
+underneath, so the swap is one class if it ever comes.
+
+**Bad stored data cannot stop the app starting.** Text that is not JSON, a
+language from a newer build, a value of the wrong type — each falls back to
+the phone's own locale. Those are phones that would otherwise fail to launch
+over data the user can neither see nor clear without reinstalling.
+
+**Location is read on demand and never in the background.** There is no
+`ACCESS_BACKGROUND_LOCATION` in the manifest. Following a trip is a separate
+feature with its own consent and its own persistent notification, and it must
+not arrive by accident through the "my location" button. A coarse fix is
+flagged to the user rather than quietly used, and a fix outside the covered
+box is caught before a request is spent on it.
+
 **Fonts are bundled, not fetched.** `google_fonts` would mean a first run on a
 weak connection falling back to a system face with worse Arabic shaping.
 
@@ -134,7 +155,6 @@ Designed in [`design/app-prototype.html`](../design/app-prototype.html) and
 backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 
 - **Places and map picking** (P-18, P-19) — blocked on the `places` table
-- **Recents and saved trips** (P-15) — needs on-device storage
+- **Recents and saved trips** (P-15) — the storage layer now exists
 - **Notifications** (P-16) and **background tracking** (P-17)
 - Map tiles on results and itinerary screens
-- Persisting the language and theme choice

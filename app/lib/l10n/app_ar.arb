@@ -155,5 +155,29 @@
   "theme": "المظهر",
   "themeSystem": "حسب الجهاز",
   "themeLight": "فاتح",
-  "themeDark": "غامق"
+  "themeDark": "غامق",
+  "useMyLocation": "ابدأ من مكاني",
+  "myLocationName": "مكاني",
+  "locating": "بنحدد مكانك…",
+  "locationWhyTitle": "هنستخدم مكانك في إيه؟",
+  "locationWhyBody": "عشان نحسبلك المشوار من مكانك. بنبعت الإحداثيات للسيرفر عشان يلاقي خط، ومافيش حساب ومافيش سجل للأماكن اللي رحتها.",
+  "locationWhyContinue": "تمام",
+  "notNow": "مش دلوقتي",
+  "locationDenied": "مامعندناش إذن نشوف مكانك",
+  "locationDeniedHelp": "اختار محطة البداية بنفسك، أو افتح الإعدادات وادّينا الإذن.",
+  "locationDeniedForever": "الإذن مقفول من إعدادات الجهاز",
+  "openSettings": "افتح الإعدادات",
+  "locationOff": "خدمة تحديد المكان مقفولة في الجهاز",
+  "locationOffHelp": "افتحها من إعدادات الجهاز وجرّب تاني.",
+  "locationUnavailable": "مش قادرين نحدد مكانك دلوقتي",
+  "locationOutsideCoverage": "مكانك برّه منطقة التغطية",
+  "locationOutsideCoverageHelp": "إحنا لسه في القاهرة الكبرى بس. تقدر تختار محطة البداية بنفسك.",
+  "locationApproximate": "المكان تقريبي — ±{meters} متر. يمكن يطلعلك أقرب محطة غلط.",
+  "@locationApproximate": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  }
 }

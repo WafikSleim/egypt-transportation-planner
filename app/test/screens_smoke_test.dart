@@ -1,5 +1,6 @@
 import 'package:egypt_transport/core/presentation/trip_presenter.dart';
 import 'package:egypt_transport/core/settings/settings_cubit.dart';
+import 'package:egypt_transport/core/location/location_service.dart';
 import 'package:egypt_transport/core/storage/key_value_store.dart';
 import 'package:egypt_transport/core/theme/app_theme.dart';
 import 'package:egypt_transport/data/models/models.dart';
@@ -15,6 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fake_location_service.dart';
 import 'fake_repository.dart';
 import 'fixtures.dart';
 
@@ -49,8 +51,13 @@ void main() {
   Widget withRepo(Widget child, PlannerRepository repo) {
     return MultiBlocProvider(
       providers: [BlocProvider(create: (_) => SettingsCubit(InMemoryStore()))],
-      child: RepositoryProvider<PlannerRepository>.value(
-        value: repo,
+      child: MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<PlannerRepository>.value(value: repo),
+          RepositoryProvider<LocationService>.value(
+            value: FakeLocationService(),
+          ),
+        ],
         child: child,
       ),
     );

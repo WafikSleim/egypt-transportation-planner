@@ -44,20 +44,20 @@ AREA = {
 
 # Shipped and machine-verified: analyze, tests and a build settle these, so
 # there is nothing left for a person to judge.
-DONE = {1, 4, 5, 10}
+DONE = {1, 4, 5, 10, 29}
 
 # Shipped, but "done" here is a claim I cannot check myself. Two things need
 # the maintainer: whether the Arabic reads as Egyptian speech rather than
 # translated English, and how any of it behaves on a real phone - nothing in
 # this project has ever run on hardware, only in widget tests and an APK
 # build. Each carries a comment saying exactly what to check.
-REVIEW = {2, 3, 6, 7, 8, 9}
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 18}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
-BLOCKED = {12, 13, 15, 16, 17, 20, 22, 23, 24, 25}
+BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}
 
 # The critical path: each of these is in the v1 gate *and* holds up others.
-P0 = {11, 14, 19, 21}
+P0 = {14, 19, 21}
 P2 = {28, 32, 34}          # milestone "After v1"
 
 SIZE = {

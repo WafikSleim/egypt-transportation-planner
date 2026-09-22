@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/location/location_service.dart';
 import '../../../core/presentation/trip_presenter.dart';
 import '../../../core/text/bidi.dart';
 import '../../../core/text/formatting.dart';
@@ -13,6 +15,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../about/view/about_page.dart';
 import '../../results/view/results_page.dart';
 import '../../stops/view/stop_picker_page.dart';
+import '../view_model/my_location_cubit.dart';
 import '../view_model/search_cubit.dart';
 import '../view_model/search_state.dart';
 
@@ -21,8 +24,13 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => SearchCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => SearchCubit()),
+        BlocProvider(
+          create: (_) => MyLocationCubit(context.read<LocationService>()),
+        ),
+      ],
       child: const _SearchView(),
     );
   }
@@ -62,7 +70,9 @@ class _SearchView extends StatelessWidget {
               ),
               SizedBox(height: Insets.xl),
               const _EndpointFields(),
-              SizedBox(height: Insets.lg),
+              SizedBox(height: Insets.sm),
+              const _MyLocation(),
+              SizedBox(height: Insets.sm),
               const _DepartureRow(),
               SizedBox(height: Insets.xl),
               BlocBuilder<SearchCubit, SearchState>(
@@ -296,6 +306,169 @@ class _DepartureRow extends StatelessWidget {
     if (time == null || !context.mounted) return;
     context.read<SearchCubit>().setDeparture(
       DateTime(date.year, date.month, date.day, time.hour, time.minute),
+    );
+  }
+}
+
+/// "Start from my location".
+///
+/// The whole flow is here rather than in the Cubit because every part of it
+/// is a thing the user is told: why we want the fix, that it is approximate,
+/// that we could not get it and what they can do instead. Only the decisions
+/// live in [MyLocationCubit].
+class _MyLocation extends StatelessWidget {
+  const _MyLocation();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
+    return BlocConsumer<MyLocationCubit, MyLocationState>(
+      listenWhen: (_, state) => state is MyLocationResolved,
+      listener: (context, state) {
+        // The form owns the endpoints; this only hands one over.
+        context.read<SearchCubit>().setFrom(
+          (state as MyLocationResolved).endpoint,
+        );
+      },
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: state is MyLocationLocating
+                    ? null
+                    : () => _start(context),
+                icon: Icon(Icons.my_location_rounded, size: 18.r),
+                label: Text(
+                  state is MyLocationLocating ? l.locating : l.useMyLocation,
+                ),
+              ),
+            ),
+            if (state is MyLocationResolved && state.approximate) ...[
+              SizedBox(height: Insets.sm),
+              HonestyPanel(
+                text: l.locationApproximate(state.accuracyM.round()),
+                severity: HonestySeverity.warning,
+              ),
+            ],
+            if (state is MyLocationOutsideCoverage) ...[
+              SizedBox(height: Insets.sm),
+              _Problem(
+                title: l.locationOutsideCoverage,
+                help: l.locationOutsideCoverageHelp,
+              ),
+            ],
+            if (state is MyLocationFailed) ...[
+              SizedBox(height: Insets.sm),
+              _failureFor(context, state),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _failureFor(BuildContext context, MyLocationFailed state) {
+    final l = AppLocalizations.of(context);
+
+    return switch (state.reason) {
+      LocationDenied(permanently: true) => _Problem(
+        title: l.locationDeniedForever,
+        help: l.locationDeniedHelp,
+        actionLabel: l.openSettings,
+        onAction: () => context.read<MyLocationCubit>().openSettings(),
+      ),
+      LocationDenied() => _Problem(
+        title: l.locationDenied,
+        help: l.locationDeniedHelp,
+      ),
+      LocationOff() => _Problem(title: l.locationOff, help: l.locationOffHelp),
+      LocationUnavailable() || LocationFound() => _Problem(
+        title: l.locationUnavailable,
+        help: l.locationDeniedHelp,
+      ),
+    };
+  }
+
+  Future<void> _start(BuildContext context) async {
+    final cubit = context.read<MyLocationCubit>();
+    final label = AppLocalizations.of(context).myLocationName;
+
+    // Explain before the OS prompt, and only when there is going to be one.
+    // A permission dialog with no context is the one most likely to be
+    // refused, and repeating the explanation once it is granted is nagging.
+    if (await cubit.needsExplaining) {
+      if (!context.mounted) return;
+      final agreed = await _explain(context);
+      if (agreed != true) return;
+    }
+    await cubit.locate(label: label);
+  }
+
+  Future<bool?> _explain(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l.locationWhyTitle),
+        content: Text(l.locationWhyBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l.notNow),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l.locationWhyContinue),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Something did not work, said in terms of what to do instead.
+class _Problem extends StatelessWidget {
+  const _Problem({
+    required this.title,
+    required this.help,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String help;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.colors;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsetsDirectional.all(Insets.md),
+      decoration: BoxDecoration(
+        color: p.raise,
+        borderRadius: BorderRadius.circular(Radii.field),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.labelLarge),
+          SizedBox(height: Insets.xs),
+          Text(help, style: Theme.of(context).textTheme.bodySmall),
+          if (actionLabel != null) ...[
+            SizedBox(height: Insets.xs),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(onPressed: onAction, child: Text(actionLabel!)),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

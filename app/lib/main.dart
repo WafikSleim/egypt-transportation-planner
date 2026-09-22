@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app.dart';
 import 'core/config/app_config.dart';
+import 'core/location/location_service.dart';
 import 'core/network/api_client.dart';
 import 'core/settings/settings_cubit.dart';
 import 'core/storage/key_value_store.dart';
@@ -30,12 +31,17 @@ Future<void> main() async {
   runApp(
     MultiBlocProvider(
       providers: [BlocProvider<SettingsCubit>.value(value: settings)],
-      child: RepositoryProvider<KeyValueStore>.value(
-        value: store,
-        child: RepositoryProvider<PlannerRepository>(
-          create: (_) => PlannerRepositoryImpl(api),
-          child: const EgyptTransportApp(),
-        ),
+      child: MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<KeyValueStore>.value(value: store),
+          RepositoryProvider<LocationService>(
+            create: (_) => const GeolocatorLocationService(),
+          ),
+          RepositoryProvider<PlannerRepository>(
+            create: (_) => PlannerRepositoryImpl(api),
+          ),
+        ],
+        child: const EgyptTransportApp(),
       ),
     ),
   );

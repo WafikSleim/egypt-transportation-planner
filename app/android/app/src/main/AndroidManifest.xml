@@ -1,4 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Read on demand only, when the passenger taps "my location". There is
+         deliberately no ACCESS_BACKGROUND_LOCATION here: following a trip is
+         a separate feature with its own consent and its own persistent
+         notification, and it must not arrive by accident through this. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- The app plans trips, it does not require a fix. A phone with no GPS
+         hardware must still be able to install it and pick stops by name. -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+
     <application
         android:label="egypt_transport"
         android:name="${applicationName}"

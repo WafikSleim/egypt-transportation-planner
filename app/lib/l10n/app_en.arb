@@ -65,5 +65,29 @@
   "theme": "Appearance",
   "themeSystem": "Match device",
   "themeLight": "Light",
-  "themeDark": "Dark"
+  "themeDark": "Dark",
+  "useMyLocation": "Start from my location",
+  "myLocationName": "My location",
+  "locating": "Finding you…",
+  "locationWhyTitle": "What we use your location for",
+  "locationWhyBody": "To plan the trip from where you are. The coordinates go to our server to find a route. There is no account and no record of where you have been.",
+  "locationWhyContinue": "Continue",
+  "notNow": "Not now",
+  "locationDenied": "We don't have permission to see your location",
+  "locationDeniedHelp": "Pick a starting stop yourself, or allow it in settings.",
+  "locationDeniedForever": "Permission is turned off in system settings",
+  "openSettings": "Open settings",
+  "locationOff": "Location is switched off on this phone",
+  "locationOffHelp": "Turn it on in system settings and try again.",
+  "locationUnavailable": "Can't find your location right now",
+  "locationOutsideCoverage": "You are outside the covered area",
+  "locationOutsideCoverageHelp": "We only cover Greater Cairo so far. You can pick a starting stop yourself.",
+  "locationApproximate": "Approximate location — ±{meters} m. The nearest stop may be wrong.",
+  "@locationApproximate": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  }
 }
