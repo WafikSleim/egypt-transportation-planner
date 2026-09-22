@@ -47,8 +47,17 @@ class ModeColors extends ThemeExtension<ModeColors> {
 
   /// Keyed by the metro line's `short_name` — `M1`, `M2`, `M3`.
   ///
-  /// Provisional: these hues are placeholders until they are confirmed
-  /// against the operator's own wayfinding. M3 is not in the feed at all yet.
+  /// **The light values are the operator's own**, read from the legend of the
+  /// official network map (`V2024.05.09`, RATP Dev Mobility Cairo, who operate
+  /// Line 3) on 2026-09-22. That legend is keyed `M1`/`M2`/`M3` exactly as this
+  /// map is. The dark values are derived from them — same hue, saturation and
+  /// lightness moved the way the plate colours above move. See
+  /// `docs/design-system.md` for the derivation and the sources.
+  ///
+  /// Note the assignment, because almost every third-party map gets it wrong:
+  /// **M1 is blue and M2 is red**, not the reverse. And M3 is a teal, not a
+  /// grass green — which lands it on the same hue as [formalBus], so the
+  /// circle-versus-pill distinction is what keeps those two apart.
   final Map<String, Color> metroLines;
 
   static const light = ModeColors(
@@ -59,9 +68,9 @@ class ModeColors extends ThemeExtension<ModeColors> {
     walk: Color(0xFF96918A),
     unknown: Color(0xFF67635A),
     metroLines: {
-      'M1': Color(0xFF1F6FB2),
-      'M2': Color(0xFFC1272D),
-      'M3': Color(0xFF0E8A4F),
+      'M1': Color(0xFF00528F),
+      'M2': Color(0xFFC23038),
+      'M3': Color(0xFF00A88F),
     },
   );
 
@@ -73,9 +82,9 @@ class ModeColors extends ThemeExtension<ModeColors> {
     walk: Color(0xFF7C776D),
     unknown: Color(0xFFA6A197),
     metroLines: {
-      'M1': Color(0xFF5BA3DE),
-      'M2': Color(0xFFF0605F),
-      'M3': Color(0xFF3FBE7C),
+      'M1': Color(0xFF288FDC),
+      'M2': Color(0xFFEE636B),
+      'M3': Color(0xFF1FC1A9),
     },
   );
 

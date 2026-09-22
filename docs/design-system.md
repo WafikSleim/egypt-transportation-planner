@@ -73,18 +73,50 @@ colour**. It cannot be mistaken for a mode. Never use it to mean a mode.
 
 | Line | Light | Dark |
 | --- | --- | --- |
-| M1 | `#1F6FB2` | `#5BA3DE` |
-| M2 | `#C1272D` | `#F0605F` |
-| M3 | `#0E8A4F` | `#3FBE7C` |
+| M1 | `#00528F` | `#288FDC` |
+| M2 | `#C23038` | `#EE636B` |
+| M3 | `#00A88F` | `#1FC1A9` |
 
 M1's blue is close to tomnaya's blue. They are never confused because **metro
 uses a circular line badge and everything else uses a pill chip** — form
 separates the register, colour separates the member within it. Keep that
-distinction; do not render a metro line as a pill.
+distinction; do not render a metro line as a pill. The confirmed M3 is a teal
+rather than the grass green it was guessed as, which puts it on the same hue as
+the CTA bus colour — 171° against 173°. That pair now leans on the same form
+rule, so it matters twice over.
 
-> **Unverified:** these line hues are placeholders. Confirm against the
-> operator's own wayfinding before the Flutter build. (M3 is in the graph as of
-> 2026-09-21, via a feed of our own, so the M3 token is now reachable.)
+**The light values are the operator's own.** They are the three swatches in the
+legend of the official Cairo Metro network map, version `V2024.05.09`, published
+by RATP Dev Mobility Cairo — the company that operates Line 3 — at
+[mobilitycairo.com](https://www.mobilitycairo.com/en/travel-information/maps).
+That legend labels its swatches `M1`, `M2`, `M3`, the same keys this table is
+keyed by. The values were read out of the PDF's vector colour operators rather
+than sampled off a screenshot, so they are exact. Checked 2026-09-22. The
+Egyptian Company for Metro Management and Operation's own network map at
+[cairometro.gov.eg/Maps](https://www.cairometro.gov.eg/Maps) independently
+agrees on which line is which colour.
+
+**The dark values are derived, not the operator's** — the source publishes one
+value per line. Each holds its line's hue to within 0.2°, keeps saturation
+inside the 0.6–0.8 band the plate colours use, and lifts lightness the way the
+plate pairs do. Against `#121210` they measure M1 5.4:1, M2 5.9:1, M3 8.3:1 —
+the band the metro darks already sat in, when the placeholders measured
+5.8–7.9:1.
+
+M1 is deliberately the deepest of the three. The confirmed M1 is a navy, and
+lifting it as far as the others would land it on top of tomnaya's `#5FAAE8`;
+keeping it deeper preserves the same ordering the light theme has, where M1 is
+the darker blue of the pair.
+
+> **Do not "correct" this table from a secondary source.** Wikipedia and most
+> third-party maps print "Line 1 (red), Line 2 (blue)". Both operator maps say
+> the opposite: M1 is blue, M2 is red. This was checked against the operators,
+> not against those.
+
+> **Open:** white on M3 `#00A88F` measures 3.00:1. That clears AA for the badge
+> numeral only because it is large and bold. If the badge ever shrinks, the M3
+> numeral needs a darker treatment — the colour is the operator's and is not
+> the thing to change.
 
 ### Semantic — separate from the accent
 

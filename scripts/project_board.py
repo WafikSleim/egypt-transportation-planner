@@ -51,7 +51,7 @@ DONE = {1, 4, 5, 10, 29}
 # translated English, and how any of it behaves on a real phone - nothing in
 # this project has ever run on hardware, only in widget tests and an APK
 # build. Each carries a comment saying exactly what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 18, 32, 34}
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 18, 32, 33, 34}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}
