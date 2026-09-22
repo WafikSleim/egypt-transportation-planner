@@ -99,64 +99,79 @@ void main() {
       await savedCache(store: store);
 
       expect(
-        readAt(store, savedAt.add(PlanCache.maxAge - const Duration(minutes: 1))),
+        readAt(
+          store,
+          savedAt.add(PlanCache.maxAge - const Duration(minutes: 1)),
+        ),
         isNotNull,
       );
       expect(
-        readAt(store, savedAt.add(PlanCache.maxAge + const Duration(minutes: 1))),
+        readAt(
+          store,
+          savedAt.add(PlanCache.maxAge + const Duration(minutes: 1)),
+        ),
         isNull,
       );
     });
 
-    test('a plan for a different departure is not an answer to this one', () async {
-      // Plan tomorrow's 08:00 trip this afternoon, lose signal an hour later,
-      // ask for a trip now: same endpoints, one hour old, and the itinerary
-      // is tomorrow morning's. Age alone does not catch this.
-      final store = InMemoryStore();
-      await savedCache(
-        store: store,
-        departure: departAt.add(const Duration(days: 1)),
-      );
+    test(
+      'a plan for a different departure is not an answer to this one',
+      () async {
+        // Plan tomorrow's 08:00 trip this afternoon, lose signal an hour later,
+        // ask for a trip now: same endpoints, one hour old, and the itinerary
+        // is tomorrow morning's. Age alone does not catch this.
+        final store = InMemoryStore();
+        await savedCache(
+          store: store,
+          departure: departAt.add(const Duration(days: 1)),
+        );
 
-      expect(
-        readAt(store, savedAt.add(const Duration(minutes: 30))),
-        isNull,
-        reason: 'the saved plan departs tomorrow',
-      );
-    });
+        expect(
+          readAt(store, savedAt.add(const Duration(minutes: 30))),
+          isNull,
+          reason: 'the saved plan departs tomorrow',
+        );
+      },
+    );
 
-    test('a starting point a block away still matches; a district away does not', () async {
-      // The commonest offline case starts from "my location", and two GPS
-      // fixes a minute apart are never the same pair of doubles. An exact
-      // match would make the whole feature dead code.
-      final store = InMemoryStore();
-      await savedCache(store: store);
+    test(
+      'a starting point a block away still matches; a district away does not',
+      () async {
+        // The commonest offline case starts from "my location", and two GPS
+        // fixes a minute apart are never the same pair of doubles. An exact
+        // match would make the whole feature dead code.
+        final store = InMemoryStore();
+        await savedCache(store: store);
 
-      final now = savedAt.add(const Duration(minutes: 10));
-      expect(
-        readAt(store, now, fromPoint: const GeoPoint(29.84955, 31.33410)),
-        isNotNull,
-        reason: 'about 70 m away, the same walk to the same stop',
-      );
-      expect(
-        readAt(store, now, fromPoint: const GeoPoint(29.8600, 31.3340)),
-        isNull,
-        reason: 'over a kilometre away is a different question',
-      );
-    });
+        final now = savedAt.add(const Duration(minutes: 10));
+        expect(
+          readAt(store, now, fromPoint: const GeoPoint(29.84955, 31.33410)),
+          isNotNull,
+          reason: 'about 70 m away, the same walk to the same stop',
+        );
+        expect(
+          readAt(store, now, fromPoint: const GeoPoint(29.8600, 31.3340)),
+          isNull,
+          reason: 'over a kilometre away is a different question',
+        );
+      },
+    );
 
-    test('a plan fetched in Arabic is not offered on an English screen', () async {
-      // Stop and route names are localised server-side, so the stored body is
-      // in whatever language it was fetched in. Replaying it after a language
-      // switch would print Arabic stop names through an English layout.
-      final store = InMemoryStore();
-      await savedCache(store: store, lang: 'ar');
+    test(
+      'a plan fetched in Arabic is not offered on an English screen',
+      () async {
+        // Stop and route names are localised server-side, so the stored body is
+        // in whatever language it was fetched in. Replaying it after a language
+        // switch would print Arabic stop names through an English layout.
+        final store = InMemoryStore();
+        await savedCache(store: store, lang: 'ar');
 
-      expect(
-        readAt(store, savedAt.add(const Duration(minutes: 5)), lang: 'en'),
-        isNull,
-      );
-    });
+        expect(
+          readAt(store, savedAt.add(const Duration(minutes: 5)), lang: 'en'),
+          isNull,
+        );
+      },
+    );
 
     test('unreadable stored text returns null rather than throwing', () {
       // Same rule as the settings store: data the user can neither see nor
@@ -170,11 +185,7 @@ void main() {
             '"arrive_by": false, "lang": "ar", "body": {}}',
       ]) {
         final store = InMemoryStore({'plan_cache.last': junk});
-        expect(
-          () => readAt(store, savedAt),
-          returnsNormally,
-          reason: junk,
-        );
+        expect(() => readAt(store, savedAt), returnsNormally, reason: junk);
         expect(readAt(store, savedAt), isNull, reason: junk);
       }
     });
@@ -288,9 +299,8 @@ void main() {
     );
 
     test('a saved answer is shown, and marked as one', () async {
-      final repo = FakeRepository(
-        error: const ApiFailure(FailureKind.offline),
-      )..cached = saved();
+      final repo = FakeRepository(error: const ApiFailure(FailureKind.offline))
+        ..cached = saved();
 
       final cubit = build(repo);
       await cubit.load();
@@ -322,8 +332,9 @@ void main() {
     });
 
     test('a live answer is never marked as saved', () async {
-      final repo = FakeRepository(planResponse: PlanResponse.fromJson(planMetro))
-        ..cached = saved();
+      final repo = FakeRepository(
+        planResponse: PlanResponse.fromJson(planMetro),
+      )..cached = saved();
 
       final cubit = build(repo);
       await cubit.load();
@@ -358,8 +369,9 @@ void main() {
       // "No spinner that never ends" has two halves: the request carries a
       // hard timeout, and the screen stops pretending the wait is going
       // normally before that timeout arrives.
-      final repo = FakeRepository(planResponse: PlanResponse.fromJson(planMetro))
-        ..planDelay = const Duration(milliseconds: 60);
+      final repo = FakeRepository(
+        planResponse: PlanResponse.fromJson(planMetro),
+      )..planDelay = const Duration(milliseconds: 60);
 
       final cubit = ResultsCubit(
         repository: repo,

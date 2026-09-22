@@ -23,8 +23,7 @@ import '../models/models.dart';
 /// "The last successful plan", literally. A history of trips is a different
 /// feature (saved trips, P-15) with a different promise to the user.
 class PlanCache {
-  PlanCache(this._store, {DateTime Function() now = DateTime.now})
-    : _now = now;
+  PlanCache(this._store, {DateTime Function() now = DateTime.now}) : _now = now;
 
   final KeyValueStore _store;
   final DateTime Function() _now;
