@@ -1,0 +1,512 @@
+{
+  "id": "cairo_metro_line_3",
+  "name": "Cairo Metro Line 3",
+  "nameAr": "الخط الثالث لمترو أنفاق القاهرة الكبرى",
+  "shortName": "M3",
+  "transportType": "metro",
+  "operator": "Cairo Metro",
+  "city": "Cairo",
+  "country": "Egypt",
+  "status": "operational",
+  "totalLengthKm": 41.2,
+  "totalStations": 34,
+  "stationTypes": {
+    "underground": 21,
+    "elevated": 11,
+    "surface": 2
+  },
+  "structure": {
+    "type": "branched",
+    "mainJunction": "kit_kat",
+    "branches": [
+      "rod_el_farag_branch",
+      "cairo_university_branch"
+    ]
+  },
+  "phases": [
+    {
+      "id": "phase_1",
+      "name": "Phase 1",
+      "nameAr": "المرحلة الأولى",
+      "lengthKm": 4.4,
+      "stations": [
+        "attaba",
+        "bab_el_shaaria",
+        "el_geish",
+        "abdo_pasha",
+        "abbassia"
+      ]
+    },
+    {
+      "id": "phase_2",
+      "name": "Phase 2",
+      "nameAr": "المرحلة الثانية",
+      "lengthKm": 7.7,
+      "stations": [
+        "abbassia",
+        "ard_el_maared",
+        "stadium",
+        "girls_college",
+        "el_ahram"
+      ]
+    },
+    {
+      "id": "phase_3",
+      "name": "Phase 3",
+      "nameAr": "المرحلة الثالثة",
+      "lengthKm": 17.7,
+      "parts": [
+        {
+          "id": "3A",
+          "lengthKm": 4.0,
+          "stations": [
+            "nasser",
+            "maspero",
+            "safaa_hegazy",
+            "kit_kat"
+          ]
+        },
+        {
+          "id": "3B",
+          "lengthKm": 6.6,
+          "stations": [
+            "sudan",
+            "imbaba",
+            "el_bohy",
+            "el_qawmeya_el_arabia",
+            "ring_road",
+            "rod_el_farag"
+          ]
+        },
+        {
+          "id": "3C",
+          "lengthKm": 7.1,
+          "stations": [
+            "el_tawfikia",
+            "wadi_el_nil",
+            "gamaet_el_dowal",
+            "boulak_el_dakrour",
+            "cairo_university"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase_4",
+      "name": "Phase 4",
+      "nameAr": "المرحلة الرابعة",
+      "lengthKm": 11.5,
+      "parts": [
+        {
+          "id": "4A",
+          "name": "Haroun - El Shams Club",
+          "lengthKm": 3.7,
+          "stations": [
+            "haroun",
+            "heliopolis",
+            "alf_maskan",
+            "el_shams_club"
+          ]
+        },
+        {
+          "id": "4B",
+          "name": "El Shams Club - Adly Mansour",
+          "lengthKm": 7.8,
+          "stations": [
+            "el_nozha",
+            "hesham_barakat",
+            "qobaa",
+            "omar_ibn_el_khattab",
+            "el_haykestep",
+            "adly_mansour"
+          ]
+        }
+      ]
+    }
+  ],
+  "stations": [
+    {
+      "id": "adly_mansour",
+      "name": "Adly Mansour",
+      "nameAr": "عدلي منصور",
+      "sequence": 1,
+      "type": "elevated",
+      "phase": "phase_4",
+      "connections": [
+        {
+          "type": "light_rail",
+          "line": "LRT"
+        }
+      ]
+    },
+    {
+      "id": "el_haykestep",
+      "name": "El Haykestep",
+      "nameAr": "الهايكستب",
+      "sequence": 2,
+      "type": "elevated",
+      "phase": "phase_4"
+    },
+    {
+      "id": "omar_ibn_el_khattab",
+      "name": "Omar Ibn El Khattab",
+      "nameAr": "عمر بن الخطاب",
+      "sequence": 3,
+      "type": "elevated",
+      "phase": "phase_4"
+    },
+    {
+      "id": "qobaa",
+      "name": "Qobaa",
+      "nameAr": "قباء",
+      "sequence": 4,
+      "type": "elevated",
+      "phase": "phase_4"
+    },
+    {
+      "id": "hesham_barakat",
+      "name": "Hesham Barakat",
+      "nameAr": "هشام بركات",
+      "sequence": 5,
+      "type": "elevated",
+      "phase": "phase_4"
+    },
+    {
+      "id": "el_nozha",
+      "name": "El Nozha",
+      "nameAr": "النزهة",
+      "sequence": 6,
+      "type": "elevated",
+      "phase": "phase_4"
+    },
+    {
+      "id": "el_shams_club",
+      "name": "El Shams Club",
+      "nameAr": "نادي الشمس",
+      "sequence": 7,
+      "type": "underground",
+      "phase": "phase_4"
+    },
+    {
+      "id": "alf_maskan",
+      "name": "Alf Maskan",
+      "nameAr": "ألف مسكن",
+      "sequence": 8,
+      "type": "underground",
+      "phase": "phase_4"
+    },
+    {
+      "id": "heliopolis",
+      "name": "Heliopolis",
+      "nameAr": "هليوبوليس",
+      "sequence": 9,
+      "type": "underground",
+      "phase": "phase_4"
+    },
+    {
+      "id": "haroun",
+      "name": "Haroun",
+      "nameAr": "هارون",
+      "sequence": 10,
+      "type": "underground",
+      "phase": "phase_4"
+    },
+    {
+      "id": "el_ahram",
+      "name": "El Ahram",
+      "nameAr": "الأهرام",
+      "sequence": 11,
+      "type": "underground",
+      "phase": "phase_2"
+    },
+    {
+      "id": "girls_college",
+      "name": "Girls College",
+      "nameAr": "كلية البنات",
+      "sequence": 12,
+      "type": "underground",
+      "phase": "phase_2"
+    },
+    {
+      "id": "stadium",
+      "name": "Stadium",
+      "nameAr": "الاستاد",
+      "sequence": 13,
+      "type": "underground",
+      "phase": "phase_2",
+      "connections": [
+        {
+          "type": "monorail",
+          "line": "east_nile_monorail"
+        }
+      ]
+    },
+    {
+      "id": "ard_el_maared",
+      "name": "Ard El Maared",
+      "nameAr": "أرض المعارض",
+      "sequence": 14,
+      "type": "underground",
+      "phase": "phase_2"
+    },
+    {
+      "id": "abbassia",
+      "name": "Abbassia",
+      "nameAr": "العباسية",
+      "sequence": 15,
+      "type": "underground",
+      "phase": "phase_1"
+    },
+    {
+      "id": "abdo_pasha",
+      "name": "Abdo Pasha",
+      "nameAr": "عبده باشا",
+      "sequence": 16,
+      "type": "underground",
+      "phase": "phase_1"
+    },
+    {
+      "id": "el_geish",
+      "name": "El Geish",
+      "nameAr": "الجيش",
+      "sequence": 17,
+      "type": "underground",
+      "phase": "phase_1"
+    },
+    {
+      "id": "bab_el_shaaria",
+      "name": "Bab El Shaaria",
+      "nameAr": "باب الشعرية",
+      "sequence": 18,
+      "type": "underground",
+      "phase": "phase_1"
+    },
+    {
+      "id": "attaba",
+      "name": "Attaba",
+      "nameAr": "العتبة",
+      "sequence": 19,
+      "type": "underground",
+      "phase": "phase_1",
+      "connections": [
+        {
+          "type": "metro",
+          "line": "cairo_metro_line_2"
+        }
+      ]
+    },
+    {
+      "id": "nasser",
+      "name": "Nasser",
+      "nameAr": "ناصر",
+      "sequence": 20,
+      "type": "underground",
+      "phase": "phase_3A",
+      "connections": [
+        {
+          "type": "metro",
+          "line": "cairo_metro_line_1"
+        }
+      ]
+    },
+    {
+      "id": "maspero",
+      "name": "Maspero",
+      "nameAr": "ماسبيرو",
+      "sequence": 21,
+      "type": "underground",
+      "phase": "phase_3A"
+    },
+    {
+      "id": "safaa_hegazy",
+      "name": "Safaa Hegazy",
+      "nameAr": "صفاء حجازي",
+      "sequence": 22,
+      "type": "underground",
+      "phase": "phase_3A"
+    },
+    {
+      "id": "kit_kat",
+      "name": "Kit Kat",
+      "nameAr": "الكيت كات",
+      "sequence": 23,
+      "type": "underground",
+      "phase": "phase_3A",
+      "isBranchPoint": true
+    },
+    {
+      "id": "sudan",
+      "name": "Sudan",
+      "nameAr": "السودان",
+      "sequence": 24,
+      "type": "underground",
+      "phase": "phase_3B",
+      "branch": "rod_el_farag_branch"
+    },
+    {
+      "id": "imbaba",
+      "name": "Imbaba",
+      "nameAr": "إمبابة",
+      "sequence": 25,
+      "type": "elevated",
+      "phase": "phase_3B",
+      "branch": "rod_el_farag_branch"
+    },
+    {
+      "id": "el_bohy",
+      "name": "El Bohy",
+      "nameAr": "البوهي",
+      "sequence": 26,
+      "type": "elevated",
+      "phase": "phase_3B",
+      "branch": "rod_el_farag_branch"
+    },
+    {
+      "id": "el_qawmeya_el_arabia",
+      "name": "El Qawmeya El Arabia",
+      "nameAr": "القومية العربية",
+      "sequence": 27,
+      "type": "elevated",
+      "phase": "phase_3B",
+      "branch": "rod_el_farag_branch"
+    },
+    {
+      "id": "ring_road",
+      "name": "Ring Road",
+      "nameAr": "الطريق الدائري",
+      "sequence": 28,
+      "type": "elevated",
+      "phase": "phase_3B",
+      "branch": "rod_el_farag_branch"
+    },
+    {
+      "id": "rod_el_farag",
+      "name": "Rod El Farag",
+      "nameAr": "محور روض الفرج",
+      "sequence": 29,
+      "type": "surface",
+      "phase": "phase_3B",
+      "branch": "rod_el_farag_branch"
+    },
+    {
+      "id": "el_tawfikia",
+      "name": "El Tawfikia",
+      "nameAr": "التوفيقية",
+      "sequence": 30,
+      "type": "underground",
+      "phase": "phase_3C",
+      "branch": "cairo_university_branch"
+    },
+    {
+      "id": "wadi_el_nil",
+      "name": "Wadi El Nil",
+      "nameAr": "وادي النيل",
+      "sequence": 31,
+      "type": "underground",
+      "phase": "phase_3C",
+      "branch": "cairo_university_branch",
+      "connections": [
+        {
+          "type": "monorail",
+          "line": "west_nile_monorail"
+        }
+      ]
+    },
+    {
+      "id": "gamaet_el_dowal",
+      "name": "Gamaet El Dowal El Arabia",
+      "nameAr": "جامعة الدول العربية",
+      "sequence": 32,
+      "type": "underground",
+      "phase": "phase_3C",
+      "branch": "cairo_university_branch"
+    },
+    {
+      "id": "boulak_el_dakrour",
+      "name": "Boulak El Dakrour",
+      "nameAr": "بولاق الدكرور",
+      "sequence": 33,
+      "type": "surface",
+      "phase": "phase_3C",
+      "branch": "cairo_university_branch"
+    },
+    {
+      "id": "cairo_university",
+      "name": "Cairo University",
+      "nameAr": "جامعة القاهرة",
+      "sequence": 34,
+      "type": "elevated",
+      "phase": "phase_3C",
+      "branch": "cairo_university_branch",
+      "connections": [
+        {
+          "type": "metro",
+          "line": "cairo_metro_line_2"
+        }
+      ]
+    }
+  ],
+  "interchanges": [
+    {
+      "stationId": "nasser",
+      "connectedLine": "cairo_metro_line_1",
+      "type": "metro"
+    },
+    {
+      "stationId": "attaba",
+      "connectedLine": "cairo_metro_line_2",
+      "type": "metro"
+    },
+    {
+      "stationId": "cairo_university",
+      "connectedLine": "cairo_metro_line_2",
+      "type": "metro"
+    },
+    {
+      "stationId": "adly_mansour",
+      "connectedLine": "lrt",
+      "type": "light_rail"
+    },
+    {
+      "stationId": "stadium",
+      "connectedLine": "east_nile_monorail",
+      "type": "monorail"
+    },
+    {
+      "stationId": "wadi_el_nil",
+      "connectedLine": "west_nile_monorail",
+      "type": "monorail"
+    }
+  ],
+  "branches": {
+    "main": {
+      "from": "adly_mansour",
+      "to": "kit_kat"
+    },
+    "rod_el_farag_branch": {
+      "from": "kit_kat",
+      "to": "rod_el_farag",
+      "stations": [
+        "kit_kat",
+        "sudan",
+        "imbaba",
+        "el_bohy",
+        "el_qawmeya_el_arabia",
+        "ring_road",
+        "rod_el_farag"
+      ]
+    },
+    "cairo_university_branch": {
+      "from": "kit_kat",
+      "to": "cairo_university",
+      "stations": [
+        "kit_kat",
+        "el_tawfikia",
+        "wadi_el_nil",
+        "gamaet_el_dowal",
+        "boulak_el_dakrour",
+        "cairo_university"
+      ]
+    }
+  }
+}

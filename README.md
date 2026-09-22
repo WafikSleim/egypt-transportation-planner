@@ -34,7 +34,9 @@ search had been returning walk-only, even across 25 km:
    [`scripts/fix_gtfs_calendar.py`](scripts/fix_gtfs_calendar.py) shifts both to
    `20260101–20271231`, preserving each service's weekly and seasonal pattern.
 
-The rebuilt graph loads 1,012 routes and 3,105 stops across both feeds, and a
+The rebuilt graph loads 1,013 routes and 3,139 stops across three feeds — the
+two TfC ones plus [metro line 3](data/metro-l3/README.md), which we build
+ourselves because TfC's metro feed stops at M1 and M2 — and a
 [backend API](api/README.md) now sits in front of it — trip planning, stop
 search, Arabic, and the licence attribution served rather than hardcoded.
 

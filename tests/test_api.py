@@ -15,6 +15,7 @@ from tests.conftest import (
     MICROBUS_ROUTE,
     cta_itinerary,
     metro_itinerary,
+    metro_l3_itinerary,
     microbus_itinerary,
     walk_only_itinerary,
 )
@@ -428,3 +429,21 @@ async def test_routes_carry_source_and_confidence(fake_otp, client):
     route = [l for l in body["itineraries"][0]["legs"] if l["is_transit"]][0]["route"]
     assert route["source"] == "tfc"
     assert route["confidence"] == "confirmed"
+
+
+async def test_our_own_metro_line_3_is_not_labelled_tfc(fake_otp, client):
+    """The graph holds two sources. Line 3 is ours - the operator's published
+    stations plus Wikidata coordinates, on a modelled timetable - so calling it
+    `tfc` would credit TfC with data they did not produce, and `confirmed` would
+    claim we verified times we derived. The feed id is what decides."""
+    fake_otp.itineraries = [metro_l3_itinerary()]
+    async with client as c:
+        body = (await c.get("/plan", params=CAIRO)).json()
+
+    route = [l for l in body["itineraries"][0]["legs"] if l["is_transit"]][0]["route"]
+    assert route["id"].startswith("metro-l3:")
+    assert route["source"] == "project"
+    assert route["confidence"] == "reported"
+    # Still the metro mode, and still a badge: mode comes from agency_id.
+    assert route["short_name"] == "M3"
+    assert route["has_line_number"] is True

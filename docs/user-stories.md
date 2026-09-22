@@ -510,16 +510,18 @@ v1 is **Cairo-only, shipped early**, so the `must` column is the release gate.
 3. **Phase 4 — contributions and dashboard.** C-01 and C-04 first, then M-01 to
    M-04. Note C-04 (a second person confirming) is what makes the pipeline work
    without your constant attention.
-4. **Phase 5 — data quality.** Metro line 3, Arabic for metro stops, a
-   maintained fares table, Port Said.
+4. **Phase 5 — data quality.** Arabic for the M1/M2 stops, a published Line 3
+   timetable to replace the modelled one, a maintained fares table, Port Said.
+   (Metro line 3 itself landed early, on 2026-09-21.)
 
 ### Known data holes v1 ships with
 
 Stated here so the UI can be honest about them rather than pretending:
 
-- **Metro line 3 is missing** — one of the busiest lines. Itineraries through it
-  will route oddly or not at all.
-- **Metro stops have no Arabic names** — 108 of them.
+- **Metro line 3's timetable is modelled, not published** — the line itself is
+  in the graph, but its running times and headways are derived, so durations are
+  indicative. Never show them as operator times.
+- **M1 and M2 stops have no Arabic names** — 108 of them. M3's 34 do.
 - **No fares at all**, by design.
 - **Greater Cairo only.**
 - **No service late at night** in the data, whatever reality is.

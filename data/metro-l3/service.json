@@ -1,0 +1,40 @@
+{
+  "_comment": [
+    "Modelled, not observed. The running speed and dwell are measured from the",
+    "TfC feed's own M1 and M2 trips so Line 3 is consistent with the rest of the",
+    "graph; the headway windows are modelled on M2's window shape. Every window",
+    "below is a per-branch headway: trains alternate at Kit Kat, so the trunk",
+    "sees twice this frequency. Replace with published figures when we have them."
+  ],
+  "runSpeedKmh": 40.4,
+  "dwellSeconds": 30,
+  "firstDeparture": "05:15:30",
+  "headways": {
+    "l3_std": [
+      ["05:15:00", "05:30:00", 1800],
+      ["05:30:00", "06:00:00", 1200],
+      ["06:00:00", "06:30:00", 720],
+      ["06:30:00", "09:30:00", 480],
+      ["09:30:00", "18:30:00", 600],
+      ["18:30:00", "20:30:00", 480],
+      ["20:30:00", "23:30:00", 720],
+      ["23:30:00", "24:00:00", 900]
+    ],
+    "l3_vac": [
+      ["05:15:00", "06:00:00", 1800],
+      ["06:00:00", "07:00:00", 1200],
+      ["07:00:00", "08:00:00", 900],
+      ["08:00:00", "23:00:00", 600],
+      ["23:00:00", "24:00:00", 720],
+      ["24:00:00", "24:20:00", 900]
+    ]
+  },
+  "calendar": {
+    "l3_std": "1111001",
+    "l3_vac": "0000110"
+  },
+  "runTimeBandsMinutes": {
+    "trunk": [45, 60],
+    "branch": [55, 75]
+  }
+}

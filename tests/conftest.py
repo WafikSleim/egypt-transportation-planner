@@ -60,6 +60,14 @@ METRO_ROUTE = {
     "_headsign": "New El-Marg",
 }
 
+# Metro line 3 is not in the TfC feed. We build it ourselves, in a feed whose id
+# is pinned to "metro-l3", and its provenance has to differ because of that.
+L3_ROUTE = {
+    "gtfsId": "metro-l3:L3", "shortName": "M3", "longName": "Metro Line 3",
+    "mode": "SUBWAY", "agency": {"gtfsId": "metro-l3:NAT", "name": "Cairo Metro"},
+    "_headsign": "Cairo University",
+}
+
 # The trap: shortName is literally "Microbus" on hundreds of routes, because
 # real microbuses in Cairo carry no number.
 MICROBUS_ROUTE = {
@@ -98,6 +106,20 @@ def metro_itinerary():
             _transit_leg(T0 + 74 * MINUTE, 13, SHOHADAA, SHUBRA, "SUBWAY",
                          METRO_ROUTE, 7109),
             _walk_leg(T0 + 87 * MINUTE, 3, SHUBRA, DEST, 110),
+        ],
+    }
+
+
+def metro_l3_itinerary():
+    """One M3 leg, straight through - line 3 needs no interchange to be itself."""
+    return {
+        "startTime": T0, "endTime": T0 + 47 * MINUTE, "duration": 47 * 60,
+        "walkDistance": 140.0,
+        "legs": [
+            _walk_leg(T0, 2, ORIGIN, HELWAN, 110),
+            _transit_leg(T0 + 2 * MINUTE, 44, HELWAN, SHUBRA, "SUBWAY",
+                         L3_ROUTE, 21363),
+            _walk_leg(T0 + 46 * MINUTE, 1, SHUBRA, DEST, 30),
         ],
     }
 

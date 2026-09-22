@@ -3,9 +3,10 @@
 These are the contract the Flutter client codes against, so they are declared
 explicitly rather than passed through from OTP. Two consequences worth naming:
 
-- `source` and `confidence` appear on every route from day one, while TfC is
-  still the only source. Adding them later would mean revising the client as
-  well as the database.
+- `source` and `confidence` appear on every route, and are derived from the
+  feed the route came out of (`config.FEED_PROVENANCE`) rather than assumed.
+  There are two sources in the graph already: the TfC feeds, and our own
+  metro line 3, whose timetable is modelled rather than published.
 - There is no fare field beyond `FareInfo`, which only ever says "unavailable".
   The feeds' fares are from 2018 and showing one would be worse than showing
   nothing.
@@ -17,7 +18,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Source = Literal["tfc", "portsaid", "osm", "community"]
+# "project" is data we compiled ourselves rather than took from a feed someone
+# else publishes — metro line 3, which TfC's feed does not contain.
+Source = Literal["tfc", "portsaid", "osm", "community", "project"]
 Confidence = Literal["confirmed", "reported", "unverified"]
 
 # Why an empty result is empty, as a value the client can switch on.

@@ -140,6 +140,18 @@ def _iso(epoch_millis: int | None) -> str:
     return dt.datetime.fromtimestamp(epoch_millis / 1000, tz=TZ).isoformat()
 
 
+def _provenance(gtfs_id: str) -> tuple[str, str]:
+    """Where a route's data came from, decided by which feed it is in.
+
+    The graph is not one dataset: metro line 3 is ours, compiled from the
+    operator's published stations and Wikidata coordinates, and its timetable is
+    modelled. Labelling it `tfc` would claim TfC produced data they did not, and
+    `confirmed` would claim we verified times we derived.
+    """
+    feed = gtfs_id.split(":", 1)[0] if ":" in gtfs_id else None
+    return config.FEED_PROVENANCE.get(feed, config.FEED_PROVENANCE[None])
+
+
 def _place(raw: dict, names: dict[str, str], lang: str) -> Place:
     stop = raw.get("stop") or {}
     stop_id = stop.get("gtfsId")
@@ -175,16 +187,18 @@ def _route_info(raw_route: dict, mode: modes.Mode, frm: Place, to: Place,
     # Both conditions, not just the operator: a route whose operator normally
     # numbers its lines but which has no shortName has no badge to render.
     # No route in either feed is currently in that state.
+    route_id = raw_route.get("gtfsId") or ""
+    source, confidence = _provenance(route_id)
     return RouteInfo(
-        id=raw_route.get("gtfsId") or "",
+        id=route_id,
         short_name=short,
         long_name=long_name,
         display_name=display,
         has_line_number=bool(mode.has_line_number and short),
         operator=agency.get("name"),
         operator_id=agency.get("gtfsId"),
-        source="tfc",
-        confidence="confirmed",
+        source=source,
+        confidence=confidence,
     )
 
 

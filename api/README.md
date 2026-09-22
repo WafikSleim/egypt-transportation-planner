@@ -104,10 +104,15 @@ Both are set together, or neither is.
 not even request fare fields, and every itinerary carries
 `fare: {available: false}` with a reason.
 
-**Carries `source` and `confidence`** on every route, fixed at `tfc` /
-`confirmed` for now. They exist from the first version deliberately: the client
-codes against this shape, and adding them once a second data source arrives
-would mean revising the client too.
+**Carries `source` and `confidence`** on every route, derived from the feed the
+route came out of rather than assumed — the mapping is `config.FEED_PROVENANCE`,
+keyed on the feed id in front of the colon in a `gtfsId`. There are two sources
+in the graph already: the TfC feeds come back as `tfc` / `confirmed`, and metro
+line 3, which we compile ourselves from the operator's published stations and
+Wikidata coordinates, comes back as `project` / `reported` — its timetable is
+modelled, so calling it confirmed would claim a verification we never did. A
+feed added later without an entry inherits the TfC labels, which is the one
+thing to watch.
 
 **Serves Arabic — including in itineraries, which OTP will not do.**
 `lang=ar` is forwarded as `Accept-Language`, applying the road feed's
