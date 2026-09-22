@@ -11,6 +11,24 @@
          hardware must still be able to install it and pick stops by name. -->
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
+    <!-- Android 13+ runtime permission, asked in context and never at launch -
+         see core/notifications/notification_permission_prompt.dart. Declared
+         here as well as in the plugin's own manifest so that the one
+         permission this app shows a dialog for is visible in this file.
+
+         There is deliberately no SCHEDULE_EXACT_ALARM or USE_EXACT_ALARM: a
+         departure reminder tolerates a minute either side of its lead time,
+         those permissions are audited by Play as alarm-clock features, and
+         asking for one this app does not need is how a review is refused.
+         Reminders are scheduled inexactly - see LocalNotificationService. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- A reminder is scheduled with the OS, and a reboot clears the OS's
+         alarm table. Without this, a reminder set the night before is
+         silently gone by morning - which looks exactly like an app that
+         works. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
@@ -37,6 +55,27 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- flutter_local_notifications' own receivers. The plugin stopped
+             declaring these itself at version 16, so an app that schedules
+             anything has to list them: without the first two a scheduled
+             reminder never fires and never survives a reboot, and without
+             the third the "turn these off" action on a notification does
+             nothing. All three fail quietly, which is why they are here with
+             a comment rather than copied in silently. -->
+        <receiver android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

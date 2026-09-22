@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 144 tests, no device, no network, a few seconds
+flutter test      # 172 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -36,6 +36,7 @@ lib/
 │   ├── config/         base URL, coverage box
 │   ├── location/       one-off fixes, on demand only
 │   ├── map/            tile source, style builder, the map widget
+│   ├── notifications/  the four kinds that exist, and no way to add a fifth
 │   ├── network/        ApiClient, failure classification
 │   ├── presentation/   TripPresenter + the view models it emits  ← read this first
 │   ├── settings/       language and theme (the only two settings passengers get)
@@ -117,6 +118,21 @@ underneath, so the swap is one class if it ever comes.
 language from a newer build, a value of the wrong type — each falls back to
 the phone's own locale. Those are phones that would otherwise fail to launch
 over data the user can neither see nor clear without reinstalling.
+
+**A notification cannot say anything it likes.** `core/notifications/` is
+built so that the fourth kind of notification — the growth one, the
+re-engagement one — is not a thing someone could add without noticing.
+`NotificationKind` is a closed enum, `NotificationRequest` is sealed and
+carries a trip or a stop rather than a title and a body, the words come from
+`notification_copy.dart`, and there is no remote-push package in the project
+and no `UIBackgroundModes` in `Info.plist`. `NotificationService.post` is the
+only entry point and it refuses a kind the passenger switched off; the "turn
+these off" action on the notification is handled in the base class, so a
+feature cannot forget to implement it. The one kind with no off switch is the
+ongoing tracking notice, because silencing it would let GPS run invisibly.
+`test/notifications_test.dart` holds all of this against
+`test/fake_notification_service.dart`, which overrides only `deliver` and
+`retract`.
 
 **Location is read on demand and never in the background.** There is no
 `ACCESS_BACKGROUND_LOCATION` in the manifest. Following a trip is a separate
@@ -217,7 +233,11 @@ Designed in [`design/app-prototype.html`](../design/app-prototype.html) and
 backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 
 - **Places and map picking** (P-18, P-19) — blocked on the `places` table
-- **Notifications** (P-16) and **background tracking** (P-17)
+- **The four notifications themselves** (#22–#25). The infrastructure landed
+  with #21 — the seam, the in-context permission flow, the switches on the
+  About screen — but nothing schedules a notification yet, and none of it has
+  run on a phone
+- **Background tracking** (P-17, #24)
 - Map tiles on results and itinerary screens. The renderer exists — see
   `core/map/` and the coverage map reached from About — but `/plan` returns
   each leg's endpoints and no geometry, so an itinerary map would be drawing

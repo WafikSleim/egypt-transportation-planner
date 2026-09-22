@@ -238,5 +238,61 @@
   "mapCoverageBody": "الإطار المنقّط هو المنطقة اللي عندنا فيها بيانات مواصلات — القاهرة الكبرى. برّاها مامعندناش حاجة، ومش هنخمّنلك.",
   "mapNoVehicles": "مافيش عربيات على الخريطة دي. مافيش حد في مصر بيبث مكان الميكروباصات لحظة بلحظة، وإحنا مش هنرسملك عربية بتتحرك وإحنا مش عارفين هي فين.",
   "mapNamesFromOsm": "أسماء الأماكن على الخريطة من OpenStreetMap، مش من بيانات المواصلات. ساعات بتبقى بالإنجليزي أو ناقصة.",
-  "mapSourceTemporary": "الخريطة لسه بتتحمّل من سيرفر تجريبي مش بتاعنا. ممكن تبقى بطيئة أو ماتظهرش خالص — ده مؤقت لحد ما نرفع نسختنا."
+  "mapSourceTemporary": "الخريطة لسه بتتحمّل من سيرفر تجريبي مش بتاعنا. ممكن تبقى بطيئة أو ماتظهرش خالص — ده مؤقت لحد ما نرفع نسختنا.",
+  "notificationsTitle": "التنبيهات",
+  "notificationsWhyTitle": "هنبعتلك تنبيهات في إيه؟",
+  "@notificationsWhyTitle": {
+    "description": "Shown before the OS permission prompt, never after. Parallel to locationWhyTitle."
+  },
+  "notificationsWhyBody": "تلات حاجات بس: نفكّرك قبل ميعاد مشوارك، ونقولك تستعد تنزل وإنت راكب، ونسألك سؤال واحد بعد ما توصل. مافيش إعلانات ولا تنبيهات بتنده عليك ترجع للتطبيق — التطبيق مش بيكسب حاجة من إنك تفتحه.",
+  "notificationsWhyContinue": "تمام",
+  "notificationsOnlyThree": "دول كل التنبيهات اللي التطبيق يقدر يبعتهم. مافيش سيرفر بيبعتلك حاجة من برّه — كل تنبيه بيتعمل على تليفونك، من حاجة إنت بدأتها.",
+  "notificationsTrackingNotice": "وإنت بتتابع مشوار، هيفضل فيه تنبيه ثابت طول ما المتابعة شغالة. ده مالوش زرار قفل، عشان الـ GPS ما يشتغلش من غير ما تشوفه. توقّف المتابعة من التنبيه نفسه وهو يختفي.",
+  "notificationsSilence": "بطّل التنبيهات دي",
+  "@notificationsSilence": {
+    "description": "Action button drawn on every silenceable notification. One tap and that kind stops."
+  },
+  "notificationsStopTrip": "وقّف المتابعة",
+  "notificationsAsk": "فعّل التنبيهات",
+  "notificationsBlocked": "التنبيهات مقفولة من إعدادات الجهاز",
+  "notificationsBlockedHelp": "لو عايزنا نفكّرك بمشاويرك، افتح الإعدادات وشغّلها.",
+  "notifyDepartureReminder": "فكّرني قبل المشوار",
+  "notifyTripInProgress": "متابعة المشوار",
+  "notifyNextStopAlert": "نبّهني قبل ما أنزل",
+  "notifyPostTripQuestion": "سؤال واحد بعد المشوار",
+  "notifyDepartureTitle": "ميعاد مشوارك قرّب",
+  "@notifyDepartureTitle": {
+    "description": "Placeholder wording. The real copy belongs to #22, which has to say the time is an estimate off a recorded schedule."
+  },
+  "notifyDepartureBody": "{trip}",
+  "@notifyDepartureBody": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyTrackingTitle": "بنتابع مشوارك",
+  "notifyTrackingBody": "{trip}",
+  "@notifyTrackingBody": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyNextStopTitle": "استعد تنزل",
+  "notifyNextStopBody": "الجاي: {stop}",
+  "@notifyNextStopBody": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyPostTripTitle": "وصلت بالسلامة؟",
+  "notifyPostTripBody": "لو تقدر تقولنا المشوار كان مظبوط ولا لأ.",
+  "@notifyPostTripBody": {
+    "description": "Placeholder wording. The real copy belongs to #23, which has to ask kindly rather than demand a rating."
+  }
 }

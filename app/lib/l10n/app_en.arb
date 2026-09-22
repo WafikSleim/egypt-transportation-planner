@@ -145,5 +145,49 @@
   "mapCoverageBody": "The dashed box is where we have transit data — Greater Cairo. Outside it we have nothing, and we will not guess.",
   "mapNoVehicles": "There are no vehicles on this map. Nobody in Egypt broadcasts where the microbuses are, and we will not draw a moving vehicle we cannot see.",
   "mapNamesFromOsm": "Place names on the map come from OpenStreetMap, not from the transit data. Some are in English only, or missing.",
-  "mapSourceTemporary": "The map is still loading from a demo server that is not ours. It may be slow or fail to appear — temporary, until we host our own."
+  "mapSourceTemporary": "The map is still loading from a demo server that is not ours. It may be slow or fail to appear — temporary, until we host our own.",
+  "notificationsTitle": "Notifications",
+  "notificationsWhyTitle": "What we would notify you about",
+  "notificationsWhyBody": "Three things only: a reminder before your trip, a nudge to get off while you are on board, and one question after you arrive. No ads, and nothing whose job is to pull you back into the app — the app earns nothing from you opening it.",
+  "notificationsWhyContinue": "Continue",
+  "notificationsOnlyThree": "That is everything this app is able to send. No server sends you anything: every notification is made on your phone, from something you started.",
+  "notificationsTrackingNotice": "While you are following a trip there is a notification on screen the whole time. It has no off switch, so GPS cannot run without you seeing it. Stop following from the notification itself and it goes away.",
+  "notificationsSilence": "Turn these off",
+  "notificationsStopTrip": "Stop following",
+  "notificationsAsk": "Turn notifications on",
+  "notificationsBlocked": "Notifications are turned off in system settings",
+  "notificationsBlockedHelp": "Open settings and allow them if you want reminders before your trips.",
+  "notifyDepartureReminder": "Remind me before a trip",
+  "notifyTripInProgress": "Following a trip",
+  "notifyNextStopAlert": "Tell me when to get off",
+  "notifyPostTripQuestion": "One question after a trip",
+  "notifyDepartureTitle": "Your trip is soon",
+  "notifyDepartureBody": "{trip}",
+  "@notifyDepartureBody": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyTrackingTitle": "Following your trip",
+  "notifyTrackingBody": "{trip}",
+  "@notifyTrackingBody": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyNextStopTitle": "Get ready to get off",
+  "notifyNextStopBody": "Next: {stop}",
+  "@notifyNextStopBody": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyPostTripTitle": "Did you get there safely?",
+  "notifyPostTripBody": "Tell us whether the trip was right, if you can."
 }
