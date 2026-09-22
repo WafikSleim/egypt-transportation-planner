@@ -25,7 +25,7 @@ from zoneinfo import ZoneInfo
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import config, logs, modes, otp
+from . import config, logs, modes, otp, places
 from .models import (
     Attribution,
     FeedInfo,
@@ -34,6 +34,10 @@ from .models import (
     Leg,
     ModeInfo,
     Place,
+    PlaceCategory,
+    PlaceIndexInfo,
+    PlaceResult,
+    PlacesResponse,
     PlanQuery,
     PlanResponse,
     RouteInfo,
@@ -52,8 +56,11 @@ TZ = ZoneInfo(config.TIMEZONE)
 # Alexandria, not Tanta, nowhere. Worth saying so explicitly, because "no
 # itineraries" and "this city has no transit data at all" look identical to a
 # client otherwise.
-COVERAGE = {"min_lat": 29.745, "max_lat": 30.352,
-            "min_lon": 30.846, "max_lon": 31.775}
+#
+# It moved to config.py when the place index arrived: scripts/build_places.py
+# clips the OSM extract to exactly this box, and a second copy of these six
+# numbers in a script would have drifted the first time the feeds grew.
+COVERAGE = config.COVERAGE
 
 
 def _in_coverage(point: dict[str, float]) -> bool:
@@ -111,10 +118,24 @@ ATTRIBUTION = Attribution(
     source_url="https://data.transportforcairo.com",
 )
 
+# A second attribution, not an extension of the first. The place index is
+# OpenStreetMap under ODbL; the transit data is TfC under CC BY-NC. The two
+# licences cannot be satisfied by one credit line, and the datasets are kept
+# in separate databases for the same reason — see api/places.py.
+OSM_ATTRIBUTION = Attribution(
+    text=config.OSM_ATTRIBUTION,
+    licence="ODbL 1.0",
+    source_url="https://www.openstreetmap.org/copyright",
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Nothing to warm up: OTP holds the graph and this process is stateless.
+    # Nothing to warm up and nothing to tear down. OTP holds the graph, and
+    # the place index opens its connection on first use in whichever worker
+    # thread needs one -- so a deployment that never calls /places never talks
+    # to a database at all, and one that does has nothing process-wide to
+    # close. See api/places.py for why there is no pool.
     yield
 
 
@@ -310,6 +331,95 @@ async def _otp(query: str, variables: dict, lang: str) -> dict:
 
 
 # --------------------------------------------------------------------------
+# Translation from the place index's rows to ours
+# --------------------------------------------------------------------------
+
+def _place_result(row: dict, lang: str) -> PlaceResult:
+    """Resolve which name to show, and say which one it turned out to be.
+
+    In Egypt's OSM data the bare `name` tag is usually Arabic, `name:ar` is
+    present on about 93% of the features we index and `name:en` on far fewer.
+    So both fallback directions are real, and both have to be admitted to
+    rather than papered over: never transliterate, never hide the result.
+    """
+    name_ar, name_en = row.get("name_ar"), row.get("name_en")
+    wanted, other = ("ar", "en") if lang == "ar" else ("en", "ar")
+    by_language = {"ar": name_ar, "en": name_en}
+
+    if by_language[wanted]:
+        name, name_language, fallback = by_language[wanted], wanted, False
+    elif by_language[other]:
+        name, name_language, fallback = by_language[other], other, True
+    else:
+        # Belt and braces: the ingest refuses to write a row with no name at
+        # all, so reaching here means the table was written by something else.
+        name = row.get("name") or ""
+        name_language = "ar" if places.is_arabic(name) else "en"
+        fallback = True
+
+    cat = places.category(row.get("category") or "")
+    # The area is a subtitle for telling two same-named places apart, so it
+    # falls back silently -- a district named only in Arabic beside an English
+    # result still disambiguates, and there is nothing for the UI to say.
+    areas = {"ar": row.get("area_ar"), "en": row.get("area_en")}
+    area = areas[wanted] or areas[other]
+
+    distance = row.get("distance_m")
+    return PlaceResult(
+        id=f"{row.get('osm_type') or 'n'}{row.get('osm_id') or 0}",
+        name=name,
+        name_language=name_language,
+        name_is_fallback=fallback,
+        name_ar=name_ar,
+        name_en=name_en,
+        category=PlaceCategory(id=cat.id, label_en=cat.en, label_ar=cat.ar),
+        area=area,
+        lat=row.get("lat") or 0.0,
+        lon=row.get("lon") or 0.0,
+        distance_m=round(distance) if distance is not None else None,
+    )
+
+
+async def _places(coro):
+    """503, not 500, and never with the query in the message.
+
+    The place index is the one dependency whose absence is survivable: with it
+    down, stop search and trip planning still work, and the client is expected
+    to fall back to them rather than show an error screen.
+    """
+    try:
+        return await coro
+    except places.PlacesUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
+async def _place_index_health() -> PlaceIndexInfo:
+    """Whether the place index is there, and whether anyone has filled it.
+
+    Never raises, and never makes the overall status degraded: OTP being gone
+    means the app cannot answer at all, while the place index being gone means
+    one of three search sources is missing. Those are different severities and
+    a monitor should be able to tell them apart.
+    """
+    try:
+        row = await places.stats()
+    except places.PlacesUnavailable as exc:
+        return PlaceIndexInfo(available=False, detail=str(exc))
+    count = int(row.get("place_count") or 0)
+    return PlaceIndexInfo(
+        available=True,
+        place_count=count,
+        category_count=int(row.get("category_count") or 0),
+        arabic_name_count=int(row.get("arabic_count") or 0),
+        # The table existing and the table being populated are different
+        # things, and an empty one is indistinguishable from "no matches" at
+        # the client. Say it here instead.
+        detail=None if count else
+        "The place index is empty. Run scripts/build_places.py.",
+    )
+
+
+# --------------------------------------------------------------------------
 # Endpoints
 # --------------------------------------------------------------------------
 
@@ -319,7 +429,8 @@ async def root() -> dict:
         "name": "Egypt Transportation Planner API",
         "version": app.version,
         "docs": "/docs",
-        "endpoints": ["/health", "/plan", "/stops", "/attribution"],
+        "endpoints": ["/health", "/plan", "/stops", "/places",
+                      "/places/reverse", "/attribution"],
         "coverage": "Greater Cairo only. No other Egyptian city has transit "
                     "data yet.",
     }
@@ -336,6 +447,7 @@ async def attribution() -> Attribution:
 async def health() -> HealthResponse:
     """Reports OTP being down rather than failing, so a monitor can tell the
     difference between this process being broken and OTP being absent."""
+    place_info = await _place_index_health()
     try:
         data = await otp.query(otp.HEALTH_QUERY)
     except (otp.OTPUnavailable, otp.OTPError) as exc:
@@ -344,6 +456,7 @@ async def health() -> HealthResponse:
             otp_url=config.OTP_URL,
             otp_reachable=False,
             detail=str(exc),
+            places=place_info,
         )
 
     feeds = [
@@ -367,6 +480,7 @@ async def health() -> HealthResponse:
             feeds=feeds,
             route_count=routes,
             stop_count=stops,
+            places=place_info,
         )
     return HealthResponse(
         status="ok",
@@ -375,6 +489,7 @@ async def health() -> HealthResponse:
         feeds=feeds,
         route_count=routes,
         stop_count=stops,
+        places=place_info,
     )
 
 
@@ -504,4 +619,97 @@ async def stops(
         truncated=total > len(results),
         stops=results,
         attribution=ATTRIBUTION,
+    )
+
+
+# --------------------------------------------------------------------------
+# Places. A different index, a different licence, different match behaviour.
+# --------------------------------------------------------------------------
+
+@app.get("/places", response_model=PlacesResponse, tags=["places"])
+async def places_search(
+    q: str = Query(
+        ..., min_length=2,
+        description="Any part of a place name, in Arabic or Latin script.",
+        examples=["منيب", "كايرو فستيفال", "Tahrir"],
+    ),
+    near: str | None = Query(
+        None, alias="near",
+        description="'lat,lon' to order results by distance from. Optional.",
+        examples=["30.0444,31.2357"],
+    ),
+    limit: int = Query(20, ge=1, le=50),
+    lang: str = Query("en", pattern="^(en|ar)$"),
+) -> PlacesResponse:
+    """Search malls, universities, hospitals, streets, squares and districts.
+
+    **This matches differently from `/stops`, on purpose.** OTP's stop search
+    is prefix-based and scoped to one language, so `منيب` finds nothing and
+    `Moneeb&lang=ar` finds nothing. Here the query is normalised — diacritics
+    and the definite article stripped, alef and ta-marbuta variants folded —
+    and matched as a substring, with trigram similarity behind it for typos.
+    Both name columns are searched whatever `lang` says; `lang` only chooses
+    which name comes back. The UI is expected to state this difference, since
+    a user who types منيب and gets nothing assumes the app is broken.
+
+    Results are confined to the covered bounding box. A place outside Greater
+    Cairo would be a search result no itinerary can be planned to.
+
+    The data is OpenStreetMap, not the transit feeds, and the response says so
+    in `attribution`.
+    """
+    point = _coords(near, "near") if near else None
+    rows = await _places(places.search(q, COVERAGE, limit, point))
+    results = [_place_result(r, lang) for r in rows]
+    total = int(rows[0].get("total_matches") or len(rows)) if rows else 0
+    return PlacesResponse(
+        query=q,
+        count=len(results),
+        total_matches=total,
+        truncated=total > len(results),
+        places=results,
+        attribution=OSM_ATTRIBUTION,
+    )
+
+
+@app.get("/places/reverse", response_model=PlacesResponse, tags=["places"])
+async def places_reverse(
+    at: str = Query(
+        ..., description="'lat,lon' — where the map pin settled.",
+        examples=["30.0444,31.2357"],
+    ),
+    radius_m: int = Query(
+        500, ge=50, le=5000,
+        description="How far to look. Beyond this the honest answer is that "
+                    "OSM has nothing named here.",
+    ),
+    limit: int = Query(5, ge=1, le=20),
+    lang: str = Query("en", pattern="^(en|ar)$"),
+) -> PlacesResponse:
+    """Name the point a passenger dropped a pin on (P-18).
+
+    Ordered by distance in 100 m bands, then by how prominent the place is, so
+    that standing in a mall's car park names the mall and not the service road
+    beside it. An empty list is a real answer — much of Greater Cairo has no
+    addressing a stranger could use, which is why pointing at the map exists —
+    and the client should say "no name here", not "no results".
+
+    This does **not** report the nearest stop. That is transit data, it comes
+    from OTP, and joining the two datasets is precisely what the licences
+    forbid; the client asks both and shows them as two labelled things.
+    """
+    point = _coords(at, "at")
+    rows = await _places(
+        places.nearest(point["lat"], point["lon"], COVERAGE, limit, radius_m)
+    )
+    results = [_place_result(r, lang) for r in rows]
+    total = int(rows[0].get("total_matches") or len(rows)) if rows else 0
+    return PlacesResponse(
+        query=at,
+        count=len(results),
+        total_matches=total,
+        truncated=total > len(results),
+        places=results,
+        attribution=OSM_ATTRIBUTION,
+        matching="nearest",
     )

@@ -1,0 +1,53 @@
+# Local infrastructure.
+#
+# One service so far: the database behind `/places`. OpenTripPlanner is
+# deliberately NOT here — it is run from OTP/ with the two `docker run` lines
+# in CLAUDE.md, it wants a 490 MB graph mounted from a gitignored directory,
+# and folding it in would make `docker compose up` fail on a fresh clone for
+# reasons that have nothing to do with this file.
+#
+#     docker compose up -d places-db
+#     python scripts/build_places.py
+#
+# WHY A DATABASE OF ITS OWN, holding only OpenStreetMap data:
+#
+# OSM is ODbL and the Transport for Cairo transit data is CC BY-NC. Merged
+# into one derived database the two licences contradict each other — ODbL
+# requires the result be ODbL, which permits commercial use, and CC BY-NC
+# forbids it. Kept as separate databases they are a collective database, which
+# neither licence objects to. So: no transit table in here, ever, and no
+# materialised join between the two. When the contribution pipeline and the
+# fares table arrive they get their own service beside this one, not a schema
+# inside it.
+
+services:
+  places-db:
+    # PostGIS for the distance ordering and the reverse geocode; pg_trgm (in
+    # contrib, already present in this image) for the fuzzy matching. The
+    # ingest script creates both extensions itself.
+    image: postgis/postgis:17-3.5
+    # No `container_name`: it would be global, and a second checkout — a git
+    # worktree, say — could then not bring its own copy up.
+    environment:
+      POSTGRES_DB: masar_places
+      POSTGRES_USER: masar
+      # Local development only. Anything exposed to a network needs a real
+      # password in PLACES_DATABASE_URL and this file left behind.
+      POSTGRES_PASSWORD: masar
+    ports:
+      # Bound to localhost, not 0.0.0.0: on a laptop with the default Docker
+      # setup the latter publishes the port through the host firewall.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - places-db-data:/var/lib/postgresql/data
+    healthcheck:
+      # `pg_isready` answers before the server finishes recovery, so the
+      # retries matter: the ingest script connects immediately after this.
+      test: ["CMD-SHELL", "pg_isready -U masar -d masar_places"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  places-db-data:

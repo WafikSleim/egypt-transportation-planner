@@ -21,11 +21,16 @@ Target stack:
   client) and TypeScript. Python won on two grounds: the LLM layer below is
   Python territory, and FastAPI emits the OpenAPI schema the Flutter client
   generates its models from. Treat this as decided — do not propose porting it
-- Postgres + PostGIS for stops, routes, and later user contributions
+- Postgres + PostGIS, arriving one database at a time. The first and so far
+  only one is the OSM place index behind `/places` (`docker-compose.yml`,
+  added 2026-09-22). Stops and routes still come from OTP. Later databases —
+  user contributions, a maintained fares table — go **beside** it, never
+  inside it; see Licensing
 - An LLM layer for parsing colloquial Arabic queries — NOT a source of route
   data, only a natural-language front end over the real data
-- Self-hosted map tiles and geocoding (Protomaps / Photon), not Google APIs,
-  because per-request billing would sink a free app
+- Self-hosted map tiles (Protomaps), not Google APIs, because per-request
+  billing would sink a free app. Geocoding is **ours**, out of the OSM extract
+  — not Photon, which wants Elasticsearch on top of OTP's 3.4 GB
 
 ## Current state
 
@@ -72,20 +77,59 @@ Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
 and `Radii` are scaled getters rather than constants — which is why widgets
 using them are not `const`.
 
-Tests live in `tests/` (Python, 79) and `app/test/` (Dart, 103). The Dart
+Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 103). The Dart
 suite runs with no device, no emulator and no network, against real API
-responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no network,
+responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
 `app/` or `scripts/`. OTP is stubbed at the transport layer via
 `api.otp.TRANSPORT`, which exists purely so tests can drive the real request
 path; leave it `None` in production.
 
-**Geocoding is a v1 dependency, not a later nicety.** The passenger search
-covers stops, places and map-picking, so it needs a place index. Do **not**
-stand up Photon — it needs Elasticsearch on top of OTP's 3.4 GB. Build a
-`places` table from the OSM extract already on disk (`OTP/*.osm.pbf`), clipped
-to the Cairo bbox, with `pg_trgm` for fuzzy matching and OSM `name:ar` for
-Arabic. Postgres was Phase 4; this pulls it into Phase 3.
+**The place index exists** as of 2026-09-22 (issue #14) — `GET /places` and
+`GET /places/reverse`, over an `osm.places` table built by
+`scripts/build_places.py` from the extract already on disk. 105,984 rows
+inside the coverage box; 99% carry an Arabic name. Postgres was Phase 4 and
+this pulled it into Phase 3; `docker compose up -d places-db` stands it up.
+
+Three things about it are easy to undo:
+
+- **It matches differently from `/stops`, on purpose.** OTP's stop search is
+  prefix-based and language-scoped, so `منيب` finds nothing and
+  `Moneeb&lang=ar` finds nothing. `/places` normalises both sides — tashkeel,
+  alef and ta-marbuta variants, Arabic-Indic digits, Latin diacritics, the
+  leading definite article — then matches as a substring with `pg_trgm`
+  similarity behind it, across **both** name columns whatever `lang` says.
+  `lang` picks which name comes back, never what is searched. Scoping the
+  search by language would reproduce exactly the confusion this endpoint
+  exists to end.
+- **One normalisation function, `api.places.normalize_name`**, used by the
+  ingest to build the index and by the query path to fold the passenger's
+  input. If those ever drift, search half-works — some queries hit, some
+  silently do not. A test asserts they are the same object.
+- **The bare OSM `name` tag is usually Arabic here**, and `name:en` is often
+  absent, so names are routed by the script they are written in rather than
+  by the tag they came from. Every result says which language its `name` is
+  in and whether it is a fallback. A place with no Arabic name is shown in
+  Latin with a note and **never transliterated**; a place with no Latin name
+  is not dropped from an English search either.
+
+`api.places.EXECUTOR` is the database seam, the counterpart of
+`api.otp.TRANSPORT` — `None` in production. It cannot tell you whether
+Postgres accepts the SQL, so `python scripts/build_places.py --check` runs the
+API's own statements against the real instance. **Run it.** Three faults got
+through a green 157-test suite and were found only by pointing the real app at
+a real database, and each of them made every `/places` request fail:
+
+- **psycopg's async mode will not run on Windows' default event loop** — the
+  one uvicorn installs there. So `api/places.py` uses the *synchronous*
+  driver on `asyncio.to_thread`. Do not "modernise" it back.
+- **`psycopg_pool` 3.3.2's worker threads never start under Python 3.14.**
+  Every checkout ends in `PoolTimeout` while a plain `connect()` to the same
+  URL works. Hence a thread-local connection and no pool, and no `pool` extra
+  in `requirements.txt`.
+- **`PLACES_DATABASE_URL` says `127.0.0.1`, never `localhost`.** Compose binds
+  the IPv4 loopback and `localhost` tries `::1` first. Measured on this
+  machine: 130 seconds versus 14 milliseconds, same database.
 
 **The access log does not record where people travelled.** `api/logs.py`
 strips the query string from uvicorn's access lines, because for `/plan` that
@@ -97,8 +141,15 @@ DEBUG in production: at DEBUG, `httpcore` logs the GraphQL request body.
 Caddy has its own access log with the same query string in it and is not
 covered — see `api/README.md`.
 
-Keep that table **separate from the TfC data**. OSM is ODbL, TfC is CC BY-NC,
-and the two cannot be merged into one derived database.
+That table is **physically separate from the TfC data**, and has to stay that
+way. OSM is ODbL, TfC is CC BY-NC, and the two cannot be merged into one
+derived database. In practice: its own Postgres database, reached through
+`PLACES_DATABASE_URL` — named for the one dataset it may hold, because a
+connection called `DATABASE_URL` invites someone to point it at the transit
+data and join — its own schema `osm`, no TfC-derived value ever written into
+it, no materialised join, and `/places` answering with
+`© OpenStreetMap contributors` / ODbL rather than TfC's text. `/plan`,
+`/stops` and `/attribution` still carry TfC's. Two datasets, two credits.
 
 Work is tracked on the **Masar** project board (project 2 on the repo), as
 issues #1–#34. The full specification is in [docs/board.md](docs/board.md) —
@@ -111,7 +162,8 @@ Egyptian Arabic or on behaviour on real hardware. Nothing in this project has
 ever run on a phone — only widget tests and an APK build — so anything
 resting on that belongs in `In review`, not `Done`.
 
-`P0` is the critical path: #11 storage, #14 `/places`, #19 map rendering, #21
+`P0` is the critical path: #11 storage, ~~#14 `/places`~~ (backend done
+2026-09-22; the client half of P-10/P-18/P-19 is not), #19 map rendering, #21
 notifications. Every Backlog item waits on one of those.
 
 `scripts/project_board.py` re-syncs the board; it is idempotent and needs
@@ -461,6 +513,18 @@ ODbL requires the result be ODbL (commercial allowed), CC BY-NC forbids
 commercial. Keep them as separate layers and never merge them into one dataset.
 OTP already loads OSM and GTFS independently, so this happens naturally.
 
+The place index is where that stops being automatic, because it is the first
+thing here that *writes* OSM data somewhere of our own. It is kept as a
+collective database rather than a derived one: a Postgres database of its own
+(`PLACES_DATABASE_URL`, schema `osm`), no TfC value written into it, no join
+between the two, and its own attribution on `/places`. When the contribution
+pipeline and the fares table arrive they get their own database beside it, not
+a schema inside it.
+
+The attribution ODbL requires is `© OpenStreetMap contributors`, served from
+`config.OSM_ATTRIBUTION` on every `/places` response — the same arrangement as
+the TfC text, so the client never hardcodes either.
+
 Never upload TfC data into OpenStreetMap — putting CC BY-NC data into OSM
 violates OSM's own licence and the community treats it seriously.
 
@@ -474,11 +538,12 @@ violates OSM's own licence and the community treats it seriously.
    replacing the modelled timetable with published headways and run times
 3. ~~Backend API in front of OTP~~ — done, `api/`
 4. Flutter client — started, `app/`. Search, stop picker, results and
-   itinerary detail work. Still missing: map tiles, place search and map
-   picking (blocked on the `places` table), recents and saved trips,
-   notifications, background tracking. No auth, no accounts, no settings
-   screen — language and theme are the only two choices offered, and they
-   live on the About screen
+   itinerary detail work. Still missing: map tiles, and the client half of
+   place search and map picking — `/places` and `/places/reverse` are live as
+   of 2026-09-22, so those are no longer blocked. Also missing: notifications
+   and background tracking. No auth, no accounts, no settings screen —
+   language and theme are the only two choices offered, and they live on the
+   About screen
 5. Contribution pipeline: a `submissions` table separate from the main data,
    promoted to confirmed after two independent confirmations, with a
    `trust_score` per contributor and a `confidence` level exposed in the UI

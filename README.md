@@ -40,8 +40,11 @@ ourselves because TfC's metro feed stops at M1 and M2 — and a
 [backend API](api/README.md) now sits in front of it — trip planning, stop
 search, Arabic, and the licence attribution served rather than hardcoded.
 
-Nothing beyond that has been built. The client, the API and the database below
-are design intent, not code that exists.
+The [Flutter client](app/README.md) exists too — search, stop picker, results
+and itinerary detail, in Arabic and English. And as of 2026-09-22 there is one
+database: the OpenStreetMap place index behind `/places`, so a passenger can
+search for a mall or a street rather than having to know which stop serves it.
+Everything else in the table below is still design intent.
 
 ## Planned architecture
 
@@ -49,7 +52,7 @@ are design intent, not code that exists.
 | --- | --- | --- |
 | Client | Flutter, MVVM + Bloc/Cubit (`app/`) | Thin — UI and API calls only, no routing logic |
 | API | FastAPI in front of OpenTripPlanner (`api/`) | Keeps OTP internals out of the client |
-| Database | Postgres + PostGIS | Stops, routes, and later user contributions |
+| Database | Postgres + PostGIS, one database per dataset (`docker-compose.yml`) | The OSM place index exists; user contributions and fares come later, **beside** it. OSM is ODbL and the transit data CC BY-NC, and the two may not become one derived database |
 | NL parsing | An LLM layer for colloquial Arabic queries | A front end over real data — **never** a source of route data |
 | Maps | Self-hosted Protomaps tiles; geocoding from a `places` table built off the OSM extract | Per-request billing on commercial APIs would sink a free app. Photon was rejected — Elasticsearch on top of OTP's 3.4 GB |
 
