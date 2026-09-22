@@ -98,6 +98,21 @@ class Insets {
   static double get xxl => 32.0.r;
 }
 
+/// Accessibility floors.
+///
+/// **Raw values, deliberately not scaled.** Everything else in this file runs
+/// its design figure through screenutil, which is right for spacing: the
+/// design is drawn at 390x844 and a small phone should get a proportionally
+/// smaller gap. A minimum touch target is the opposite kind of number. It is a
+/// floor set by the human finger, not by the frame, and scaling 48 against a
+/// 640-tall phone yields 36 — on exactly the cheap, small Androids this app is
+/// for, and without anything looking wrong.
+class A11y {
+  /// Android's minimum touch target, and what
+  /// `meetsGuideline(androidTapTargetGuideline)` checks in `test/`.
+  static const double minTapTarget = 48.0;
+}
+
 class Radii {
   /// Cards. Reserve borders and shadow for genuinely separate objects — not
   /// every block is a card.
