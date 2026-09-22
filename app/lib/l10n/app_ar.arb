@@ -198,5 +198,36 @@
         "type": "String"
       }
     }
+  },
+  "searchingSlow": "النت بطيء… لسه بندوّر",
+  "errorTimedOut": "الاتصال بطيء أوي",
+  "errorTimedOutHelp": "استنينا الرد وماجاش. يا النت ضعيف يا السيرفر مزحوم. جرّب تاني.",
+  "cachedPlanTitle": "نتيجة محفوظة من الساعة {time}",
+  "@cachedPlanTitle": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cachedPlanBody": "دي مش نتيجة جديدة. ده اللي كان متسجّل على الموبايل من آخر مرة دوّرنا على المشوار ده، والمواعيد اللي فيه اتحسبت وقتها.",
+  "cachedPlanTrip": "المشوار المحفوظ: {from} ← {to}",
+  "@cachedPlanTrip": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cachedItineraryNote": "المشوار ده من نتيجة محفوظة الساعة {time}، مش نتيجة جديدة. المواعيد اللي فيه غالباً عدّت.",
+  "@cachedItineraryNote": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

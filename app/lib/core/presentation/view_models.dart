@@ -102,6 +102,7 @@ class ItineraryVm extends Equatable {
     required this.walkDistanceM,
     required this.transfers,
     required this.legs,
+    this.cachedAt,
   });
 
   final DateTime startTime;
@@ -110,6 +111,19 @@ class ItineraryVm extends Equatable {
   final int walkDistanceM;
   final int transfers;
   final List<LegVm> legs;
+
+  /// When this answer was saved, or null if it came from the server just
+  /// now.
+  ///
+  /// Carried on the itinerary and not only on the plan because an itinerary
+  /// travels on its own: the results screen hands one to the detail screen,
+  /// and later to a saved trip and to tracking. A cached itinerary shown as a
+  /// live one is the same class of lie as a walk-only result shown as a trip,
+  /// so the fact travels with the object rather than with the screen that
+  /// happened to fetch it.
+  final DateTime? cachedAt;
+
+  bool get isFromCache => cachedAt != null;
 
   /// The badges worth showing on a summary card: transit only. A row of walk
   /// chips between every leg says nothing and crowds out what does.
@@ -126,6 +140,7 @@ class ItineraryVm extends Equatable {
     walkDistanceM,
     transfers,
     legs,
+    cachedAt,
   ];
 }
 
@@ -135,7 +150,14 @@ class PlanVm extends Equatable {
     required this.attribution,
     this.note,
     this.noteCode,
+    this.cachedAt,
   });
+
+  /// When this plan was saved on the phone, or null for a live answer. Every
+  /// itinerary in [itineraries] carries the same value.
+  final DateTime? cachedAt;
+
+  bool get isFromCache => cachedAt != null;
 
   /// Walk-only itineraries have already been removed. What is left are
   /// answers.
@@ -156,5 +178,11 @@ class PlanVm extends Equatable {
   bool get hasResults => itineraries.isNotEmpty;
 
   @override
-  List<Object?> get props => [itineraries, attribution, note, noteCode];
+  List<Object?> get props => [
+    itineraries,
+    attribution,
+    note,
+    noteCode,
+    cachedAt,
+  ];
 }

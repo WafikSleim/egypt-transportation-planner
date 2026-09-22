@@ -5,8 +5,10 @@ import '../../../core/presentation/trip_presenter.dart';
 import '../../../core/presentation/view_models.dart';
 import '../../../data/models/models.dart';
 import '../../../core/text/bidi.dart';
+import '../../../core/text/formatting.dart';
 import '../../../core/theme/mode_theme.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/network/api_failure.dart';
 import '../../../core/widgets/app_error_view.dart';
 import '../../../core/widgets/attribution_note.dart';
 import '../../../core/widgets/honesty_panel.dart';
@@ -82,7 +84,10 @@ class _ResultsView extends StatelessWidget {
         child: BlocBuilder<ResultsCubit, ResultsState>(
           builder: (context, state) {
             switch (state) {
-              case ResultsLoading():
+              case ResultsLoading(:final slow):
+                // The wait is bounded by the request's own timeout, so this
+                // spinner always ends. Past four seconds it stops pretending
+                // the wait is going normally.
                 return Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -90,7 +95,8 @@ class _ResultsView extends StatelessWidget {
                       const CircularProgressIndicator(strokeWidth: 2),
                       SizedBox(height: Insets.lg),
                       Text(
-                        l.searching,
+                        slow ? l.searchingSlow : l.searching,
+                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -103,6 +109,37 @@ class _ResultsView extends StatelessWidget {
                   onRetry: () => context.read<ResultsCubit>().load(),
                 );
 
+              case ResultsFromCache(
+                :final plan,
+                :final failure,
+                :final fromLabel,
+                :final toLabel,
+              ):
+                // The banner sits outside the list, not in it: a saved answer
+                // has to be legible without scrolling, or it is not a mark at
+                // all.
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(
+                        Insets.lg,
+                        Insets.lg,
+                        Insets.lg,
+                        0,
+                      ),
+                      child: _SavedAnswerBanner(
+                        savedAt: plan.cachedAt!,
+                        failure: failure,
+                        fromLabel: fromLabel,
+                        toLabel: toLabel,
+                        onRetry: () => context.read<ResultsCubit>().load(),
+                      ),
+                    ),
+                    Expanded(child: _ResultList(plan: plan)),
+                  ],
+                );
+
               case ResultsLoaded(:final plan):
                 return plan.hasResults
                     ? _ResultList(plan: plan)
@@ -111,6 +148,57 @@ class _ResultsView extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+/// What makes a saved answer readable as a saved answer.
+///
+/// Three facts, in the order a passenger needs them: what went wrong just
+/// now, how old this is, and which trip it was an answer to — the last
+/// because a saved plan is matched to a question asked from within about a
+/// block of it, so the endpoints can differ by a stop. A `warn` honesty panel
+/// rather than a neutral one: this is a limitation, not a caveat.
+class _SavedAnswerBanner extends StatelessWidget {
+  const _SavedAnswerBanner({
+    required this.savedAt,
+    required this.failure,
+    required this.fromLabel,
+    required this.toLabel,
+    required this.onRetry,
+  });
+
+  final DateTime savedAt;
+  final ApiFailure failure;
+  final String fromLabel;
+  final String toLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final (reason, _) = failureCopy(l, failure);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HonestyPanel(
+          severity: HonestySeverity.warning,
+          icon: Icons.history_rounded,
+          // clockTime, not `intl`: Western digits are what Egyptian phones
+          // and road signs use.
+          text: [
+            reason,
+            l.cachedPlanTitle(clockTime(savedAt)),
+            l.cachedPlanBody,
+            l.cachedPlanTrip(bidiIsolate(fromLabel), bidiIsolate(toLabel)),
+          ].join('\n'),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(onPressed: onRetry, child: Text(l.tryAgain)),
+        ),
+      ],
     );
   }
 }

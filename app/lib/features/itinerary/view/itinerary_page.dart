@@ -19,6 +19,11 @@ import '../../../l10n/generated/app_localizations.dart';
 /// microbus leg there is no number badge, and the route is named by where it
 /// starts and where it ends — which is how Cairenes name them too, because
 /// the vehicles carry no numbers to read.
+///
+/// It is also where a saved answer is easiest to mistake for a live one: the
+/// itinerary arrives here on its own, with no banner from the screen it came
+/// from. So the fact travels on the view model — `itinerary.cachedAt` — and
+/// is stated at the top, above the times it applies to.
 class ItineraryPage extends StatelessWidget {
   const ItineraryPage({
     super.key,
@@ -42,6 +47,14 @@ class ItineraryPage extends StatelessWidget {
         child: ListView(
           padding: EdgeInsetsDirectional.all(Insets.lg),
           children: [
+            if (itinerary.cachedAt != null) ...[
+              HonestyPanel(
+                severity: HonestySeverity.warning,
+                icon: Icons.history_rounded,
+                text: l.cachedItineraryNote(clockTime(itinerary.cachedAt!)),
+              ),
+              SizedBox(height: Insets.lg),
+            ],
             _Summary(itinerary: itinerary),
             SizedBox(height: Insets.xl),
             for (final leg in itinerary.legs) _LegTile(leg: leg),

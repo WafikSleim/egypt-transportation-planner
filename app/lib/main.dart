@@ -7,6 +7,7 @@ import 'core/location/location_service.dart';
 import 'core/network/api_client.dart';
 import 'core/settings/settings_cubit.dart';
 import 'core/storage/key_value_store.dart';
+import 'data/cache/plan_cache.dart';
 import 'data/repositories/planner_repository_impl.dart';
 import 'data/repositories/trip_history.dart';
 import 'domain/repositories/planner_repository.dart';
@@ -40,7 +41,10 @@ Future<void> main() async {
             create: (_) => const GeolocatorLocationService(),
           ),
           RepositoryProvider<PlannerRepository>(
-            create: (_) => PlannerRepositoryImpl(api),
+            // The plan cache goes in here rather than being provided
+            // separately: the repository is what plans a trip, so it is what
+            // records the answer, and no screen can plan one and forget to.
+            create: (_) => PlannerRepositoryImpl(api, cache: PlanCache(store)),
           ),
         ],
         child: const EgyptTransportApp(),

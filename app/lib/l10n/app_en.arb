@@ -108,5 +108,36 @@
         "type": "String"
       }
     }
+  },
+  "searchingSlow": "Slow connection… still looking",
+  "errorTimedOut": "The connection is too slow",
+  "errorTimedOutHelp": "We waited and got no answer. Either the signal is weak or the server is busy. Try again.",
+  "cachedPlanTitle": "Saved answer from {time}",
+  "@cachedPlanTitle": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cachedPlanBody": "This is not a fresh answer. It is what was stored on this phone the last time we looked up this trip, and the times in it were worked out then.",
+  "cachedPlanTrip": "Saved trip: {from} ← {to}",
+  "@cachedPlanTrip": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cachedItineraryNote": "This trip comes from a saved answer from {time}, not a fresh one. Its times have most likely passed.",
+  "@cachedItineraryNote": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }
