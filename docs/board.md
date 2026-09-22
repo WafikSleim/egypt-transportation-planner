@@ -103,8 +103,15 @@ Four issues, each in the v1 gate and each holding up others:
 | **#19** Map rendering | the itinerary map, map picking |
 | **#21** Notification infrastructure | reminders, post-trip prompt, background tracking |
 
-**#14 is the largest single blocker** — three v1 `must` stories wait on it,
-and it is backend work rather than app work.
+**#14 was the largest single blocker** — three v1 `must` stories waited on it,
+and it was backend work rather than app work. The backend half shipped on
+2026-09-22: `GET /places`, `GET /places/reverse`, an `osm.places` table built
+from the OSM extract by `scripts/build_places.py`, and a `docker-compose.yml`
+that stands the database up. It sits in **In review** rather than Done for two
+reasons — the category labels are Arabic copy shown to every user, and whether
+searching «المعادي» ranks the district above the streets named after it is a
+judgement about the city. The client half of P-10, P-18 and P-19 is still to
+build, but it is no longer waiting on anything.
 
 ---
 

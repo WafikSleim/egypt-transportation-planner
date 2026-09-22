@@ -17,7 +17,7 @@ import json
 import httpx
 import pytest
 
-from api import otp
+from api import otp, places
 
 # --------------------------------------------------------------------------
 # Canned OTP payloads, shaped exactly as OTP 2.11 returns them.
@@ -246,3 +246,74 @@ def client():
     return httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     )
+
+
+# --------------------------------------------------------------------------
+# The stub place index
+# --------------------------------------------------------------------------
+#
+# Same idea as FakeOTP, one layer lower: the seam is `api.places.EXECUTOR`, a
+# coroutine taking (sql, params). Everything above it is real -- the SQL text,
+# the parameter dict, the normalisation of the query string, the row-to-model
+# mapping. What a fake cannot check is whether Postgres accepts the SQL, so
+# the same statements are also run against a real PostGIS instance;
+# `scripts/build_places.py --check` does that.
+#
+# The default state is "no database configured", and the fixture is autouse,
+# so a test that forgets to arrange one gets an instant, honest failure rather
+# than a five-second attempt to open a socket to 127.0.0.1:5432.
+
+class FakePlaces:
+    def __init__(self):
+        self.rows: list[dict] = []
+        self.stats_row: dict | None = None
+        # Worded like the real thing, so a test asserting on the 503 body is
+        # asserting on something the deployment can actually produce.
+        self.fail: Exception | None = places.PlacesUnavailable(
+            "The place index is unavailable (no database in this test)."
+        )
+        self.queries: list[dict] = []
+
+    async def execute(self, sql: str, params: dict) -> list[dict]:
+        self.queries.append({"sql": sql, "params": params})
+        if self.fail is not None:
+            raise self.fail
+        if "COUNT(DISTINCT" in sql:
+            return [self.stats_row or {"place_count": len(self.rows),
+                                       "category_count": 1,
+                                       "arabic_count": len(self.rows)}]
+        # `total_matches` is a window function in the real query, so the stub
+        # supplies it the same way: once per row, identical on every row.
+        total = len(self.rows)
+        limit = params.get("limit", total)
+        return [dict(r, total_matches=r.get("total_matches", total))
+                for r in self.rows[:limit]]
+
+    def serve(self, rows: list[dict]) -> None:
+        """Arrange a working database holding `rows`."""
+        self.fail = None
+        self.rows = rows
+
+
+def place_row(osm_id, name_ar=None, name_en=None, category="mall",
+              lat=30.0444, lon=31.2357, area_ar=None, area_en=None,
+              osm_type="n", importance=50.0, distance_m=None,
+              total_matches=None):
+    """One row shaped exactly as the SELECT in api/places.py returns it."""
+    row = {
+        "osm_type": osm_type, "osm_id": osm_id, "category": category,
+        "name": name_ar or name_en or "", "name_ar": name_ar,
+        "name_en": name_en, "area_ar": area_ar, "area_en": area_en,
+        "lat": lat, "lon": lon, "importance": importance,
+        "distance_m": distance_m, "score": 1.0,
+    }
+    if total_matches is not None:
+        row["total_matches"] = total_matches
+    return row
+
+
+@pytest.fixture(autouse=True)
+def fake_places(monkeypatch):
+    stub = FakePlaces()
+    monkeypatch.setattr(places, "EXECUTOR", stub.execute)
+    return stub

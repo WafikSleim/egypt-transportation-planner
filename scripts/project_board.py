@@ -51,7 +51,15 @@ DONE = {1, 4, 5, 10, 29, 35}
 # translated English, and how any of it behaves on a real phone - nothing in
 # this project has ever run on hardware, only in widget tests and an APK
 # build. Each carries a comment saying exactly what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 18, 26, 32, 33, 34}
+# 14: the /places backend shipped 2026-09-22 and its SQL is verified against a
+#     real PostGIS instance, but two things here need the maintainer. The
+#     category labels are Arabic copy shown to every user - «موقف», «محطة»,
+#     «حي», «مول» - and whether those read as Egyptian speech is not something
+#     a test can settle. And the ranking is a judgement: searching «المعادي»
+#     should put the district above the streets named after it, and only
+#     someone who knows the city can say whether it does. The client half of
+#     P-10/P-18/P-19 is still unbuilt, so the issue is not Done either way.
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 26, 32, 33, 34}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}

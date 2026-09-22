@@ -8,3 +8,11 @@ httpx==0.28.1
 # zoneinfo has no bundled tz database on Windows; without this, Africa/Cairo
 # lookups fail at runtime rather than at import.
 tzdata
+# The /places index lives in Postgres + PostGIS, kept in a database of its own
+# because OSM is ODbL and the transit data is CC BY-NC. `docker compose up -d
+# places-db` stands it up. The API degrades to 503 on /places without it, and
+# /plan and /stops keep working.
+# No `pool` extra on purpose: psycopg_pool 3.3.2's worker threads never start
+# under Python 3.14, so every checkout times out. api/places.py keeps one
+# connection per ASGI worker thread instead.
+psycopg[binary]==3.3.6

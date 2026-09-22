@@ -41,6 +41,13 @@ $docker = "C:\Users\wafik\AppData\Local\Programs\DockerDesktop\resources\bin\doc
 to this layout is date-stamped (`egypt-260919.osm.pbf`) so it is obvious how
 stale the graph's base map is.
 
+Two things read it now, not one: OTP builds the street network from it, and
+`scripts/build_places.py` builds the `/places` search index from it. Replacing
+it means rebuilding both — delete `graph.obj` and re-run the ingest — or place
+search and trip planning end up describing two different cities. The ingest
+finds the newest `*.osm.pbf` in this directory by itself, so the date-stamped
+name needs no configuration anywhere.
+
 **GTFS feeds** — from Transport for Cairo's GeoNode portal:
 
 - road transport: `https://data.transportforcairo.com/documents/88/download`
