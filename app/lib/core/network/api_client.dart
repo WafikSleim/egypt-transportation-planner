@@ -19,23 +19,54 @@ import 'api_failure.dart';
 ///
 /// Rather than trust every call site, this class adds `lang` to every request
 /// from [languageCode]. There is no way to make the request without it.
+///
+/// ### Every request has a ceiling
+///
+/// The target phone is on patchy data in Cairo, where a request that is going
+/// to fail often fails by never finishing. A request with no ceiling is a
+/// spinner with no ceiling, so [timeout] applies to every call and a call may
+/// shorten or lengthen it for itself — see [defaultTimeout] and [planTimeout]
+/// for why the two numbers differ.
 class ApiClient {
   ApiClient({
     required this.baseUrl,
     required String Function() languageCode,
     http.Client? client,
-    this.timeout = const Duration(seconds: 20),
+    this.timeout = defaultTimeout,
   }) : _languageCode = languageCode,
        _client = client ?? http.Client();
+
+  /// For the small, repeatable calls — `/stops`, `/attribution`.
+  ///
+  /// Eight seconds. A healthy one of these answers in well under a second, so
+  /// this is already generous; and a stop search that takes longer than this
+  /// has been overtaken by the letters the user typed while waiting.
+  static const defaultTimeout = Duration(seconds: 8);
+
+  /// For `/plan`, which is the expensive call and the one with no
+  /// alternative.
+  ///
+  /// Twelve seconds. Routing plus the Arabic stop-name round trip is roughly
+  /// a second on a good connection, and a bad connection multiplies that
+  /// rather than adding to it. The old ceiling was twenty seconds for
+  /// everything, which on a weak signal is twenty seconds of staring before
+  /// being told something the first four made likely.
+  static const planTimeout = Duration(seconds: 12);
 
   final String baseUrl;
   final Duration timeout;
   final String Function() _languageCode;
   final http.Client _client;
 
+  /// The language every request is being made in. Exposed so a cached
+  /// response can record which language it was fetched in — names are
+  /// localised server-side, so an Arabic body is not an English one.
+  String get languageCode => _languageCode();
+
   Future<Map<String, dynamic>> getJson(
     String path, {
     Map<String, String> query = const {},
+    Duration? timeout,
   }) async {
     final uri = Uri.parse(
       '$baseUrl$path',
@@ -43,9 +74,12 @@ class ApiClient {
 
     final http.Response response;
     try {
-      response = await _client.get(uri).timeout(timeout);
+      response = await _client.get(uri).timeout(timeout ?? this.timeout);
     } on TimeoutException {
-      throw const ApiFailure(FailureKind.offline, detail: 'timeout');
+      throw ApiFailure(
+        FailureKind.timedOut,
+        detail: '${(timeout ?? this.timeout).inSeconds}s',
+      );
     } on SocketException catch (e) {
       throw ApiFailure(FailureKind.offline, detail: e.message);
     } on http.ClientException catch (e) {

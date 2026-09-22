@@ -1,3 +1,4 @@
+import 'package:egypt_transport/data/cache/plan_cache.dart';
 import 'package:egypt_transport/data/models/models.dart';
 import 'package:egypt_transport/domain/entities/trip_endpoint.dart';
 import 'package:egypt_transport/domain/repositories/planner_repository.dart';
@@ -13,6 +14,17 @@ class FakeRepository implements PlannerRepository {
   StopsResponse? stopsResponse;
   Object? error;
 
+  /// What `lastPlan` answers with. Null is a phone with nothing saved, which
+  /// is every phone before its first successful search.
+  CachedPlan? cached;
+
+  /// Lets a test hold the request open long enough to watch the wait state.
+  Duration? planDelay;
+
+  /// The labels the ViewModel passed down to be recorded with the cache.
+  String? recordedFromLabel;
+  String? recordedToLabel;
+
   /// Held per query, so a test can make an early request finish last.
   final Map<String, Duration> delays = {};
 
@@ -25,11 +37,24 @@ class FakeRepository implements PlannerRepository {
     required GeoPoint to,
     required DateTime departAt,
     bool arriveBy = false,
+    String fromLabel = '',
+    String toLabel = '',
   }) async {
     planCalls++;
+    recordedFromLabel = fromLabel;
+    recordedToLabel = toLabel;
+    if (planDelay != null) await Future<void>.delayed(planDelay!);
     if (error != null) throw error!;
     return planResponse!;
   }
+
+  @override
+  CachedPlan? lastPlan({
+    required GeoPoint from,
+    required GeoPoint to,
+    required DateTime departAt,
+    bool arriveBy = false,
+  }) => cached;
 
   @override
   Future<StopsResponse> searchStops(String query, {int limit = 20}) async {

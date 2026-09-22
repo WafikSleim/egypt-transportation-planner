@@ -33,7 +33,12 @@ class TripPresenter {
 
   bool get _isArabic => languageCode == 'ar';
 
-  PlanVm plan(PlanResponse response) {
+  /// [cachedAt] is passed in, never worked out here — this class maps, it
+  /// does not derive. It is when the response was saved on the phone, and
+  /// null for an answer that just came off the wire. Setting it marks the
+  /// plan **and every itinerary in it**, so no screen downstream can render a
+  /// saved answer without knowing it is one.
+  PlanVm plan(PlanResponse response, {DateTime? cachedAt}) {
     // Rule: a walk-only itinerary is not a result.
     //
     // The transit feeds cover Greater Cairo; the street network covers the
@@ -43,7 +48,7 @@ class TripPresenter {
     // there is nothing left.
     final answers = response.itineraries
         .where((i) => !i.isWalkOnly)
-        .map(itinerary)
+        .map((i) => itinerary(i, cachedAt: cachedAt))
         .toList(growable: false);
 
     return PlanVm(
@@ -51,16 +56,18 @@ class TripPresenter {
       attribution: response.attribution,
       note: response.note,
       noteCode: response.noteCode,
+      cachedAt: cachedAt,
     );
   }
 
-  ItineraryVm itinerary(Itinerary it) => ItineraryVm(
+  ItineraryVm itinerary(Itinerary it, {DateTime? cachedAt}) => ItineraryVm(
     startTime: it.startTime,
     endTime: it.endTime,
     durationMinutes: it.durationMinutes,
     walkDistanceM: it.walkDistanceM,
     transfers: it.transfers,
     legs: it.legs.map(leg).toList(growable: false),
+    cachedAt: cachedAt,
   );
 
   LegVm leg(Leg l) {
