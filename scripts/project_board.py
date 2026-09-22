@@ -37,7 +37,7 @@ AREA = {
     'Places & search': [14, 15, 17, 18],
     'Map': [16, 19, 20],
     'Notifications & tracking': [21, 22, 23, 24, 25],
-    'Quality': [26, 27, 28, 29],
+    'Quality': [26, 27, 28, 29, 35],
     'Build & release': [30, 31, 32],
     'Design & data': [33, 34],
 }
@@ -51,19 +51,19 @@ DONE = {1, 4, 5, 10, 29}
 # translated English, and how any of it behaves on a real phone - nothing in
 # this project has ever run on hardware, only in widget tests and an APK
 # build. Each carries a comment saying exactly what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 18}
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 18, 32}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}
 
 # The critical path: each of these is in the v1 gate *and* holds up others.
 P0 = {14, 19, 21}
-P2 = {28, 32, 34}          # milestone "After v1"
+P2 = {28, 34}          # milestone "After v1"
 
 SIZE = {
     11: 'M', 12: 'S', 13: 'S', 14: 'L', 15: 'L', 16: 'M', 17: 'M', 18: 'S',
     19: 'L', 20: 'M', 21: 'M', 22: 'S', 23: 'M', 24: 'L', 25: 'M', 26: 'M',
-    27: 'M', 28: 'S', 29: 'S', 30: 'S', 31: 'M', 32: 'XS', 33: 'XS', 34: 'M',
+    27: 'M', 28: 'S', 29: 'S', 30: 'S', 31: 'M', 32: 'XS', 33: 'XS', 34: 'M', 35: 'S',
 }
 # Shipped issues get Status and Area only. Estimating work that is already
 # finished would be inventing numbers.
