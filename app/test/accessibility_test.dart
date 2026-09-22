@@ -195,7 +195,8 @@ void main() {
       expect(
         shortfalls.keys.where((k) => !names.contains(k)),
         isEmpty,
-        reason: 'A recorded shortfall that no longer names a real pair is a '
+        reason:
+            'A recorded shortfall that no longer names a real pair is a '
             'stale excuse. Delete it.',
       );
     });
@@ -208,11 +209,7 @@ void main() {
       for (final m in [ModeColors.light, ModeColors.dark]) {
         for (final line in m.metroLines.values) {
           final white = Palette.light.surface;
-          final chosen = legibleOn(
-            line,
-            dark: Palette.light.ink,
-            light: white,
-          );
+          final chosen = legibleOn(line, dark: Palette.light.ink, light: white);
           expect(
             contrastRatio(chosen, line),
             greaterThanOrEqualTo(contrastRatio(white, line)),
@@ -279,11 +276,7 @@ void main() {
   );
 
   Widget results(Map<String, dynamic> plan) => withRepo(
-    ResultsPage(
-      from: from,
-      to: to,
-      departAt: DateTime(2026, 9, 21, 8),
-    ),
+    ResultsPage(from: from, to: to, departAt: DateTime(2026, 9, 21, 8)),
     FakeRepository(planResponse: PlanResponse.fromJson(plan)),
   );
 
@@ -316,9 +309,7 @@ void main() {
       FakeRepository(),
     ),
     'about': () => withRepo(const AboutPage(), FakeRepository()),
-    'error': () => const AppErrorView(
-      failure: ApiFailure(FailureKind.offline),
-    ),
+    'error': () => const AppErrorView(failure: ApiFailure(FailureKind.offline)),
   };
 
   // ------------------------------------------------------------ text scaling
@@ -327,36 +318,33 @@ void main() {
     for (final entry in screens.entries) {
       for (final locale in const [Locale('ar'), Locale('en')]) {
         for (final brightness in Brightness.values) {
-          testWidgets(
-            '${entry.key} survives 2x in ${locale.languageCode}, '
-            '${brightness.name}',
-            (tester) async {
-              // A small, cheap Android — the fleet this app is for. The design
-              // frame is 390x844 and every spacing token is scaled to it, so a
-              // layout that fits at 2x on a large phone can still clip here.
-              tester.view.physicalSize = const Size(320, 640);
-              tester.view.devicePixelRatio = 1.0;
-              addTearDown(tester.view.reset);
+          testWidgets('${entry.key} survives 2x in ${locale.languageCode}, '
+              '${brightness.name}', (tester) async {
+            // A small, cheap Android — the fleet this app is for. The design
+            // frame is 390x844 and every spacing token is scaled to it, so a
+            // layout that fits at 2x on a large phone can still clip here.
+            tester.view.physicalSize = const Size(320, 640);
+            tester.view.devicePixelRatio = 1.0;
+            addTearDown(tester.view.reset);
 
-              await tester.pumpWidget(
-                host(
-                  entry.value(),
-                  locale: locale,
-                  brightness: brightness,
-                  textScale: 2.0,
-                ),
-              );
-              await tester.pumpAndSettle();
+            await tester.pumpWidget(
+              host(
+                entry.value(),
+                locale: locale,
+                brightness: brightness,
+                textScale: 2.0,
+              ),
+            );
+            await tester.pumpAndSettle();
 
-              expect(
-                tester.takeException(),
-                isNull,
-                reason:
-                    'Text at 200% must not clip. A fixed height with text in '
-                    'it is the usual cause.',
-              );
-            },
-          );
+            expect(
+              tester.takeException(),
+              isNull,
+              reason:
+                  'Text at 200% must not clip. A fixed height with text in '
+                  'it is the usual cause.',
+            );
+          });
         }
       }
     }
@@ -395,9 +383,7 @@ void main() {
       // "45 min", "08:00 – 08:45", "Metro", "M1", "1 transfer", "700 m" as six
       // separate stops is not a summary of anything. Merged, it is the same
       // sentence a sighted reader gets from the card at a glance.
-      final card = tester.getSemantics(
-        find.byType(InkWell).first,
-      );
+      final card = tester.getSemantics(find.byType(InkWell).first);
       expect(card.label, contains('دقيقة'));
       expect(card.getSemanticsData().flagsCollection.isButton, isTrue);
       handle.dispose();
@@ -414,7 +400,8 @@ void main() {
       expect(
         find.bySemanticsLabel(RegExp(r'^M1$')),
         findsNothing,
-        reason: 'The disc label must be merged into the badge, not announced '
+        reason:
+            'The disc label must be merged into the badge, not announced '
             'on its own.',
       );
       handle.dispose();
@@ -431,10 +418,7 @@ void main() {
 
       final field = tester.getSemantics(
         find
-            .ancestor(
-              of: find.text('من فين'),
-              matching: find.byType(InkWell),
-            )
+            .ancestor(of: find.text('من فين'), matching: find.byType(InkWell))
             .first,
       );
       expect(field.getSemanticsData().flagsCollection.isButton, isTrue);
