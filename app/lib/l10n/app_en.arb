@@ -61,5 +61,9 @@
   "noCoverageBody": "Coverage today is Greater Cairo only. No other part of Egypt has transit data at all, and we won't guess a route we aren't sure of.",
   "noServiceBody": "Service thins out or stops across most of the network at this hour. Try a daytime departure.",
   "noRouteTitle": "No route between these two points",
-  "noRouteBody": "Both points are inside the covered area, so this is more likely a gap in our data than a gap in the network."
+  "noRouteBody": "Both points are inside the covered area, so this is more likely a gap in our data than a gap in the network.",
+  "theme": "Appearance",
+  "themeSystem": "Match device",
+  "themeLight": "Light",
+  "themeDark": "Dark"
 }

@@ -1,5 +1,6 @@
 import 'package:egypt_transport/core/presentation/trip_presenter.dart';
 import 'package:egypt_transport/core/settings/settings_cubit.dart';
+import 'package:egypt_transport/core/storage/key_value_store.dart';
 import 'package:egypt_transport/core/theme/app_theme.dart';
 import 'package:egypt_transport/data/models/models.dart';
 import 'package:egypt_transport/domain/repositories/planner_repository.dart';
@@ -47,7 +48,7 @@ void main() {
 
   Widget withRepo(Widget child, PlannerRepository repo) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => SettingsCubit())],
+      providers: [BlocProvider(create: (_) => SettingsCubit(InMemoryStore()))],
       child: RepositoryProvider<PlannerRepository>.value(
         value: repo,
         child: child,

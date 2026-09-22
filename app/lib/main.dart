@@ -5,11 +5,18 @@ import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/network/api_client.dart';
 import 'core/settings/settings_cubit.dart';
+import 'core/storage/key_value_store.dart';
 import 'data/repositories/planner_repository_impl.dart';
 import 'domain/repositories/planner_repository.dart';
 
-void main() {
-  final settings = SettingsCubit();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Opened before the first frame, so the app never flashes the wrong theme
+  // or the wrong language on its way to the stored one.
+  final store = await SharedPreferencesStore.open();
+  final settings = SettingsCubit(store);
+
   final config = AppConfig.fromEnvironment();
 
   // The one place `lang` is wired. Every request the app makes carries the
@@ -23,9 +30,12 @@ void main() {
   runApp(
     MultiBlocProvider(
       providers: [BlocProvider<SettingsCubit>.value(value: settings)],
-      child: RepositoryProvider<PlannerRepository>(
-        create: (_) => PlannerRepositoryImpl(api),
-        child: const EgyptTransportApp(),
+      child: RepositoryProvider<KeyValueStore>.value(
+        value: store,
+        child: RepositoryProvider<PlannerRepository>(
+          create: (_) => PlannerRepositoryImpl(api),
+          child: const EgyptTransportApp(),
+        ),
       ),
     ),
   );

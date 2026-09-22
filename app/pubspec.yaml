@@ -33,6 +33,11 @@ dependencies:
   # data, and the API surface is four endpoints.
   http: ^1.5.0
 
+  # On-device storage. shared_preferences rather than drift: see
+  # lib/core/storage/key_value_store.dart for the reasoning and for what
+  # would justify revisiting it.
+  shared_preferences: ^2.5.3
+
   intl: any
 
 dev_dependencies:

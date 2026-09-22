@@ -81,6 +81,26 @@ class _AboutPageState extends State<AboutPage> {
                   context.read<SettingsCubit>().setLanguage(s.first),
             ),
             SizedBox(height: Insets.xl),
+            Text(l.theme, style: Theme.of(context).textTheme.titleMedium),
+            SizedBox(height: Insets.sm),
+            SegmentedButton<ThemeMode>(
+              segments: [
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  label: Text(l.themeSystem),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  label: Text(l.themeLight),
+                ),
+                ButtonSegment(value: ThemeMode.dark, label: Text(l.themeDark)),
+              ],
+              selected: {settings.themeMode},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) =>
+                  context.read<SettingsCubit>().setThemeMode(s.first),
+            ),
+            SizedBox(height: Insets.xl),
             Text(l.dataSource, style: Theme.of(context).textTheme.titleMedium),
             if (_attribution != null) ...[
               AttributionNote(_attribution!, compact: false),
