@@ -51,6 +51,10 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
   Future<void> refresh() async {
     final permission = await _service.permission();
+    // Every method here awaits a platform call before emitting, and the About
+    // screen can be popped inside that window — which closes this cubit and
+    // turns the emit into a StateError on a screen that is already gone.
+    if (isClosed) return;
     emit(
       NotificationsState(
         permission: permission,
@@ -62,6 +66,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   /// Asks the OS. Call it after the explanation, never before.
   Future<bool> askPermission() async {
     final permission = await _service.request();
+    if (isClosed) return permission.isAllowed;
     emit(
       NotificationsState(
         permission: permission,
@@ -73,6 +78,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
   Future<void> setAllowed(NotificationKind kind, {required bool allowed}) async {
     await _service.preferences.setAllowed(kind, allowed: allowed);
+    if (isClosed) return;
     emit(
       NotificationsState(
         permission: state.permission,

@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 172 tests, no device, no network, a few seconds
+flutter test      # 175 tests, no device, no network, a few seconds
 flutter analyze
 ```
 

@@ -1,3 +1,4 @@
+import 'package:egypt_transport/core/notifications/local_notification_service.dart';
 import 'package:egypt_transport/core/notifications/notification_copy.dart';
 import 'package:egypt_transport/core/notifications/notification_kind.dart';
 import 'package:egypt_transport/core/notifications/notification_permission_prompt.dart';
@@ -195,6 +196,59 @@ void main() {
       );
       expect(seen.single.kind, NotificationKind.tripInProgress);
       expect(seen.single.actionId, NotificationService.stopTripActionId);
+    });
+
+    test('it works with the app closed, from its own isolate', () async {
+      // The case that matters: a notification is usually read when the app is
+      // not running, and an action with no user interface is answered by a
+      // second Flutter engine that shares nothing with `main`. It writes the
+      // same key through the same class, so the two halves cannot drift.
+      final store = InMemoryStore();
+
+      expect(
+        await silenceFromBackground(
+          store,
+          actionId: NotificationService.silenceActionId,
+          payload: 'nextStopAlert/0',
+        ),
+        isTrue,
+      );
+
+      final service = build(store: store);
+      expect(await service.post(const NextStopAlert(stopName: 'رمسيس')), isFalse);
+    });
+
+    test('the background handler ignores a tap that is not the opt-out', () async {
+      final store = InMemoryStore();
+
+      expect(
+        await silenceFromBackground(
+          store,
+          actionId: null,
+          payload: 'nextStopAlert/0',
+        ),
+        isFalse,
+      );
+      expect(
+        await silenceFromBackground(
+          store,
+          actionId: NotificationService.silenceActionId,
+          payload: 'somethingElse/0',
+        ),
+        isFalse,
+      );
+      expect(store.contents, isEmpty);
+    });
+
+    test('a payload names the kind and the slot, and nothing about the trip', () {
+      // It sits on disk until the notification fires. Where somebody is going
+      // is not something this app keeps anywhere, least of all there.
+      expect(decodeNotificationPayload('departureReminder/2'), (
+        kind: NotificationKind.departureReminder,
+        slot: 2,
+      ));
+      expect(decodeNotificationPayload('nonsense'), isNull);
+      expect(decodeNotificationPayload(null), isNull);
     });
 
     test('a plain tap is handed to whichever feature owns that kind', () async {

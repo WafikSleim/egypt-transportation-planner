@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:ui' show DartPluginRegistrant;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../storage/key_value_store.dart';
 import 'notification_copy.dart';
 import 'notification_kind.dart';
+import 'notification_preferences.dart';
 import 'notification_service.dart';
 
 /// `flutter_local_notifications`, and nothing else.
@@ -70,6 +74,11 @@ final class LocalNotificationService extends NotificationService {
         ),
       ),
       onDidReceiveNotificationResponse: _onResponse,
+      // The opt-out has to work when the app is closed, which is when a
+      // notification is usually read. An action with no user interface taps
+      // through to a *separate* Flutter engine with none of this app's state
+      // in it, so it gets its own entry point below rather than this one.
+      onDidReceiveBackgroundNotificationResponse: notificationBackgroundResponse,
     );
 
     await _createChannels(words);
@@ -253,17 +262,77 @@ final class LocalNotificationService extends NotificationService {
       '${kind.name}/$slot';
 
   void _onResponse(NotificationResponse response) {
-    final payload = response.payload?.split('/');
-    if (payload == null || payload.length != 2) return;
-
-    final kind = NotificationKind.values
-        .where((k) => k.name == payload.first)
-        .firstOrNull;
-    final slot = int.tryParse(payload.last);
-    if (kind == null || slot == null) return;
+    final parsed = decodeNotificationPayload(response.payload);
+    if (parsed == null) return;
 
     // Not awaited: this is a platform callback, and the work behind it is a
     // preference write and a cancel.
-    unawaited(handleResponse(kind, slot: slot, actionId: response.actionId));
+    unawaited(
+      handleResponse(
+        parsed.kind,
+        slot: parsed.slot,
+        actionId: response.actionId,
+      ),
+    );
   }
+}
+
+/// What travels with a notification: the kind it is and which one of that
+/// kind. Nothing about the trip, because a payload survives on disk until the
+/// notification fires and this app does not keep where people are going.
+({NotificationKind kind, int slot})? decodeNotificationPayload(String? raw) {
+  final parts = raw?.split('/');
+  if (parts == null || parts.length != 2) return null;
+
+  final kind = NotificationKind.values
+      .where((k) => k.name == parts.first)
+      .firstOrNull;
+  final slot = int.tryParse(parts.last);
+  if (kind == null || slot == null) return null;
+
+  return (kind: kind, slot: slot);
+}
+
+/// The opt-out, for when the app is not running.
+///
+/// An action that shows no user interface can be tapped while this app is
+/// asleep or terminated — which is most of the time a notification is read.
+/// Android and iOS answer that by starting a **second Flutter engine** in its
+/// own isolate, sharing nothing with `main`: no `NotificationService`, no
+/// open store, none of the state the foreground path relies on. So "turn
+/// these off" is implemented twice, and this is the half that matters.
+///
+/// It writes the same key through the same class as the in-app switch, so
+/// the two cannot drift. The notification itself is dismissed by the
+/// platform, because every action is declared `cancelNotification: true`.
+@pragma('vm:entry-point')
+Future<void> notificationBackgroundResponse(NotificationResponse response) async {
+  // Nothing is registered in a fresh isolate, including shared_preferences.
+  DartPluginRegistrant.ensureInitialized();
+
+  await silenceFromBackground(
+    await SharedPreferencesStore.open(),
+    actionId: response.actionId,
+    payload: response.payload,
+  );
+}
+
+/// The decision behind [notificationBackgroundResponse], with the storage
+/// handed in so it can be tested without a phone.
+///
+/// Returns whether anything was switched off.
+@visibleForTesting
+Future<bool> silenceFromBackground(
+  KeyValueStore store, {
+  required String? actionId,
+  required String? payload,
+}) async {
+  if (actionId != NotificationService.silenceActionId) return false;
+
+  final parsed = decodeNotificationPayload(payload);
+  if (parsed == null) return false;
+
+  return NotificationPreferences(
+    store,
+  ).setAllowed(parsed.kind, allowed: false);
 }
