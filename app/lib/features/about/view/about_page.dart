@@ -9,6 +9,7 @@ import '../../../core/widgets/attribution_note.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/repositories/planner_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../map/view/coverage_map_page.dart';
 
 /// Attribution, coverage, and the things this app will not do.
 ///
@@ -66,6 +67,25 @@ class _AboutPageState extends State<AboutPage> {
             SizedBox(height: Insets.lg),
             _Point(text: l.aboutNonProfit),
             _Point(text: l.aboutCoverage),
+            // The coverage sentence above is abstract until you can see the
+            // box. This is the map's only entry point today — there is no
+            // map on the planning screens yet, because `/plan` returns no leg
+            // geometry to draw. See features/map/view/coverage_map_page.dart.
+            Padding(
+              padding: EdgeInsetsDirectional.only(bottom: Insets.md),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.map_outlined, size: 18),
+                  label: Text(l.mapOpenCoverage),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CoverageMapPage(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             _Point(text: l.aboutFares),
             _Point(text: l.aboutMetroArabic),
             SizedBox(height: Insets.xl),

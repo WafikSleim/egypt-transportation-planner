@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 103 tests, no device, no network, a few seconds
+flutter test      # 144 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -35,6 +35,7 @@ lib/
 ├── core/
 │   ├── config/         base URL, coverage box
 │   ├── location/       one-off fixes, on demand only
+│   ├── map/            tile source, style builder, the map widget
 │   ├── network/        ApiClient, failure classification
 │   ├── presentation/   TripPresenter + the view models it emits  ← read this first
 │   ├── settings/       language and theme (the only two settings passengers get)
@@ -129,6 +130,26 @@ worked out again every time it is opened. Storing the one that was on screen
 when it was saved would mean showing someone departure times from last
 Tuesday — see `SavedTrip` in `data/repositories/trip_history.dart`.
 
+**The map's style is built in Dart, not vendored.** `core/map/map_style.dart`
+emits a MapLibre style document from `MapPalette`, the way `TripPresenter`
+emits view models — one place decides, the widget is handed something
+finished, and the whole thing is testable without a GPU. Protomaps' own light
+and dark themes were the quicker route and are somebody else's colours; a map
+in another palette inside these screens reads as a second app bolted on. Dark
+is written out rather than inverted, because an inverted basemap puts water
+lighter than land and the Nile glows.
+
+**The basemap never uses a mode colour.** The licence-plate system only works
+while nothing else competes with it, and a basemap is thousands of shapes — a
+road casing in microbus orange would be the loudest orange on screen, by area.
+`test/map_style_test.dart` holds that.
+
+**The map has its own attribution widget, and that is not duplication.**
+`AttributionNote` carries the transit data's credit (TfC, CC BY-NC, fetched
+from `/attribution`); `core/map/map_attribution.dart` carries the basemap's
+(OpenStreetMap, ODbL, known at build time). Different works, different
+licences, and ODbL wants its credit on the map rather than on an About screen.
+
 **Fonts are bundled, not fetched.** `google_fonts` would mean a first run on a
 weak connection falling back to a system face with worse Arabic shaping.
 
@@ -161,4 +182,7 @@ backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 
 - **Places and map picking** (P-18, P-19) — blocked on the `places` table
 - **Notifications** (P-16) and **background tracking** (P-17)
-- Map tiles on results and itinerary screens
+- Map tiles on results and itinerary screens. The renderer exists — see
+  `core/map/` and the coverage map reached from About — but `/plan` returns
+  each leg's endpoints and no geometry, so an itinerary map would be drawing
+  straight lines between stops and claiming they are routes

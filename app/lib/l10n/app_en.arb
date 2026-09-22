@@ -139,5 +139,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mapCoverageTitle": "Coverage area",
+  "mapOpenCoverage": "See the coverage on a map",
+  "mapCoverageBody": "The dashed box is where we have transit data — Greater Cairo. Outside it we have nothing, and we will not guess.",
+  "mapNoVehicles": "There are no vehicles on this map. Nobody in Egypt broadcasts where the microbuses are, and we will not draw a moving vehicle we cannot see.",
+  "mapNamesFromOsm": "Place names on the map come from OpenStreetMap, not from the transit data. Some are in English only, or missing.",
+  "mapSourceTemporary": "The map is still loading from a demo server that is not ours. It may be slow or fail to appear — temporary, until we host our own."
 }

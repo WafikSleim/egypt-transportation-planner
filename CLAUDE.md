@@ -474,9 +474,14 @@ violates OSM's own licence and the community treats it seriously.
    replacing the modelled timetable with published headways and run times
 3. ~~Backend API in front of OTP~~ — done, `api/`
 4. Flutter client — started, `app/`. Search, stop picker, results and
-   itinerary detail work. Still missing: map tiles, place search and map
-   picking (blocked on the `places` table), recents and saved trips,
-   notifications, background tracking. No auth, no accounts, no settings
+   itinerary detail work. Map rendering landed 2026-09-22 (#19): MapLibre
+   Native over Protomaps `.pmtiles`, style built in Dart from the design
+   tokens, reachable today only as the coverage map on the About screen —
+   `app/lib/core/map/` records why that and not an itinerary map. **Nothing
+   here has been seen on a screen**, only in widget tests and an APK build.
+   Still missing: the hosted Cairo `.pmtiles` extract (the build points at
+   Protomaps' demo planet build until then), place search and map picking
+   (blocked on the `places` table), notifications, background tracking. No auth, no accounts, no settings
    screen — language and theme are the only two choices offered, and they
    live on the About screen
 5. Contribution pipeline: a `submissions` table separate from the main data,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../map/map_palette.dart';
 import 'mode_theme.dart';
 import 'tokens.dart';
 
@@ -98,7 +99,14 @@ class AppTheme {
         ),
       ),
       listTileTheme: ListTileThemeData(iconColor: p.ink2, textColor: p.ink),
-      extensions: <ThemeExtension<dynamic>>[AppColors(p), modes],
+      // The basemap carries its own set, built from the neutral ramp only —
+      // a road drawn in a licence-plate colour would overload the one colour
+      // system the product depends on. See core/map/map_palette.dart.
+      extensions: <ThemeExtension<dynamic>>[
+        AppColors(p),
+        modes,
+        MapPalette.forBrightness(brightness),
+      ],
     );
   }
 

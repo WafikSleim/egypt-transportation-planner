@@ -229,5 +229,14 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mapCoverageTitle": "منطقة التغطية",
+  "@mapCoverageTitle": {
+    "description": "Title of the map screen. It shows the box the transit data covers, not a general-purpose map."
+  },
+  "mapOpenCoverage": "شوف التغطية على الخريطة",
+  "mapCoverageBody": "الإطار المنقّط هو المنطقة اللي عندنا فيها بيانات مواصلات — القاهرة الكبرى. برّاها مامعندناش حاجة، ومش هنخمّنلك.",
+  "mapNoVehicles": "مافيش عربيات على الخريطة دي. مافيش حد في مصر بيبث مكان الميكروباصات لحظة بلحظة، وإحنا مش هنرسملك عربية بتتحرك وإحنا مش عارفين هي فين.",
+  "mapNamesFromOsm": "أسماء الأماكن على الخريطة من OpenStreetMap، مش من بيانات المواصلات. ساعات بتبقى بالإنجليزي أو ناقصة.",
+  "mapSourceTemporary": "الخريطة لسه بتتحمّل من سيرفر تجريبي مش بتاعنا. ممكن تبقى بطيئة أو ماتظهرش خالص — ده مؤقت لحد ما نرفع نسختنا."
 }
