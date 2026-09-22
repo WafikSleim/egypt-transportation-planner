@@ -538,12 +538,17 @@ violates OSM's own licence and the community treats it seriously.
    replacing the modelled timetable with published headways and run times
 3. ~~Backend API in front of OTP~~ — done, `api/`
 4. Flutter client — started, `app/`. Search, stop picker, results and
-   itinerary detail work. Still missing: map tiles, and the client half of
-   place search and map picking — `/places` and `/places/reverse` are live as
-   of 2026-09-22, so those are no longer blocked. Also missing: notifications
-   and background tracking. No auth, no accounts, no settings screen —
-   language and theme are the only two choices offered, and they live on the
-   About screen
+   itinerary detail work. Map rendering landed 2026-09-22 (#19):
+   MapLibre Native over Protomaps `.pmtiles`, style built in Dart from
+   the design tokens, reachable today only as the coverage map on the
+   About screen — `app/lib/core/map/` records why that and not an
+   itinerary map. `/places` and `/places/reverse` went live the same
+   day (#14), so the client half of place search and map picking is no
+   longer blocked — but neither is built yet. Also missing:
+   notifications and background tracking. **Nothing in this app has
+   been seen on a screen**, only in widget tests and an APK build. No
+   auth, no accounts, no settings screen — language and theme are the
+   only two choices offered, and they live on the About screen
 5. Contribution pipeline: a `submissions` table separate from the main data,
    promoted to confirmed after two independent confirmations, with a
    `trust_score` per contributor and a `confidence` level exposed in the UI

@@ -42,6 +42,12 @@ dependencies:
   # would justify revisiting it.
   shared_preferences: ^2.5.3
 
+  # Map rendering (#19). MapLibre Native rather than flutter_map: the tiles
+  # are Protomaps .pmtiles, which MapLibre reads over the pmtiles:// protocol
+  # on Android and iOS with no plugin and no proxy. See
+  # lib/core/map/map_view.dart for the decision and what would reverse it.
+  maplibre_gl: ^0.27.1
+
   intl: any
 
 dev_dependencies:
