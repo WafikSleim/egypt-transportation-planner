@@ -179,5 +179,24 @@
         "type": "int"
       }
     }
+  },
+  "recentPlaces": "آخر الأماكن",
+  "clearRecents": "امسح",
+  "recentsOnDevice": "الأماكن دي متسجّلة على تليفونك بس، وما بتتبعتش لحد.",
+  "savedTrips": "مشاوير محفوظة",
+  "saveTrip": "احفظ المشوار ده",
+  "unsaveTrip": "شيل من المحفوظات",
+  "noSavedTrips": "احفظ مشوار بتعمله كتير، وهيستناك هنا.",
+  "savedOnDevice": "المشاوير دي على تليفونك بس. بنحسبها من أول وجديد كل مرة، عشان المواعيد تبقى بتاعة النهاردة.",
+  "tripArrow": "{from} ← {to}",
+  "@tripArrow": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
   }
 }

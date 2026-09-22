@@ -89,5 +89,24 @@
         "type": "int"
       }
     }
+  },
+  "recentPlaces": "Recent places",
+  "clearRecents": "Clear",
+  "recentsOnDevice": "These are kept on your phone only, and never sent anywhere.",
+  "savedTrips": "Saved trips",
+  "saveTrip": "Save this trip",
+  "unsaveTrip": "Remove from saved",
+  "noSavedTrips": "Save a trip you make often and it will be waiting here.",
+  "savedOnDevice": "These live on your phone only. We work the trip out again each time, so the times are today's.",
+  "tripArrow": "{from} → {to}",
+  "@tripArrow": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
   }
 }

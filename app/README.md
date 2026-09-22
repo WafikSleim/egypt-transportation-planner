@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 87 tests, no device, no network, a few seconds
+flutter test      # 103 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -124,6 +124,11 @@ not arrive by accident through the "my location" button. A coarse fix is
 flagged to the user rather than quietly used, and a fix outside the covered
 box is caught before a request is spent on it.
 
+**A saved trip is a pair of places, not a saved itinerary.** The itinerary is
+worked out again every time it is opened. Storing the one that was on screen
+when it was saved would mean showing someone departure times from last
+Tuesday — see `SavedTrip` in `data/repositories/trip_history.dart`.
+
 **Fonts are bundled, not fetched.** `google_fonts` would mean a first run on a
 weak connection falling back to a system face with worse Arabic shaping.
 
@@ -155,6 +160,5 @@ Designed in [`design/app-prototype.html`](../design/app-prototype.html) and
 backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 
 - **Places and map picking** (P-18, P-19) — blocked on the `places` table
-- **Recents and saved trips** (P-15) — the storage layer now exists
 - **Notifications** (P-16) and **background tracking** (P-17)
 - Map tiles on results and itinerary screens

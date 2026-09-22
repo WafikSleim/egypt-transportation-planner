@@ -9,6 +9,7 @@ import '../../../core/text/formatting.dart';
 import '../../../core/theme/mode_theme.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/honesty_panel.dart';
+import '../../../data/repositories/trip_history.dart';
 import '../../../domain/entities/trip_endpoint.dart';
 import '../../../domain/repositories/planner_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -76,14 +77,22 @@ class _SearchView extends StatelessWidget {
               const _DepartureRow(),
               SizedBox(height: Insets.xl),
               BlocBuilder<SearchCubit, SearchState>(
-                builder: (context, state) => FilledButton(
-                  onPressed: state.canSearch
-                      ? () => _openResults(context, state)
-                      : null,
-                  child: Text(l.findTrips),
+                builder: (context, state) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FilledButton(
+                      onPressed: state.canSearch
+                          ? () => _openResults(context, state)
+                          : null,
+                      child: Text(l.findTrips),
+                    ),
+                    if (state.canSearch) _SaveToggle(state: state),
+                  ],
                 ),
               ),
-              SizedBox(height: Insets.xxl),
+              SizedBox(height: Insets.xl),
+              const _SavedTrips(),
+              SizedBox(height: Insets.xl),
               HonestyPanel(text: l.honestyNoRealtime),
               SizedBox(height: Insets.lg),
               Text(
@@ -204,6 +213,7 @@ class _EndpointField extends StatelessWidget {
 
     return InkWell(
       onTap: () async {
+        final history = context.read<TripHistory>();
         final picked = await Navigator.of(context).push<TripEndpoint>(
           MaterialPageRoute(
             builder: (_) => StopPickerPage(
@@ -212,10 +222,15 @@ class _EndpointField extends StatelessWidget {
                 languageCode: Localizations.localeOf(context).languageCode,
               ),
               repository: context.read<PlannerRepository>(),
+              history: context.read<TripHistory>(),
             ),
           ),
         );
-        if (picked != null) onPick(picked);
+        if (picked == null) return;
+        onPick(picked);
+        // Remembered here rather than inside the picker: what makes a place
+        // recent is that it was chosen, not that it was looked at.
+        await history.remember(picked);
       },
       child: Padding(
         padding: EdgeInsetsDirectional.fromSTEB(
@@ -469,6 +484,123 @@ class _Problem extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Save the pair of places currently in the form.
+///
+/// Not the itinerary. What gets kept is where you go, and the trip is worked
+/// out again each time it is opened — see [SavedTrip] for why storing the
+/// itinerary would mean showing someone times from last Tuesday.
+class _SaveToggle extends StatefulWidget {
+  const _SaveToggle({required this.state});
+
+  final SearchState state;
+
+  @override
+  State<_SaveToggle> createState() => _SaveToggleState();
+}
+
+class _SaveToggleState extends State<_SaveToggle> {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final history = context.read<TripHistory>();
+    final from = widget.state.from!;
+    final to = widget.state.to!;
+    final saved = history.isSaved(from, to);
+
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: TextButton.icon(
+        onPressed: () async {
+          if (saved) {
+            await history.unsave(
+              SavedTrip(from: from, to: to, savedAt: DateTime(2000)).id,
+            );
+          } else {
+            await history.save(from, to);
+          }
+          if (context.mounted) setState(() {});
+        },
+        icon: Icon(
+          saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+          size: 18.r,
+        ),
+        label: Text(saved ? l.unsaveTrip : l.saveTrip),
+      ),
+    );
+  }
+}
+
+/// Trips the user kept, re-runnable for now in one tap.
+class _SavedTrips extends StatefulWidget {
+  const _SavedTrips();
+
+  @override
+  State<_SavedTrips> createState() => _SavedTripsState();
+}
+
+class _SavedTripsState extends State<_SavedTrips> {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final p = context.colors;
+    final trips = context.read<TripHistory>().saved();
+
+    if (trips.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.savedTrips, style: Theme.of(context).textTheme.titleMedium),
+        SizedBox(height: Insets.sm),
+        for (final trip in trips)
+          InkWell(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ResultsPage(
+                  from: trip.from,
+                  to: trip.to,
+                  // Now, not when it was saved. A saved trip is a pair of
+                  // places; the times are today's.
+                  departAt: DateTime.now(),
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsetsDirectional.symmetric(vertical: Insets.md),
+              child: Row(
+                children: [
+                  Icon(Icons.bookmark_rounded, size: 17.r, color: p.ink3),
+                  SizedBox(width: Insets.md),
+                  Expanded(
+                    child: Text(
+                      l.tripArrow(
+                        bidiIsolate(trip.from.label),
+                        bidiIsolate(trip.to.label),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: l.unsaveTrip,
+                    icon: Icon(Icons.close_rounded, size: 17.r, color: p.ink3),
+                    onPressed: () async {
+                      await context.read<TripHistory>().unsave(trip.id);
+                      if (context.mounted) setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        SizedBox(height: Insets.xs),
+        Text(l.savedOnDevice, style: Theme.of(context).textTheme.bodySmall),
+      ],
     );
   }
 }

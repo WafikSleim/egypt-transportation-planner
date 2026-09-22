@@ -8,6 +8,7 @@ import 'core/network/api_client.dart';
 import 'core/settings/settings_cubit.dart';
 import 'core/storage/key_value_store.dart';
 import 'data/repositories/planner_repository_impl.dart';
+import 'data/repositories/trip_history.dart';
 import 'domain/repositories/planner_repository.dart';
 
 Future<void> main() async {
@@ -34,6 +35,7 @@ Future<void> main() async {
       child: MultiRepositoryProvider(
         providers: [
           RepositoryProvider<KeyValueStore>.value(value: store),
+          RepositoryProvider<TripHistory>(create: (_) => TripHistory(store)),
           RepositoryProvider<LocationService>(
             create: (_) => const GeolocatorLocationService(),
           ),

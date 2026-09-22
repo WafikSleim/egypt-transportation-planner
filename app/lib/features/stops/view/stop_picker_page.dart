@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/presentation/trip_presenter.dart';
 import '../../../core/text/bidi.dart';
@@ -9,6 +10,7 @@ import '../../../core/widgets/app_error_view.dart';
 import '../../../core/widgets/attribution_note.dart';
 import '../../../core/widgets/honesty_panel.dart';
 import '../../../core/widgets/mode_badge.dart';
+import '../../../data/repositories/trip_history.dart';
 import '../../../domain/entities/trip_endpoint.dart';
 import '../../../domain/repositories/planner_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -27,26 +29,32 @@ class StopPickerPage extends StatelessWidget {
     required this.title,
     required this.repository,
     required this.presenter,
+    this.history,
   });
 
   final String title;
   final PlannerRepository repository;
   final TripPresenter presenter;
 
+  /// Optional: without it the picker simply opens on the typing hint, which
+  /// is also what a first-ever launch looks like.
+  final TripHistory? history;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) =>
           StopSearchCubit(repository: repository, presenter: presenter),
-      child: _StopPickerView(title: title),
+      child: _StopPickerView(title: title, history: history),
     );
   }
 }
 
 class _StopPickerView extends StatelessWidget {
-  const _StopPickerView({required this.title});
+  const _StopPickerView({required this.title, this.history});
 
   final String title;
+  final TripHistory? history;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +95,7 @@ class _StopPickerView extends StatelessWidget {
               ),
             ),
             SizedBox(height: Insets.md),
-            const Expanded(child: _Results()),
+            Expanded(child: _Results(history: history)),
           ],
         ),
       ),
@@ -96,7 +104,9 @@ class _StopPickerView extends StatelessWidget {
 }
 
 class _Results extends StatelessWidget {
-  const _Results();
+  const _Results({this.history});
+
+  final TripHistory? history;
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +117,10 @@ class _Results extends StatelessWidget {
       builder: (context, state) {
         switch (state) {
           case StopSearchIdle():
-            return _Hint(text: l.startTyping);
+            final recents = history?.recents() ?? const [];
+            return recents.isEmpty
+                ? _Hint(text: l.startTyping)
+                : _Recents(recents: recents, history: history!);
 
           case StopSearchLoading():
             return const Center(
@@ -268,6 +281,95 @@ class _Hint extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
+    );
+  }
+}
+
+/// What the picker shows before anything is typed.
+///
+/// Recents earn the space only because the alternative is an empty screen
+/// with a hint on it. They are on-device and the panel says so, because a
+/// list of where somebody goes is the most sensitive thing this app holds —
+/// and the only honest way to show it is to say where it lives.
+class _Recents extends StatefulWidget {
+  const _Recents({required this.recents, required this.history});
+
+  final List<TripEndpoint> recents;
+  final TripHistory history;
+
+  @override
+  State<_Recents> createState() => _RecentsState();
+}
+
+class _RecentsState extends State<_Recents> {
+  late List<TripEndpoint> _recents = widget.recents;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final p = context.colors;
+
+    if (_recents.isEmpty) return _Hint(text: l.startTyping);
+
+    return ListView(
+      padding: EdgeInsetsDirectional.only(bottom: Insets.xl),
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(
+            Insets.lg,
+            Insets.sm,
+            Insets.sm,
+            Insets.sm,
+          ),
+          child: Row(
+            children: [
+              Text(
+                l.recentPlaces,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () async {
+                  await widget.history.clearRecents();
+                  if (mounted) setState(() => _recents = const []);
+                },
+                child: Text(l.clearRecents),
+              ),
+            ],
+          ),
+        ),
+        for (final endpoint in _recents)
+          InkWell(
+            onTap: () => Navigator.of(context).pop(endpoint),
+            child: Padding(
+              padding: EdgeInsetsDirectional.symmetric(
+                horizontal: Insets.lg,
+                vertical: Insets.md,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.history_rounded, size: 18.r, color: p.ink3),
+                  SizedBox(width: Insets.md),
+                  Expanded(
+                    child: Text(
+                      bidiIsolate(endpoint.label),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        Padding(
+          padding: EdgeInsetsDirectional.all(Insets.lg),
+          child: Text(
+            l.recentsOnDevice,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
     );
   }
 }
