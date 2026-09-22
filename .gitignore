@@ -59,3 +59,7 @@ app/lib/l10n/generated/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Throwaway git worktrees created for background agents. Never committed -
+# each is a full second checkout of this repository.
+.claude/worktrees/

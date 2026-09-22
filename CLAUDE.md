@@ -341,6 +341,18 @@ What actually still needs Arabic is the **metro feed's 108 stops**, which has no
 `translations.txt` at all. That is a small enough set to do by hand; the planned
 Overpass matching against OSM `name:ar` is not needed for the road network.
 
+The names themselves are now sourced, in `data/metro-names/stations.csv` — 55
+rows covering all 53 stations on M1 and M2, 54 filled and one honest blank
+(Helwan University, renamed to Capital University in August 2026, with the
+post-rename sources still disagreeing). They are **not applied**: the Latin
+spellings still need reconciling against the real `stops.txt`, headsigns are
+spelled differently from stop names and need their own rows, and Line 3's
+`ناصر` has to be corrected to `جمال عبد الناصر` in the same commit or place
+search shows one station twice. Read
+[data/metro-names/README.md](data/metro-names/README.md) before applying any of
+it — in particular, this must never be written into `gtfs-metro.zip`, for the
+reason in [Line 3 is our own feed](#line-3-is-our-own-feed).
+
 Fares in the feed are from the 2018 era and are worthless now. Never show them.
 Keep fares in a separate table that we maintain, and show "unavailable" rather
 than a wrong number.
@@ -446,7 +458,8 @@ violates OSM's own licence and the community treats it seriously.
 
 1. Arabic names for the metro feed's 108 stops (the road feed is already
    covered by its `translations.txt`; wire that through to the API/UI). The L3
-   feed already carries its own Arabic, so this is M1 and M2 only
+   feed already carries its own Arabic, so this is M1 and M2 only. The names are
+   sourced in `data/metro-names/` (issue #34); what is left is applying them
 2. ~~Add metro line 3~~ — done 2026-09-21, `OTP/gtfs-metro-l3.zip`. Still worth
    replacing the modelled timetable with published headways and run times
 3. ~~Backend API in front of OTP~~ — done, `api/`

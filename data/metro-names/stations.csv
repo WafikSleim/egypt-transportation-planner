@@ -1,0 +1,56 @@
+line,sequence,station_id,name_en,name_en_source,name_ar,source,source_ref,wikidata_label_ar
+M1,1,helwan,Helwan,wikidata,حلوان,wikidata,Q10275853,محطة حلوان
+M1,2,ain_helwan,Ain Helwan,feed,عين حلوان,wikidata,Q10275553,محطة مترو عين حلوان
+M1,3,helwan_university,Helwan University,unverified,,,Q10276202,جامعة حلوان
+M1,4,wadi_hof,Wadi Hof,wikidata,وادي حوف,wikidata,Q10276230,وادي حوف
+M1,5,hadayek_helwan,Hadayek Helwan,wikidata,حدائق حلوان,wikidata,Q10275846,حدائق حلوان
+M1,6,el_maasara,El-Maasara,wikidata,المعصرة,wikidata,Q10275721,مترو المعصرة
+M1,7,tora_el_asmant,Tora El-Asmant,wikidata,طرة الأسمنت,wikidata,Q10276191,طرة الأسمنت
+M1,8,kozzika,Kozzika,wikidata,كوتسيكا,wikidata,Q10275915,كوتسيكا
+M1,9,tora_el_balad,Tora El-Balad,wikidata,طرة البلد,wikidata,Q10276190,طرة البلد
+M1,10,sakanat_el_maadi,Sakanat El-Maadi,wikidata,ثكنات المعادي,wikidata,Q10276184,ثكنات المعادي
+M1,11,maadi,Maadi,wikidata,المعادي,wikidata,Q10275942,المعادي
+M1,12,hadayek_el_maadi,Hadayek El-Maadi,wikidata,حدائق المعادي,wikidata,Q10275845,حدائق المعادي
+M1,13,dar_el_salam,Dar El-Salam,wikidata,دار السلام,wikidata,Q10275685,محطة دار السلام
+M1,14,el_zahraa,El-Zahraa',wikidata,الزهراء,wikidata,Q10275725,الزهراء
+M1,15,mar_girgis,Mar Girgis,wikidata,مار جرجس,wikidata,Q10275956,مار جرجس
+M1,16,el_malek_el_saleh,El-Malek El-Saleh,wikidata,الملك الصالح,wikidata,Q10275724,الملك الصالح
+M1,17,al_sayeda_zeinab,Al-Sayeda Zeinab,wikidata,السيدة زينب,wikidata,Q10275555,السيدة زينب
+M1,18,saad_zaghloul,Saad Zaghloul,wikidata,سعد زغلول,wikidata,Q10276115,سعد زغلول
+M1,19,sadat,Sadat,wikidata,أنور السادات,operator,Q10276116,السادات
+M1,20,nasser,Nasser,wikidata,جمال عبد الناصر,operator,Q10275821,جمال عبد الناصر
+M1,21,orabi,Orabi,wikidata,أحمد عرابي,operator,Q10276204,عرابي
+M1,22,al_shohadaa,Al-Shohadaa,feed,الشهداء,wikidata,Q10275997,الشهداء
+M1,23,ghamra,Ghamra,wikidata,غمرة,wikidata,Q10275826,غمرة
+M1,24,el_demerdash,El-Demerdash,wikidata,الدمرداش,wikidata,Q10275722,الدمرداش
+M1,25,manshiet_el_sadr,Manshiet El-Sadr,wikidata,منشية الصدر,wikidata,Q10275952,منشية الصدر
+M1,26,kobri_el_qobba,Kobri El-Qobba,wikidata,كوبري القبة,wikidata,Q10275913,كوبري القبة
+M1,27,hammamat_el_qobba,Hammamat El-Qobba,wikidata,حمامات القبة,wikidata,Q10275849,حمامات القبة
+M1,28,saray_el_qobba,Saray El-Qobba,wikidata,سراي القبة,arwiki,Q10276140,ساراي القبة
+M1,29,hadayeq_el_zaitoun,Hadayeq El-Zaitoun,wikidata,حدائق الزيتون,wikidata,Q10275847,حدائق الزيتون
+M1,30,helmeyet_el_zaitoun,Helmeyet El-Zaitoun,wikidata,حلمية الزيتون,wikidata,Q10275852,حلمية الزيتون
+M1,31,el_matareyya,El-Matareyya,wikidata,المطرية,wikidata,Q10275726,المطرية
+M1,32,ain_shams,Ain Shams,wikidata,عين شمس,wikidata,Q10275554,عين شمس
+M1,33,ezbet_el_nakhl,Ezbet El-Nakhl,wikidata,عزبة النخل,wikidata,Q10275752,عزبة النخل
+M1,34,el_marg,El-Marg,wikidata,المرج,wikidata,Q5350666,المرج
+M1,35,new_el_marg,New El-Marg,wikidata,المرج الجديدة,wikidata,Q10276010,المرج الجديدة
+M2,1,el_mounib,El-Mounib,wikidata,المنيب,wikidata,Q10275728,المنيب
+M2,2,sakiat_mekky,Sakiat Mekky,wikidata,ساقية مكي,wikidata,Q10276120,ساقية مكي
+M2,3,omm_el_masryeen,Omm El-Masryeen,wikidata,أم المصريين,wikidata,Q10275830,أم المصريين
+M2,4,el_giza,El Giza,wikidata,الجيزة,wikidata,Q10275831,الجيزة
+M2,5,faisal,Faisal,wikidata,فيصل,wikidata,Q10275754,فيصل
+M2,6,cairo_university,Cairo University,wikidata,جامعة القاهرة,wikidata,Q10276203,جامعة القاهرة
+M2,7,el_bohoth,El Bohoth,wikidata,البحوث,wikidata,Q10275604,البحوث
+M2,8,dokki,Dokki,wikidata,الدقي,wikidata,Q10275690,الدقي
+M2,9,opera,Opera,wikidata,الأوبرا,wikidata,Q10275827,الأوبرا
+M2,10,sadat,Sadat,wikidata,أنور السادات,operator,Q10276116,السادات
+M2,11,mohamed_naguib,Mohamed Naguib,wikidata,محمد نجيب,wikidata,Q10276001,محمد نجيب
+M2,12,attaba,Attaba,wikidata,العتبة,wikidata,Q10275582,العتبة
+M2,13,al_shohadaa,Al-Shohadaa,feed,الشهداء,wikidata,Q10275997,الشهداء
+M2,14,masarra,Masarra,wikidata,مسرة,wikidata,Q10275969,مسرة
+M2,15,rod_el_farag,Road El-Farag,wikidata,روض الفرج,wikidata,Q10276098,روض الفرج
+M2,16,st_teresa,St. Teresa,wikidata,سانت تريزا,arwiki,Q18280662,سانتا تريزا
+M2,17,khalafawy,Khalafawy,wikidata,الخلفاوي,wikidata,Q10275910,الخلفاوي
+M2,18,mezallat,Mezallat,wikidata,المظلات,wikidata,Q10275983,المظلات
+M2,19,kolleyyet_el_zeraa,Kolleyyet El-Zeraa,wikidata,كلية الزراعة,wikidata,Q10275916,كلية الزراعة
+M2,20,shubra_el_kheima,Shubra El-Kheima,feed,شبرا الخيمة,wikidata,Q10276148,محطة شبرا الخيمة
