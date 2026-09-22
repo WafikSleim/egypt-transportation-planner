@@ -23,19 +23,19 @@ class EgyptTransportApp extends StatelessWidget {
           minTextAdapt: true,
           splitScreenMode: true,
           builder: (context, child) => MaterialApp(
-          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-          debugShowCheckedModeBanner: false,
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+            debugShowCheckedModeBanner: false,
 
-          // Both themes are built from the same token set, and dark is a
-          // designed palette rather than an inversion — the licence-plate
-          // mode colours vibrate against a dark ground otherwise.
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: settings.themeMode,
+            // Both themes are built from the same token set, and dark is a
+            // designed palette rather than an inversion — the licence-plate
+            // mode colours vibrate against a dark ground otherwise.
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: settings.themeMode,
 
-          locale: settings.locale,
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+            locale: settings.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
 
             home: const SearchPage(),
           ),

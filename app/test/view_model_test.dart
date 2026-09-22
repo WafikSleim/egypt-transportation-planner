@@ -54,15 +54,17 @@ void main() {
 
   group('ResultsCubit', () {
     ResultsCubit build(FakeRepository repo) => ResultsCubit(
-          repository: repo,
-          presenter: presenter,
-          from: here,
-          to: there,
-          departAt: DateTime(2026, 9, 21, 8),
-        );
+      repository: repo,
+      presenter: presenter,
+      from: here,
+      to: there,
+      departAt: DateTime(2026, 9, 21, 8),
+    );
 
     test('emits view models, never wire models', () async {
-      final repo = FakeRepository(planResponse: PlanResponse.fromJson(planMetro));
+      final repo = FakeRepository(
+        planResponse: PlanResponse.fromJson(planMetro),
+      );
       final cubit = build(repo);
       await cubit.load();
 
@@ -76,8 +78,9 @@ void main() {
     test('an all-walk plan loads successfully with nothing to show', () async {
       // Not a failure: the request worked, and the answer is "there is no
       // route here". The screen needs the note, not an error.
-      final repo =
-          FakeRepository(planResponse: PlanResponse.fromJson(planNoCoverage));
+      final repo = FakeRepository(
+        planResponse: PlanResponse.fromJson(planNoCoverage),
+      );
       final cubit = build(repo);
       await cubit.load();
 
@@ -86,22 +89,33 @@ void main() {
       expect(state.plan.note, isNotNull);
     });
 
-    test('a transport failure becomes a failure state, not an exception', () async {
-      final repo = FakeRepository(
-          error: const ApiFailure(FailureKind.serverDown, status: 503));
-      final cubit = build(repo);
-      await cubit.load();
+    test(
+      'a transport failure becomes a failure state, not an exception',
+      () async {
+        final repo = FakeRepository(
+          error: const ApiFailure(FailureKind.serverDown, status: 503),
+        );
+        final cubit = build(repo);
+        await cubit.load();
 
-      expect(cubit.state, isA<ResultsFailed>());
-      expect((cubit.state as ResultsFailed).failure.kind, FailureKind.serverDown);
-    });
+        expect(cubit.state, isA<ResultsFailed>());
+        expect(
+          (cubit.state as ResultsFailed).failure.kind,
+          FailureKind.serverDown,
+        );
+      },
+    );
   });
 
   group('StopSearchCubit', () {
-    StopSearchCubit build(FakeRepository repo,
-            {Duration debounce = const Duration(milliseconds: 10)}) =>
-        StopSearchCubit(
-            repository: repo, presenter: presenter, debounce: debounce);
+    StopSearchCubit build(
+      FakeRepository repo, {
+      Duration debounce = const Duration(milliseconds: 10),
+    }) => StopSearchCubit(
+      repository: repo,
+      presenter: presenter,
+      debounce: debounce,
+    );
 
     test('a single letter searches nothing', () async {
       final repo = FakeRepository();
@@ -113,7 +127,9 @@ void main() {
     });
 
     test('typing is debounced into one request', () async {
-      final repo = FakeRepository(stopsResponse: StopsResponse.fromJson(stopsMoneeb));
+      final repo = FakeRepository(
+        stopsResponse: StopsResponse.fromJson(stopsMoneeb),
+      );
       final cubit = build(repo)
         ..queryChanged('ال')
         ..queryChanged('المن')
@@ -128,8 +144,9 @@ void main() {
       // On a weak connection this is not hypothetical: the two-letter query
       // matches hundreds of stops and takes longest, so it is exactly the one
       // that lands last.
-      final repo = FakeRepository(stopsResponse: StopsResponse.fromJson(stopsMoneeb))
-        ..delays['ال'] = const Duration(milliseconds: 80);
+      final repo = FakeRepository(
+        stopsResponse: StopsResponse.fromJson(stopsMoneeb),
+      )..delays['ال'] = const Duration(milliseconds: 80);
       final cubit = build(repo);
 
       unawaited(cubit.search('ال'));
@@ -140,12 +157,17 @@ void main() {
       expect(after.query, 'المنيب');
 
       await Future<void>.delayed(const Duration(milliseconds: 120));
-      expect((cubit.state as StopSearchLoaded).query, 'المنيب',
-          reason: 'the stale response must be discarded');
+      expect(
+        (cubit.state as StopSearchLoaded).query,
+        'المنيب',
+        reason: 'the stale response must be discarded',
+      );
     });
 
     test('reports that there are more matches than it showed', () async {
-      final repo = FakeRepository(stopsResponse: StopsResponse.fromJson(stopsMoneeb));
+      final repo = FakeRepository(
+        stopsResponse: StopsResponse.fromJson(stopsMoneeb),
+      );
       final cubit = build(repo);
       await cubit.search('المنيب');
 

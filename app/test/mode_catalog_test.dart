@@ -21,16 +21,18 @@ void main() {
     }
 
     final source = utf8.decode(modesPy.readAsBytesSync());
-    final ids = RegExp(r'Mode\(\s*"([a-z_]+)"')
-        .allMatches(source)
-        .map((m) => m.group(1)!)
-        .toSet();
+    final ids = RegExp(
+      r'Mode\(\s*"([a-z_]+)"',
+    ).allMatches(source).map((m) => m.group(1)!).toSet();
 
     expect(ids, isNotEmpty, reason: 'the regex should find the Mode table');
 
     final missing = ids.where((id) => !ModeCatalog.knows(id)).toList();
-    expect(missing, isEmpty,
-        reason: 'add these to ModeCatalog: ${missing.join(", ")}');
+    expect(
+      missing,
+      isEmpty,
+      reason: 'add these to ModeCatalog: ${missing.join(", ")}',
+    );
   });
 
   test('labels exist in both languages and are not the raw id', () {

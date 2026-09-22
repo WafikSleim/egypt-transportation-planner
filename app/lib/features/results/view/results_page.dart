@@ -64,7 +64,11 @@ class _ResultsView extends StatelessWidget {
           preferredSize: const Size.fromHeight(28),
           child: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(
-                Insets.lg, 0, Insets.lg, Insets.md),
+              Insets.lg,
+              0,
+              Insets.lg,
+              Insets.md,
+            ),
             child: Text(
               '${bidiIsolate(from.label)} ← ${bidiIsolate(to.label)}',
               maxLines: 1,
@@ -85,8 +89,10 @@ class _ResultsView extends StatelessWidget {
                     children: [
                       const CircularProgressIndicator(strokeWidth: 2),
                       SizedBox(height: Insets.lg),
-                      Text(l.searching,
-                          style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        l.searching,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ],
                   ),
                 );
@@ -127,7 +133,9 @@ class _ResultList extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                HonestyPanel(text: AppLocalizations.of(context).honestyNoRealtime),
+                HonestyPanel(
+                  text: AppLocalizations.of(context).honestyNoRealtime,
+                ),
                 AttributionNote(plan.attribution),
               ],
             ),
@@ -176,10 +184,8 @@ class _NothingFound extends StatelessWidget {
       NoteCode.outOfCoverage => (l.noCoverage, l.noCoverageBody),
       NoteCode.outsideServiceHours => (l.noServiceNow, l.noServiceBody),
       NoteCode.noRoute => (l.noRouteTitle, l.noRouteBody),
-      NoteCode.unknown || null => (
-          l.nothingFoundTitle,
-          plan.note ?? l.walkOnlyExplain,
-        ),
+      NoteCode.unknown ||
+      null => (l.nothingFoundTitle, plan.note ?? l.walkOnlyExplain),
     };
 
     return ListView(
@@ -188,9 +194,11 @@ class _NothingFound extends StatelessWidget {
         SizedBox(height: Insets.xl),
         Icon(Icons.explore_off_outlined, size: 34, color: context.colors.ink3),
         SizedBox(height: Insets.lg),
-        Text(title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         SizedBox(height: Insets.md),
         Text(
           // Isolated because the fallback is English prose carrying decimal

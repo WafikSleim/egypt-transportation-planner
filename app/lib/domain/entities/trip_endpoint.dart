@@ -32,11 +32,11 @@ class TripEndpoint extends Equatable {
   });
 
   factory TripEndpoint.fromStop(StopSummary stop) => TripEndpoint(
-        label: stop.name,
-        point: GeoPoint(stop.lat, stop.lon),
-        stopId: stop.id,
-        modes: stop.modes,
-      );
+    label: stop.name,
+    point: GeoPoint(stop.lat, stop.lon),
+    stopId: stop.id,
+    modes: stop.modes,
+  );
 
   final String label;
   final GeoPoint point;

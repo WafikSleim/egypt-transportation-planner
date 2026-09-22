@@ -32,8 +32,9 @@ class ItineraryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final anyLatin = itinerary.legs
-        .any((leg) => isLatinName(leg.fromName) || isLatinName(leg.toName));
+    final anyLatin = itinerary.legs.any(
+      (leg) => isLatinName(leg.fromName) || isLatinName(leg.toName),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(l.itineraryTitle)),
@@ -48,8 +49,10 @@ class ItineraryPage extends StatelessWidget {
             HonestyPanel(text: l.honestyNoRealtime),
             if (anyLatin) ...[
               SizedBox(height: Insets.md),
-              Text(l.honestyLatinName,
-                  style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                l.honestyLatinName,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
             AttributionNote(attribution),
           ],
@@ -82,7 +85,9 @@ class _Summary extends StatelessWidget {
           '${l.durationMinutes(itinerary.durationMinutes)}  ·  '
           '${l.transfersCount(itinerary.transfers)}  ·  '
           '${l.walkTotal(itinerary.walkDistanceM)}',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: p.ink2),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: p.ink2),
         ),
       ],
     );
@@ -150,7 +155,9 @@ class _LegTile extends StatelessWidget {
                         SizedBox(width: Insets.sm),
                         Container(
                           padding: EdgeInsetsDirectional.symmetric(
-                              horizontal: Insets.sm, vertical: 2.h),
+                            horizontal: Insets.sm,
+                            vertical: 2.h,
+                          ),
                           decoration: BoxDecoration(
                             border: Border.all(color: p.line),
                             borderRadius: BorderRadius.circular(6.r),
@@ -158,13 +165,19 @@ class _LegTile extends StatelessWidget {
                           child: Text(
                             leg.numberBadgeText!,
                             textDirection: TextDirection.ltr,
-                            style: dataStyle(context, size: 12.sp, color: p.ink2),
+                            style: dataStyle(
+                              context,
+                              size: 12.sp,
+                              color: p.ink2,
+                            ),
                           ),
                         ),
                       ],
                       const Spacer(),
-                      Text(clockTime(leg.startTime),
-                          style: dataStyle(context, size: 13.sp, color: p.ink2)),
+                      Text(
+                        clockTime(leg.startTime),
+                        style: dataStyle(context, size: 13.sp, color: p.ink2),
+                      ),
                     ],
                   ),
                   SizedBox(height: Insets.sm),

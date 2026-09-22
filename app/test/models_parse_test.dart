@@ -19,21 +19,26 @@ void main() {
     });
 
     test('the metro is SUBWAY and resolves to the metro mode', () {
-      final transit =
-          response.itineraries.first.legs.where((l) => l.isTransit).toList();
+      final transit = response.itineraries.first.legs
+          .where((l) => l.isTransit)
+          .toList();
       expect(transit.map((l) => l.mode.id), everyElement('metro'));
       expect(transit.map((l) => l.mode.otpMode), everyElement('SUBWAY'));
       expect(transit.map((l) => l.route?.shortName), containsAll(['M1', 'M2']));
     });
 
     test('metro routes do have line numbers', () {
-      final metro = response.itineraries.first.legs
-          .firstWhere((l) => l.mode.id == 'metro');
+      final metro = response.itineraries.first.legs.firstWhere(
+        (l) => l.mode.id == 'metro',
+      );
       expect(metro.route!.hasLineNumber, isTrue);
     });
 
     test('no itinerary is walk-only', () {
-      expect(response.itineraries.map((i) => i.isWalkOnly), everyElement(false));
+      expect(
+        response.itineraries.map((i) => i.isWalkOnly),
+        everyElement(false),
+      );
       expect(response.note, isNull);
     });
 
@@ -51,25 +56,29 @@ void main() {
     test('microbus legs are BUS on the wire but resolve to microbus', () {
       // Every route in the road feed is route_type 3. The distinction lives
       // in agency_id, which the server has already resolved.
-      final transit =
-          response.itineraries.first.legs.where((l) => l.isTransit).toList();
+      final transit = response.itineraries.first.legs
+          .where((l) => l.isTransit)
+          .toList();
       expect(transit, isNotEmpty);
       expect(transit.map((l) => l.mode.otpMode), everyElement('BUS'));
       expect(transit.map((l) => l.mode.id), everyElement('microbus'));
     });
 
     test('microbus routes declare that they have no line number', () {
-      final transit =
-          response.itineraries.first.legs.where((l) => l.isTransit);
+      final transit = response.itineraries.first.legs.where((l) => l.isTransit);
       for (final leg in transit) {
-        expect(leg.route!.hasLineNumber, isFalse,
-            reason: 'paratransit carries no public route numbers');
+        expect(
+          leg.route!.hasLineNumber,
+          isFalse,
+          reason: 'paratransit carries no public route numbers',
+        );
       }
     });
 
     test('the display name is built from origin and destination', () {
-      final leg = response.itineraries.first.legs
-          .firstWhere((l) => l.mode.id == 'microbus');
+      final leg = response.itineraries.first.legs.firstWhere(
+        (l) => l.mode.id == 'microbus',
+      );
       expect(leg.route!.displayName, contains('→'));
       expect(leg.route!.displayName, isNot(equals(leg.route!.shortName)));
     });

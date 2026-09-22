@@ -1,0 +1,68 @@
+name: CI
+
+# Both suites run in seconds and neither needs Docker, a device or the
+# network, so there is no reason for them not to gate every push.
+#
+# What this does NOT do is build the graph or start OpenTripPlanner. The
+# Python tests stub OTP at the transport layer (`api.otp.TRANSPORT`) and the
+# Dart tests read real captured responses from `app/test/fixtures/`, which is
+# the whole reason both are fast enough to sit here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Test
+        run: pytest -q
+
+  app:
+    name: App (analyze + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned, not `stable`. This project already learned once that tracking
+      # a moving tag lets the toolchain change under you without warning --
+      # see the OTP `:latest` note in CLAUDE.md. Bump this deliberately.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: stable
+          cache: true
+
+      - name: Install
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test

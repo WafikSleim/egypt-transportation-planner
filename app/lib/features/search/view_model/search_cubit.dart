@@ -14,11 +14,13 @@ class SearchCubit extends Cubit<SearchState> {
   void setFrom(TripEndpoint? endpoint) =>
       emit(SearchState(from: endpoint, to: state.to, departAt: state.departAt));
 
-  void setTo(TripEndpoint? endpoint) =>
-      emit(SearchState(from: state.from, to: endpoint, departAt: state.departAt));
+  void setTo(TripEndpoint? endpoint) => emit(
+    SearchState(from: state.from, to: endpoint, departAt: state.departAt),
+  );
 
-  void swap() =>
-      emit(SearchState(from: state.to, to: state.from, departAt: state.departAt));
+  void swap() => emit(
+    SearchState(from: state.to, to: state.from, departAt: state.departAt),
+  );
 
   /// Pass null for "now".
   void setDeparture(DateTime? when) =>

@@ -11,8 +11,10 @@ import 'tokens.dart';
 /// licence-plate hues, and an inverted light palette leaves them vibrating
 /// against the dark ground.
 class AppTheme {
-  static ThemeData light() => _build(Palette.light, ModeColors.light, Brightness.light);
-  static ThemeData dark() => _build(Palette.dark, ModeColors.dark, Brightness.dark);
+  static ThemeData light() =>
+      _build(Palette.light, ModeColors.light, Brightness.light);
+  static ThemeData dark() =>
+      _build(Palette.dark, ModeColors.dark, Brightness.dark);
 
   static ThemeData _build(Palette p, ModeColors modes, Brightness brightness) {
     final text = _textTheme(p);
@@ -95,10 +97,7 @@ class AppTheme {
           borderSide: BorderSide(color: p.accent, width: 1.6),
         ),
       ),
-      listTileTheme: ListTileThemeData(
-        iconColor: p.ink2,
-        textColor: p.ink,
-      ),
+      listTileTheme: ListTileThemeData(iconColor: p.ink2, textColor: p.ink),
       extensions: <ThemeExtension<dynamic>>[AppColors(p), modes],
     );
   }
@@ -179,7 +178,12 @@ class AppTheme {
 }
 
 /// Times, durations and counts. Kept as one style so it cannot drift.
-TextStyle dataStyle(BuildContext context, {double? size, FontWeight weight = FontWeight.w600, Color? color}) {
+TextStyle dataStyle(
+  BuildContext context, {
+  double? size,
+  FontWeight weight = FontWeight.w600,
+  Color? color,
+}) {
   return TextStyle(
     fontFamily: Faces.mono,
     fontSize: size ?? 15.sp,

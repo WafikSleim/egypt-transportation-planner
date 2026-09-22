@@ -51,7 +51,10 @@ class _ModePill extends StatelessWidget {
           Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(1.5)),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(1.5),
+            ),
           ),
           SizedBox(width: Insets.sm),
           Text(

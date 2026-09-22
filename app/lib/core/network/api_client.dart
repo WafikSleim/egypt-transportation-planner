@@ -25,8 +25,8 @@ class ApiClient {
     required String Function() languageCode,
     http.Client? client,
     this.timeout = const Duration(seconds: 20),
-  })  : _languageCode = languageCode,
-        _client = client ?? http.Client();
+  }) : _languageCode = languageCode,
+       _client = client ?? http.Client();
 
   final String baseUrl;
   final Duration timeout;
@@ -37,9 +37,9 @@ class ApiClient {
     String path, {
     Map<String, String> query = const {},
   }) async {
-    final uri = Uri.parse('$baseUrl$path').replace(
-      queryParameters: {...query, 'lang': _languageCode()},
-    );
+    final uri = Uri.parse(
+      '$baseUrl$path',
+    ).replace(queryParameters: {...query, 'lang': _languageCode()});
 
     final http.Response response;
     try {
@@ -66,7 +66,8 @@ class ApiClient {
     try {
       // Decoded from bytes, not from `response.body`: the payload is Arabic
       // and `body` guesses latin-1 when the server omits a charset.
-      return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      return jsonDecode(utf8.decode(response.bodyBytes))
+          as Map<String, dynamic>;
     } on FormatException catch (e) {
       throw ApiFailure(FailureKind.unexpected, detail: e.message);
     }
@@ -75,7 +76,9 @@ class ApiClient {
   String? _detail(http.Response response) {
     try {
       final body = jsonDecode(utf8.decode(response.bodyBytes));
-      if (body is Map && body['detail'] != null) return body['detail'].toString();
+      if (body is Map && body['detail'] != null) {
+        return body['detail'].toString();
+      }
     } catch (_) {
       // A non-JSON error body is not worth a second failure mode.
     }

@@ -51,8 +51,8 @@ class ItineraryCard extends StatelessWidget {
                   Text(
                     l.durationMinutes(itinerary.durationMinutes),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                   const Spacer(),
                   Text(
@@ -78,11 +78,15 @@ class ItineraryCard extends StatelessWidget {
               SizedBox(height: Insets.md),
               Row(
                 children: [
-                  Text(l.transfersCount(itinerary.transfers),
-                      style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    l.transfersCount(itinerary.transfers),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                   Text('  ·  ', style: Theme.of(context).textTheme.bodySmall),
-                  Text(l.walkTotal(itinerary.walkDistanceM),
-                      style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    l.walkTotal(itinerary.walkDistanceM),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ],
               ),
               // No fare. Not omitted for space — the fares in the source feed

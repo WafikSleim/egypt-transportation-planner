@@ -15,22 +15,25 @@ class PlannerRepositoryImpl implements PlannerRepository {
     required DateTime departAt,
     bool arriveBy = false,
   }) async {
-    final json = await _api.getJson('/plan', query: {
-      'from': from.wire,
-      'to': to.wire,
-      'date': _date(departAt),
-      'time': _time(departAt),
-      if (arriveBy) 'arrive_by': 'true',
-    });
+    final json = await _api.getJson(
+      '/plan',
+      query: {
+        'from': from.wire,
+        'to': to.wire,
+        'date': _date(departAt),
+        'time': _time(departAt),
+        if (arriveBy) 'arrive_by': 'true',
+      },
+    );
     return PlanResponse.fromJson(json);
   }
 
   @override
   Future<StopsResponse> searchStops(String query, {int limit = 20}) async {
-    final json = await _api.getJson('/stops', query: {
-      'q': query,
-      'limit': '$limit',
-    });
+    final json = await _api.getJson(
+      '/stops',
+      query: {'q': query, 'limit': '$limit'},
+    );
     return StopsResponse.fromJson(json);
   }
 

@@ -43,14 +43,18 @@ class AppErrorView extends StatelessWidget {
               color: p.ink3,
             ),
             SizedBox(height: Insets.lg),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             if (help.isNotEmpty) ...[
               SizedBox(height: Insets.sm),
-              Text(help,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                help,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ],
             if (onRetry != null) ...[
               SizedBox(height: Insets.xl),

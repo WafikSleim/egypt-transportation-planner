@@ -19,9 +19,9 @@ class ResultsCubit extends Cubit<ResultsState> {
     required this.to,
     required this.departAt,
     this.arriveBy = false,
-  })  : _repository = repository,
-        _presenter = presenter,
-        super(const ResultsLoading());
+  }) : _repository = repository,
+       _presenter = presenter,
+       super(const ResultsLoading());
 
   final PlannerRepository _repository;
   final TripPresenter _presenter;

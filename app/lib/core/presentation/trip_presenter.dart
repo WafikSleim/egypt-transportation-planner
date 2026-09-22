@@ -55,13 +55,13 @@ class TripPresenter {
   }
 
   ItineraryVm itinerary(Itinerary it) => ItineraryVm(
-        startTime: it.startTime,
-        endTime: it.endTime,
-        durationMinutes: it.durationMinutes,
-        walkDistanceM: it.walkDistanceM,
-        transfers: it.transfers,
-        legs: it.legs.map(leg).toList(growable: false),
-      );
+    startTime: it.startTime,
+    endTime: it.endTime,
+    durationMinutes: it.durationMinutes,
+    walkDistanceM: it.walkDistanceM,
+    transfers: it.transfers,
+    legs: it.legs.map(leg).toList(growable: false),
+  );
 
   LegVm leg(Leg l) {
     final route = l.route;
@@ -78,7 +78,8 @@ class TripPresenter {
     // The metro is the one case where a number exists and still gets no
     // separate chip: its circular badge already *is* the line number, so a
     // number chip beside it renders "M1" twice.
-    final showNumber = route != null &&
+    final showNumber =
+        route != null &&
         route.hasLineNumber &&
         (route.shortName?.trim().isNotEmpty ?? false) &&
         badge.shape != ModeBadgeShape.metroCircle;
@@ -123,13 +124,15 @@ class TripPresenter {
   /// metro must not show a pill any more than a metro leg may.
   List<ModeBadgeVm> stopBadges(StopSummary stop) {
     return stop.modes
-        .map((id) => ModeBadgeVm(
-              modeId: id,
-              label: ModeCatalog.label(id, languageCode),
-              shape: id == 'metro'
-                  ? ModeBadgeShape.metroCircle
-                  : ModeBadgeShape.pill,
-            ))
+        .map(
+          (id) => ModeBadgeVm(
+            modeId: id,
+            label: ModeCatalog.label(id, languageCode),
+            shape: id == 'metro'
+                ? ModeBadgeShape.metroCircle
+                : ModeBadgeShape.pill,
+          ),
+        )
         .toList(growable: false);
   }
 }

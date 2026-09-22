@@ -14,7 +14,8 @@ import 'dart:io';
 ///     &date=2026-09-21&time=08:00&lang=ar" -o test/fixtures/plan_metro_ar.json
 Map<String, dynamic> fixture(String name) {
   final file = File('test/fixtures/$name.json');
-  return jsonDecode(utf8.decode(file.readAsBytesSync())) as Map<String, dynamic>;
+  return jsonDecode(utf8.decode(file.readAsBytesSync()))
+      as Map<String, dynamic>;
 }
 
 /// Helwan to Shubra El-Kheima: M1, interchange at Al-Shohadaa, M2.

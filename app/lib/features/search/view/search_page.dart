@@ -43,9 +43,9 @@ class _SearchView extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.info_outline),
             tooltip: l.aboutTitle,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const AboutPage()),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
           ),
         ],
       ),
@@ -56,8 +56,10 @@ class _SearchView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: Insets.sm),
-              Text(l.searchTitle,
-                  style: Theme.of(context).textTheme.displaySmall),
+              Text(
+                l.searchTitle,
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
               SizedBox(height: Insets.xl),
               const _EndpointFields(),
               SizedBox(height: Insets.lg),
@@ -65,7 +67,9 @@ class _SearchView extends StatelessWidget {
               SizedBox(height: Insets.xl),
               BlocBuilder<SearchCubit, SearchState>(
                 builder: (context, state) => FilledButton(
-                  onPressed: state.canSearch ? () => _openResults(context, state) : null,
+                  onPressed: state.canSearch
+                      ? () => _openResults(context, state)
+                      : null,
                   child: Text(l.findTrips),
                 ),
               ),
@@ -74,7 +78,9 @@ class _SearchView extends StatelessWidget {
               SizedBox(height: Insets.lg),
               Text(
                 l.aboutCoverage,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: p.ink3),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: p.ink3),
               ),
             ],
           ),
@@ -124,7 +130,12 @@ class _EndpointFields extends StatelessWidget {
                     value: state.from,
                     onPick: (e) => context.read<SearchCubit>().setFrom(e),
                   ),
-                  Divider(height: 1, color: p.line, indent: Insets.lg, endIndent: 56),
+                  Divider(
+                    height: 1,
+                    color: p.line,
+                    indent: Insets.lg,
+                    endIndent: 56,
+                  ),
                   _EndpointField(
                     label: l.toLabel,
                     hint: l.toHint,
@@ -144,7 +155,11 @@ class _EndpointFields extends StatelessWidget {
                   shape: const CircleBorder(),
                   child: IconButton(
                     tooltip: l.swap,
-                    icon: Icon(Icons.swap_vert_rounded, size: 20, color: p.ink2),
+                    icon: Icon(
+                      Icons.swap_vert_rounded,
+                      size: 20,
+                      color: p.ink2,
+                    ),
                     onPressed: (state.from == null && state.to == null)
                         ? null
                         : () => context.read<SearchCubit>().swap(),
@@ -193,7 +208,12 @@ class _EndpointField extends StatelessWidget {
         if (picked != null) onPick(picked);
       },
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(Insets.lg, Insets.md, 56, Insets.md),
+        padding: EdgeInsetsDirectional.fromSTEB(
+          Insets.lg,
+          Insets.md,
+          56,
+          Insets.md,
+        ),
         child: Row(
           children: [
             Expanded(
@@ -209,9 +229,9 @@ class _EndpointField extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: filled ? p.ink : p.ink3,
-                          fontWeight: filled ? FontWeight.w600 : FontWeight.w400,
-                        ),
+                      color: filled ? p.ink : p.ink3,
+                      fontWeight: filled ? FontWeight.w600 : FontWeight.w400,
+                    ),
                   ),
                 ],
               ),
@@ -240,7 +260,9 @@ class _DepartureRow extends StatelessWidget {
             SizedBox(width: Insets.sm),
             Text(
               when == null ? l.departNow : l.departAt(clockTime(when)),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: p.ink),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: p.ink),
             ),
             const Spacer(),
             TextButton(
@@ -273,7 +295,7 @@ class _DepartureRow extends StatelessWidget {
     );
     if (time == null || !context.mounted) return;
     context.read<SearchCubit>().setDeparture(
-          DateTime(date.year, date.month, date.day, time.hour, time.minute),
-        );
+      DateTime(date.year, date.month, date.day, time.hour, time.minute),
+    );
   }
 }

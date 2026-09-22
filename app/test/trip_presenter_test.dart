@@ -49,19 +49,29 @@ void main() {
     });
 
     test('a numbered bus route does get a chip', () {
-      final leg = ar.leg(Leg(
-        mode: const ModeInfo(
-            id: 'cta_bus', labelEn: 'CTA bus', labelAr: 'أتوبيس', otpMode: 'BUS'),
-        isTransit: true,
-        startTime: DateTime(2026, 9, 21, 8),
-        endTime: DateTime(2026, 9, 21, 8, 30),
-        durationMinutes: 30,
-        distanceM: 5000,
-        from: const Place(name: 'A', lat: 30, lon: 31),
-        to: const Place(name: 'B', lat: 30, lon: 31),
-        route: const RouteInfo(
-            id: 'r', displayName: '381', hasLineNumber: true, shortName: '381'),
-      ));
+      final leg = ar.leg(
+        Leg(
+          mode: const ModeInfo(
+            id: 'cta_bus',
+            labelEn: 'CTA bus',
+            labelAr: 'أتوبيس',
+            otpMode: 'BUS',
+          ),
+          isTransit: true,
+          startTime: DateTime(2026, 9, 21, 8),
+          endTime: DateTime(2026, 9, 21, 8, 30),
+          durationMinutes: 30,
+          distanceM: 5000,
+          from: const Place(name: 'A', lat: 30, lon: 31),
+          to: const Place(name: 'B', lat: 30, lon: 31),
+          route: const RouteInfo(
+            id: 'r',
+            displayName: '381',
+            hasLineNumber: true,
+            shortName: '381',
+          ),
+        ),
+      );
 
       expect(leg.showNumberBadge, isTrue);
       expect(leg.numberBadgeText, '381');
@@ -70,23 +80,29 @@ void main() {
     test('a route claiming a number but having none still gets no badge', () {
       // Defensive: a feed can set has_line_number with an empty short_name,
       // and an empty badge reads as missing data rather than as no number.
-      final leg = ar.leg(Leg(
-        mode: const ModeInfo(
-            id: 'cta_bus', labelEn: 'CTA bus', labelAr: 'أتوبيس', otpMode: 'BUS'),
-        isTransit: true,
-        startTime: DateTime(2026, 9, 21, 8),
-        endTime: DateTime(2026, 9, 21, 8, 30),
-        durationMinutes: 30,
-        distanceM: 5000,
-        from: const Place(name: 'A', lat: 30, lon: 31),
-        to: const Place(name: 'B', lat: 30, lon: 31),
-        route: const RouteInfo(
-          id: 'r',
-          displayName: 'A → B',
-          hasLineNumber: true,
-          shortName: '   ',
+      final leg = ar.leg(
+        Leg(
+          mode: const ModeInfo(
+            id: 'cta_bus',
+            labelEn: 'CTA bus',
+            labelAr: 'أتوبيس',
+            otpMode: 'BUS',
+          ),
+          isTransit: true,
+          startTime: DateTime(2026, 9, 21, 8),
+          endTime: DateTime(2026, 9, 21, 8, 30),
+          durationMinutes: 30,
+          distanceM: 5000,
+          from: const Place(name: 'A', lat: 30, lon: 31),
+          to: const Place(name: 'B', lat: 30, lon: 31),
+          route: const RouteInfo(
+            id: 'r',
+            displayName: 'A → B',
+            hasLineNumber: true,
+            shortName: '   ',
+          ),
         ),
-      ));
+      );
 
       expect(leg.showNumberBadge, isFalse);
     });
@@ -95,8 +111,9 @@ void main() {
   group('rule: metro is a circle, everything else is a pill', () {
     test('metro legs take the circular badge and carry their line', () {
       final plan = ar.plan(PlanResponse.fromJson(planMetro));
-      final metro = plan.itineraries.first.legs
-          .where((l) => l.badge.modeId == 'metro');
+      final metro = plan.itineraries.first.legs.where(
+        (l) => l.badge.modeId == 'metro',
+      );
 
       for (final leg in metro) {
         expect(leg.badge.shape, ModeBadgeShape.metroCircle);
@@ -191,8 +208,11 @@ void main() {
       // A label that falls back to the raw id means the catalogue is missing
       // an entry the API can actually return.
       for (final badge in badges) {
-        expect(ModeCatalog.knows(badge.modeId), isTrue,
-            reason: '${badge.modeId} has no label in ModeCatalog');
+        expect(
+          ModeCatalog.knows(badge.modeId),
+          isTrue,
+          reason: '${badge.modeId} has no label in ModeCatalog',
+        );
       }
     });
   });

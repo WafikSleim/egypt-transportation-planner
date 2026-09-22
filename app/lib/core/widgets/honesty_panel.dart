@@ -36,9 +36,7 @@ class HonestyPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(Radii.card),
         // A stripe rather than colour alone, so the state survives greyscale
         // and colour-blind viewing.
-        border: BorderDirectional(
-          start: BorderSide(color: tint, width: 4),
-        ),
+        border: BorderDirectional(start: BorderSide(color: tint, width: 4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,8 +47,8 @@ class HonestyPanel extends StatelessWidget {
             child: Text(
               text,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: severity == HonestySeverity.warning ? p.ink : p.ink2,
-                  ),
+                color: severity == HonestySeverity.warning ? p.ink : p.ink2,
+              ),
             ),
           ),
         ],

@@ -57,47 +57,54 @@ void main() {
 
     test('/attribution carries it', () async {
       final repo = PlannerRepositoryImpl(
-          clientReturning({'text': 'x', 'licence': 'y', 'source_url': 'z'}));
+        clientReturning({'text': 'x', 'licence': 'y', 'source_url': 'z'}),
+      );
       await repo.attribution();
       expect(requested.single.queryParameters['lang'], 'ar');
     });
 
-    test('and follows the current setting rather than a captured value', () async {
-      var language = 'ar';
-      final client = ApiClient(
-        baseUrl: 'http://test',
-        languageCode: () => language,
-        client: MockClient((request) async {
-          requested.add(request.url);
-          return http.Response('{}', 200);
-        }),
-      );
-      requested = [];
+    test(
+      'and follows the current setting rather than a captured value',
+      () async {
+        var language = 'ar';
+        final client = ApiClient(
+          baseUrl: 'http://test',
+          languageCode: () => language,
+          client: MockClient((request) async {
+            requested.add(request.url);
+            return http.Response('{}', 200);
+          }),
+        );
+        requested = [];
 
-      await client.getJson('/stops', query: {'q': 'a'});
-      language = 'en';
-      await client.getJson('/stops', query: {'q': 'a'});
+        await client.getJson('/stops', query: {'q': 'a'});
+        language = 'en';
+        await client.getJson('/stops', query: {'q': 'a'});
 
-      expect(requested.map((u) => u.queryParameters['lang']), ['ar', 'en']);
-    });
+        expect(requested.map((u) => u.queryParameters['lang']), ['ar', 'en']);
+      },
+    );
   });
 
   group('the plan request is shaped the way the API expects', () {
-    test('coordinates are lat,lon and the time is split from the date', () async {
-      final repo = PlannerRepositoryImpl(clientReturning(planMetro));
-      await repo.plan(
-        from: const GeoPoint(29.849, 31.334),
-        to: const GeoPoint(30.122, 31.245),
-        departAt: DateTime(2026, 9, 21, 8, 5),
-      );
+    test(
+      'coordinates are lat,lon and the time is split from the date',
+      () async {
+        final repo = PlannerRepositoryImpl(clientReturning(planMetro));
+        await repo.plan(
+          from: const GeoPoint(29.849, 31.334),
+          to: const GeoPoint(30.122, 31.245),
+          departAt: DateTime(2026, 9, 21, 8, 5),
+        );
 
-      final q = requested.single.queryParameters;
-      expect(q['from'], '29.849,31.334');
-      expect(q['to'], '30.122,31.245');
-      expect(q['date'], '2026-09-21');
-      expect(q['time'], '08:05');
-      expect(q.containsKey('arrive_by'), isFalse);
-    });
+        final q = requested.single.queryParameters;
+        expect(q['from'], '29.849,31.334');
+        expect(q['to'], '30.122,31.245');
+        expect(q['date'], '2026-09-21');
+        expect(q['time'], '08:05');
+        expect(q.containsKey('arrive_by'), isFalse);
+      },
+    );
   });
 
   group('failures are classified into something the UI can act on', () {
@@ -105,19 +112,27 @@ void main() {
       final repo = PlannerRepositoryImpl(clientReturning({}, status: 503));
       expect(
         () => repo.searchStops('a'),
-        throwsA(isA<ApiFailure>()
-            .having((f) => f.kind, 'kind', FailureKind.serverDown)),
+        throwsA(
+          isA<ApiFailure>().having(
+            (f) => f.kind,
+            'kind',
+            FailureKind.serverDown,
+          ),
+        ),
       );
     });
 
     test('4xx is a bad request', () async {
       final repo = PlannerRepositoryImpl(
-          clientReturning({'detail': 'nope'}, status: 422));
+        clientReturning({'detail': 'nope'}, status: 422),
+      );
       expect(
         () => repo.searchStops('a'),
-        throwsA(isA<ApiFailure>()
-            .having((f) => f.kind, 'kind', FailureKind.badRequest)
-            .having((f) => f.detail, 'detail', 'nope')),
+        throwsA(
+          isA<ApiFailure>()
+              .having((f) => f.kind, 'kind', FailureKind.badRequest)
+              .having((f) => f.detail, 'detail', 'nope'),
+        ),
       );
     });
 
@@ -129,8 +144,9 @@ void main() {
       );
       expect(
         () => client.getJson('/health'),
-        throwsA(isA<ApiFailure>()
-            .having((f) => f.kind, 'kind', FailureKind.offline)),
+        throwsA(
+          isA<ApiFailure>().having((f) => f.kind, 'kind', FailureKind.offline),
+        ),
       );
     });
   });

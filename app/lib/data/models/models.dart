@@ -32,10 +32,10 @@ class Attribution extends Equatable {
   final String sourceUrl;
 
   factory Attribution.fromJson(Map<String, dynamic> json) => Attribution(
-        text: _as<String>(json['text']) ?? '',
-        licence: _as<String>(json['licence']) ?? '',
-        sourceUrl: _as<String>(json['source_url']) ?? '',
-      );
+    text: _as<String>(json['text']) ?? '',
+    licence: _as<String>(json['licence']) ?? '',
+    sourceUrl: _as<String>(json['source_url']) ?? '',
+  );
 
   @override
   List<Object?> get props => [text, licence, sourceUrl];
@@ -61,11 +61,11 @@ class Place extends Equatable {
   final String? stopId;
 
   factory Place.fromJson(Map<String, dynamic> json) => Place(
-        name: _as<String>(json['name']) ?? '',
-        lat: _double(json['lat']),
-        lon: _double(json['lon']),
-        stopId: _as<String>(json['stop_id']),
-      );
+    name: _as<String>(json['name']) ?? '',
+    lat: _double(json['lat']),
+    lon: _double(json['lon']),
+    stopId: _as<String>(json['stop_id']),
+  );
 
   @override
   List<Object?> get props => [name, lat, lon, stopId];
@@ -96,12 +96,12 @@ class ModeInfo extends Equatable {
   bool get isWalk => id == 'walk';
 
   factory ModeInfo.fromJson(Map<String, dynamic> json) => ModeInfo(
-        id: _as<String>(json['id']) ?? 'transit',
-        labelEn: _as<String>(json['label_en']) ?? '',
-        labelAr: _as<String>(json['label_ar']) ?? '',
-        otpMode: _as<String>(json['otp_mode']) ?? '',
-        seats: _as<num>(json['seats'])?.toInt(),
-      );
+    id: _as<String>(json['id']) ?? 'transit',
+    labelEn: _as<String>(json['label_en']) ?? '',
+    labelAr: _as<String>(json['label_ar']) ?? '',
+    otpMode: _as<String>(json['otp_mode']) ?? '',
+    seats: _as<num>(json['seats'])?.toInt(),
+  );
 
   @override
   List<Object?> get props => [id, labelEn, labelAr, otpMode, seats];
@@ -143,20 +143,29 @@ class RouteInfo extends Equatable {
   final String confidence;
 
   factory RouteInfo.fromJson(Map<String, dynamic> json) => RouteInfo(
-        id: _as<String>(json['id']) ?? '',
-        displayName: _as<String>(json['display_name']) ?? '',
-        hasLineNumber: _as<bool>(json['has_line_number']) ?? false,
-        shortName: _as<String>(json['short_name']),
-        longName: _as<String>(json['long_name']),
-        operator: _as<String>(json['operator']),
-        operatorId: _as<String>(json['operator_id']),
-        source: _as<String>(json['source']) ?? 'tfc',
-        confidence: _as<String>(json['confidence']) ?? 'confirmed',
-      );
+    id: _as<String>(json['id']) ?? '',
+    displayName: _as<String>(json['display_name']) ?? '',
+    hasLineNumber: _as<bool>(json['has_line_number']) ?? false,
+    shortName: _as<String>(json['short_name']),
+    longName: _as<String>(json['long_name']),
+    operator: _as<String>(json['operator']),
+    operatorId: _as<String>(json['operator_id']),
+    source: _as<String>(json['source']) ?? 'tfc',
+    confidence: _as<String>(json['confidence']) ?? 'confirmed',
+  );
 
   @override
-  List<Object?> get props =>
-      [id, displayName, hasLineNumber, shortName, longName, operator, operatorId, source, confidence];
+  List<Object?> get props => [
+    id,
+    displayName,
+    hasLineNumber,
+    shortName,
+    longName,
+    operator,
+    operatorId,
+    source,
+    confidence,
+  ];
 }
 
 class Leg extends Equatable {
@@ -187,27 +196,38 @@ class Leg extends Equatable {
   final int intermediateStops;
 
   factory Leg.fromJson(Map<String, dynamic> json) => Leg(
-        mode: ModeInfo.fromJson(_as<Map<String, dynamic>>(json['mode']) ?? const {}),
-        isTransit: _as<bool>(json['is_transit']) ?? false,
-        startTime: DateTime.parse(json['start_time'] as String),
-        endTime: DateTime.parse(json['end_time'] as String),
-        durationMinutes: _int(json['duration_minutes']),
-        distanceM: _int(json['distance_m']),
-        // The wire key is `from`, not `from_` — FastAPI serialises by alias.
-        from: Place.fromJson(_as<Map<String, dynamic>>(json['from']) ?? const {}),
-        to: Place.fromJson(_as<Map<String, dynamic>>(json['to']) ?? const {}),
-        route: json['route'] == null
-            ? null
-            : RouteInfo.fromJson(json['route'] as Map<String, dynamic>),
-        headsign: _as<String>(json['headsign']),
-        intermediateStops: _int(json['intermediate_stops']),
-      );
+    mode: ModeInfo.fromJson(
+      _as<Map<String, dynamic>>(json['mode']) ?? const {},
+    ),
+    isTransit: _as<bool>(json['is_transit']) ?? false,
+    startTime: DateTime.parse(json['start_time'] as String),
+    endTime: DateTime.parse(json['end_time'] as String),
+    durationMinutes: _int(json['duration_minutes']),
+    distanceM: _int(json['distance_m']),
+    // The wire key is `from`, not `from_` — FastAPI serialises by alias.
+    from: Place.fromJson(_as<Map<String, dynamic>>(json['from']) ?? const {}),
+    to: Place.fromJson(_as<Map<String, dynamic>>(json['to']) ?? const {}),
+    route: json['route'] == null
+        ? null
+        : RouteInfo.fromJson(json['route'] as Map<String, dynamic>),
+    headsign: _as<String>(json['headsign']),
+    intermediateStops: _int(json['intermediate_stops']),
+  );
 
   @override
   List<Object?> get props => [
-        mode, isTransit, startTime, endTime, durationMinutes,
-        distanceM, from, to, route, headsign, intermediateStops,
-      ];
+    mode,
+    isTransit,
+    startTime,
+    endTime,
+    durationMinutes,
+    distanceM,
+    from,
+    to,
+    route,
+    headsign,
+    intermediateStops,
+  ];
 }
 
 class Itinerary extends Equatable {
@@ -239,20 +259,27 @@ class Itinerary extends Equatable {
   // are from 2018; the API does not even request them.
 
   factory Itinerary.fromJson(Map<String, dynamic> json) => Itinerary(
-        startTime: DateTime.parse(json['start_time'] as String),
-        endTime: DateTime.parse(json['end_time'] as String),
-        durationMinutes: _int(json['duration_minutes']),
-        walkDistanceM: _int(json['walk_distance_m']),
-        transfers: _int(json['transfers']),
-        isWalkOnly: _as<bool>(json['is_walk_only']) ?? false,
-        legs: (_as<List<dynamic>>(json['legs']) ?? const [])
-            .map((e) => Leg.fromJson(e as Map<String, dynamic>))
-            .toList(growable: false),
-      );
+    startTime: DateTime.parse(json['start_time'] as String),
+    endTime: DateTime.parse(json['end_time'] as String),
+    durationMinutes: _int(json['duration_minutes']),
+    walkDistanceM: _int(json['walk_distance_m']),
+    transfers: _int(json['transfers']),
+    isWalkOnly: _as<bool>(json['is_walk_only']) ?? false,
+    legs: (_as<List<dynamic>>(json['legs']) ?? const [])
+        .map((e) => Leg.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false),
+  );
 
   @override
-  List<Object?> get props =>
-      [startTime, endTime, durationMinutes, walkDistanceM, transfers, isWalkOnly, legs];
+  List<Object?> get props => [
+    startTime,
+    endTime,
+    durationMinutes,
+    walkDistanceM,
+    transfers,
+    isWalkOnly,
+    legs,
+  ];
 }
 
 /// Why an empty result is empty.
@@ -272,12 +299,12 @@ enum NoteCode {
   unknown;
 
   static NoteCode? parse(String? wire) => switch (wire) {
-        null => null,
-        'out_of_coverage' => NoteCode.outOfCoverage,
-        'outside_service_hours' => NoteCode.outsideServiceHours,
-        'no_route' => NoteCode.noRoute,
-        _ => NoteCode.unknown,
-      };
+    null => null,
+    'out_of_coverage' => NoteCode.outOfCoverage,
+    'outside_service_hours' => NoteCode.outsideServiceHours,
+    'no_route' => NoteCode.noRoute,
+    _ => NoteCode.unknown,
+  };
 }
 
 class PlanResponse extends Equatable {
@@ -299,14 +326,15 @@ class PlanResponse extends Equatable {
   final NoteCode? noteCode;
 
   factory PlanResponse.fromJson(Map<String, dynamic> json) => PlanResponse(
-        itineraries: (_as<List<dynamic>>(json['itineraries']) ?? const [])
-            .map((e) => Itinerary.fromJson(e as Map<String, dynamic>))
-            .toList(growable: false),
-        attribution: Attribution.fromJson(
-            _as<Map<String, dynamic>>(json['attribution']) ?? const {}),
-        note: _as<String>(json['note']),
-        noteCode: NoteCode.parse(_as<String>(json['note_code'])),
-      );
+    itineraries: (_as<List<dynamic>>(json['itineraries']) ?? const [])
+        .map((e) => Itinerary.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false),
+    attribution: Attribution.fromJson(
+      _as<Map<String, dynamic>>(json['attribution']) ?? const {},
+    ),
+    note: _as<String>(json['note']),
+    noteCode: NoteCode.parse(_as<String>(json['note_code'])),
+  );
 
   @override
   List<Object?> get props => [itineraries, attribution, note, noteCode];
@@ -332,15 +360,15 @@ class StopSummary extends Equatable {
   final int routeCount;
 
   factory StopSummary.fromJson(Map<String, dynamic> json) => StopSummary(
-        id: _as<String>(json['id']) ?? '',
-        name: _as<String>(json['name']) ?? '',
-        lat: _double(json['lat']),
-        lon: _double(json['lon']),
-        modes: (_as<List<dynamic>>(json['modes']) ?? const [])
-            .map((e) => e.toString())
-            .toList(growable: false),
-        routeCount: _int(json['route_count']),
-      );
+    id: _as<String>(json['id']) ?? '',
+    name: _as<String>(json['name']) ?? '',
+    lat: _double(json['lat']),
+    lon: _double(json['lon']),
+    modes: (_as<List<dynamic>>(json['modes']) ?? const [])
+        .map((e) => e.toString())
+        .toList(growable: false),
+    routeCount: _int(json['route_count']),
+  );
 
   @override
   List<Object?> get props => [id, name, lat, lon, modes, routeCount];
@@ -367,16 +395,23 @@ class StopsResponse extends Equatable {
   final bool truncated;
 
   factory StopsResponse.fromJson(Map<String, dynamic> json) => StopsResponse(
-        query: _as<String>(json['query']) ?? '',
-        stops: (_as<List<dynamic>>(json['stops']) ?? const [])
-            .map((e) => StopSummary.fromJson(e as Map<String, dynamic>))
-            .toList(growable: false),
-        attribution: Attribution.fromJson(
-            _as<Map<String, dynamic>>(json['attribution']) ?? const {}),
-        totalMatches: _int(json['total_matches']),
-        truncated: _as<bool>(json['truncated']) ?? false,
-      );
+    query: _as<String>(json['query']) ?? '',
+    stops: (_as<List<dynamic>>(json['stops']) ?? const [])
+        .map((e) => StopSummary.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false),
+    attribution: Attribution.fromJson(
+      _as<Map<String, dynamic>>(json['attribution']) ?? const {},
+    ),
+    totalMatches: _int(json['total_matches']),
+    truncated: _as<bool>(json['truncated']) ?? false,
+  );
 
   @override
-  List<Object?> get props => [query, stops, attribution, totalMatches, truncated];
+  List<Object?> get props => [
+    query,
+    stops,
+    attribution,
+    totalMatches,
+    truncated,
+  ];
 }

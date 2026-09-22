@@ -86,8 +86,10 @@ class _AboutPageState extends State<AboutPage> {
               AttributionNote(_attribution!, compact: false),
             ] else if (_failure != null) ...[
               SizedBox(height: Insets.sm),
-              Text(l.errorServerDown,
-                  style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                l.errorServerDown,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ] else ...[
               SizedBox(height: Insets.md),
               SizedBox(

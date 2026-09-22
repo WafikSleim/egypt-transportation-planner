@@ -25,7 +25,11 @@ import 'fixtures.dart';
 /// that overflows, a `const` widget reading a screenutil-scaled token before
 /// screenutil is initialised.
 void main() {
-  Widget host(Widget child, {Locale locale = const Locale('ar'), Brightness brightness = Brightness.light}) {
+  Widget host(
+    Widget child, {
+    Locale locale = const Locale('ar'),
+    Brightness brightness = Brightness.light,
+  }) {
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       minTextAdapt: true,
@@ -33,7 +37,9 @@ void main() {
         locale: locale,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
-        theme: brightness == Brightness.light ? AppTheme.light() : AppTheme.dark(),
+        theme: brightness == Brightness.light
+            ? AppTheme.light()
+            : AppTheme.dark(),
         home: child,
       ),
     );
@@ -51,12 +57,15 @@ void main() {
 
   group('search screen', () {
     for (final brightness in Brightness.values) {
-      testWidgets('renders in ${brightness.name} without overflowing',
-          (tester) async {
-        await tester.pumpWidget(host(
-          withRepo(const SearchPage(), FakeRepository()),
-          brightness: brightness,
-        ));
+      testWidgets('renders in ${brightness.name} without overflowing', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          host(
+            withRepo(const SearchPage(), FakeRepository()),
+            brightness: brightness,
+          ),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('رايح فين النهاردة؟'), findsOneWidget);
@@ -65,17 +74,21 @@ void main() {
     }
 
     testWidgets('the English port renders too', (tester) async {
-      await tester.pumpWidget(host(
-        withRepo(const SearchPage(), FakeRepository()),
-        locale: const Locale('en'),
-      ));
+      await tester.pumpWidget(
+        host(
+          withRepo(const SearchPage(), FakeRepository()),
+          locale: const Locale('en'),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Where are you going today?'), findsOneWidget);
     });
 
     testWidgets('cannot search with nothing chosen', (tester) async {
-      await tester.pumpWidget(host(withRepo(const SearchPage(), FakeRepository())));
+      await tester.pumpWidget(
+        host(withRepo(const SearchPage(), FakeRepository())),
+      );
       await tester.pumpAndSettle();
 
       final button = tester.widget<FilledButton>(find.byType(FilledButton));
@@ -89,10 +102,14 @@ void main() {
     testWidgets('a microbus trip shows no route-number badge', (tester) async {
       final plan = presenter.plan(PlanResponse.fromJson(planMicrobus));
 
-      await tester.pumpWidget(host(ItineraryPage(
-        itinerary: plan.itineraries.first,
-        attribution: plan.attribution,
-      )));
+      await tester.pumpWidget(
+        host(
+          ItineraryPage(
+            itinerary: plan.itineraries.first,
+            attribution: plan.attribution,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // The mode chip is present, and the route is named by its endpoints.
@@ -104,10 +121,14 @@ void main() {
     testWidgets('a metro trip shows its line badges', (tester) async {
       final plan = presenter.plan(PlanResponse.fromJson(planMetro));
 
-      await tester.pumpWidget(host(ItineraryPage(
-        itinerary: plan.itineraries.first,
-        attribution: plan.attribution,
-      )));
+      await tester.pumpWidget(
+        host(
+          ItineraryPage(
+            itinerary: plan.itineraries.first,
+            attribution: plan.attribution,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Exactly one M1: the circular line badge, with no duplicate number
@@ -126,10 +147,14 @@ void main() {
     testWidgets('the attribution is rendered verbatim', (tester) async {
       final plan = presenter.plan(PlanResponse.fromJson(planMetro));
 
-      await tester.pumpWidget(host(ItineraryPage(
-        itinerary: plan.itineraries.first,
-        attribution: plan.attribution,
-      )));
+      await tester.pumpWidget(
+        host(
+          ItineraryPage(
+            itinerary: plan.itineraries.first,
+            attribution: plan.attribution,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // It lives at the foot of a long list, so it has to be scrolled to
@@ -149,7 +174,10 @@ void main() {
         host(
           withRepo(
             ResultsPage(
-              from: const TripEndpoint(label: 'A', point: GeoPoint(25.68, 32.63)),
+              from: const TripEndpoint(
+                label: 'A',
+                point: GeoPoint(25.68, 32.63),
+              ),
               to: const TripEndpoint(label: 'B', point: GeoPoint(25.70, 32.65)),
               departAt: DateTime(2026, 9, 21, 8),
             ),
@@ -158,14 +186,16 @@ void main() {
           locale: locale,
         );
 
-    testWidgets('speaks Arabic rather than the server diagnostic',
-        (tester) async {
+    testWidgets('speaks Arabic rather than the server diagnostic', (
+      tester,
+    ) async {
       // The emptiest screen in the app, and the most common one outside the
       // covered area. Showing the server's diagnostic here would make it the
       // one place an Arabic-first app switches to English - with a bounding
       // box in decimal degrees, inside an RTL column.
-      final repo =
-          FakeRepository(planResponse: PlanResponse.fromJson(planNoCoverage));
+      final repo = FakeRepository(
+        planResponse: PlanResponse.fromJson(planNoCoverage),
+      );
 
       await tester.pumpWidget(results(repo));
       await tester.pumpAndSettle();
@@ -174,10 +204,12 @@ void main() {
       expect(find.textContaining('Coverage is Greater Cairo'), findsNothing);
     });
 
-    testWidgets('a late-night search blames the hour, in Arabic',
-        (tester) async {
-      final repo =
-          FakeRepository(planResponse: PlanResponse.fromJson(planWalkOnly));
+    testWidgets('a late-night search blames the hour, in Arabic', (
+      tester,
+    ) async {
+      final repo = FakeRepository(
+        planResponse: PlanResponse.fromJson(planWalkOnly),
+      );
 
       await tester.pumpWidget(results(repo));
       await tester.pumpAndSettle();
@@ -187,28 +219,41 @@ void main() {
   });
 
   group('stop picker', () {
-    testWidgets('states that search matches from the start of a name',
-        (tester) async {
-      final repo = FakeRepository(stopsResponse: StopsResponse.fromJson(stopsMoneeb));
+    testWidgets('states that search matches from the start of a name', (
+      tester,
+    ) async {
+      final repo = FakeRepository(
+        stopsResponse: StopsResponse.fromJson(stopsMoneeb),
+      );
 
-      await tester.pumpWidget(host(StopPickerPage(
-        title: 'من فين',
-        repository: repo,
-        presenter: const TripPresenter(languageCode: 'ar'),
-      )));
+      await tester.pumpWidget(
+        host(
+          StopPickerPage(
+            title: 'من فين',
+            repository: repo,
+            presenter: const TripPresenter(languageCode: 'ar'),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.textContaining('البحث بيبدأ من أول الاسم'), findsOneWidget);
     });
 
     testWidgets('shows stops once a query is typed', (tester) async {
-      final repo = FakeRepository(stopsResponse: StopsResponse.fromJson(stopsMoneeb));
+      final repo = FakeRepository(
+        stopsResponse: StopsResponse.fromJson(stopsMoneeb),
+      );
 
-      await tester.pumpWidget(host(StopPickerPage(
-        title: 'من فين',
-        repository: repo,
-        presenter: const TripPresenter(languageCode: 'ar'),
-      )));
+      await tester.pumpWidget(
+        host(
+          StopPickerPage(
+            title: 'من فين',
+            repository: repo,
+            presenter: const TripPresenter(languageCode: 'ar'),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'المنيب');

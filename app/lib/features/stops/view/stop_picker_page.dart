@@ -36,7 +36,8 @@ class StopPickerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => StopSearchCubit(repository: repository, presenter: presenter),
+      create: (_) =>
+          StopSearchCubit(repository: repository, presenter: presenter),
       child: _StopPickerView(title: title),
     );
   }
@@ -58,7 +59,11 @@ class _StopPickerView extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(
-                  Insets.lg, Insets.sm, Insets.lg, Insets.md),
+                Insets.lg,
+                Insets.sm,
+                Insets.lg,
+                Insets.md,
+              ),
               child: TextField(
                 autofocus: true,
                 textInputAction: TextInputAction.search,
@@ -66,7 +71,8 @@ class _StopPickerView extends StatelessWidget {
                   hintText: l.stopSearchHint,
                   prefixIcon: const Icon(Icons.search_rounded),
                 ),
-                onChanged: (v) => context.read<StopSearchCubit>().queryChanged(v),
+                onChanged: (v) =>
+                    context.read<StopSearchCubit>().queryChanged(v),
               ),
             ),
             Padding(
@@ -104,17 +110,19 @@ class _Results extends StatelessWidget {
             return _Hint(text: l.startTyping);
 
           case StopSearchLoading():
-            return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+            return const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            );
 
           case StopSearchFailed(:final failure):
             return AppErrorView(failure: failure);
 
           case StopSearchLoaded(
-              :final results,
-              :final truncated,
-              :final totalMatches,
-              :final attribution
-            ):
+            :final results,
+            :final truncated,
+            :final totalMatches,
+            :final attribution,
+          ):
             if (results.isEmpty) return _Hint(text: l.stopSearchEmpty);
 
             final anyLatin = results.any((r) => isLatinName(r.stop.name));
@@ -122,8 +130,12 @@ class _Results extends StatelessWidget {
             return ListView.separated(
               padding: EdgeInsetsDirectional.only(bottom: Insets.xl),
               itemCount: results.length + 1,
-              separatorBuilder: (_, _) =>
-                  Divider(height: 1, color: p.line, indent: Insets.lg, endIndent: Insets.lg),
+              separatorBuilder: (_, _) => Divider(
+                height: 1,
+                color: p.line,
+                indent: Insets.lg,
+                endIndent: Insets.lg,
+              ),
               itemBuilder: (context, index) {
                 if (index == results.length) {
                   return Padding(
@@ -173,7 +185,9 @@ class _StopRow extends StatelessWidget {
       onTap: () => Navigator.of(context).pop(TripEndpoint.fromStop(stop)),
       child: Padding(
         padding: EdgeInsetsDirectional.symmetric(
-            horizontal: Insets.lg, vertical: Insets.md),
+          horizontal: Insets.lg,
+          vertical: Insets.md,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -188,8 +202,11 @@ class _StopRow extends StatelessWidget {
                 color: context.modeColors.microbus.withValues(alpha: 0.13),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.signpost_outlined,
-                  size: 17, color: context.modeColors.microbus),
+              child: Icon(
+                Icons.signpost_outlined,
+                size: 17,
+                color: context.modeColors.microbus,
+              ),
             ),
             SizedBox(width: Insets.md),
             Expanded(

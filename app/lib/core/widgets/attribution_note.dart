@@ -48,7 +48,11 @@ class AttributionNote extends StatelessWidget {
               textDirection: TextDirection.ltr,
               child: Text(
                 '${attribution.licence} · ${attribution.sourceUrl}',
-                style: TextStyle(fontFamily: Faces.mono, fontSize: 11.5, color: p.ink3),
+                style: TextStyle(
+                  fontFamily: Faces.mono,
+                  fontSize: 11.5,
+                  color: p.ink3,
+                ),
               ),
             ),
           ],

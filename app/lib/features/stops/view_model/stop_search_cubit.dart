@@ -13,9 +13,9 @@ class StopSearchCubit extends Cubit<StopSearchState> {
     required PlannerRepository repository,
     required TripPresenter presenter,
     this.debounce = const Duration(milliseconds: 280),
-  })  : _repository = repository,
-        _presenter = presenter,
-        super(const StopSearchIdle());
+  }) : _repository = repository,
+       _presenter = presenter,
+       super(const StopSearchIdle());
 
   /// The search is prefix-based and a two-letter prefix matches hundreds of
   /// stops, so typing is debounced rather than fired per keystroke. The
@@ -48,15 +48,19 @@ class StopSearchCubit extends Cubit<StopSearchState> {
       final response = await _repository.searchStops(query);
       // A slower earlier request must not overwrite a newer answer.
       if (generation != _generation || isClosed) return;
-      emit(StopSearchLoaded(
-        query: query,
-        results: response.stops
-            .map((s) => StopResultVm(stop: s, badges: _presenter.stopBadges(s)))
-            .toList(growable: false),
-        totalMatches: response.totalMatches,
-        truncated: response.truncated,
-        attribution: response.attribution,
-      ));
+      emit(
+        StopSearchLoaded(
+          query: query,
+          results: response.stops
+              .map(
+                (s) => StopResultVm(stop: s, badges: _presenter.stopBadges(s)),
+              )
+              .toList(growable: false),
+          totalMatches: response.totalMatches,
+          truncated: response.truncated,
+          attribution: response.attribution,
+        ),
+      );
     } on ApiFailure catch (e) {
       if (generation != _generation || isClosed) return;
       emit(StopSearchFailed(e));

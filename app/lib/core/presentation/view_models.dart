@@ -77,10 +77,21 @@ class LegVm extends Equatable {
 
   @override
   List<Object?> get props => [
-        badge, isTransit, isWalk, fromName, toName, startTime, endTime,
-        durationMinutes, distanceM, intermediateStops, routeLabel,
-        showNumberBadge, numberBadgeText, operatorName,
-      ];
+    badge,
+    isTransit,
+    isWalk,
+    fromName,
+    toName,
+    startTime,
+    endTime,
+    durationMinutes,
+    distanceM,
+    intermediateStops,
+    routeLabel,
+    showNumberBadge,
+    numberBadgeText,
+    operatorName,
+  ];
 }
 
 class ItineraryVm extends Equatable {
@@ -102,12 +113,20 @@ class ItineraryVm extends Equatable {
 
   /// The badges worth showing on a summary card: transit only. A row of walk
   /// chips between every leg says nothing and crowds out what does.
-  List<ModeBadgeVm> get transitBadges =>
-      legs.where((l) => l.isTransit).map((l) => l.badge).toList(growable: false);
+  List<ModeBadgeVm> get transitBadges => legs
+      .where((l) => l.isTransit)
+      .map((l) => l.badge)
+      .toList(growable: false);
 
   @override
-  List<Object?> get props =>
-      [startTime, endTime, durationMinutes, walkDistanceM, transfers, legs];
+  List<Object?> get props => [
+    startTime,
+    endTime,
+    durationMinutes,
+    walkDistanceM,
+    transfers,
+    legs,
+  ];
 }
 
 class PlanVm extends Equatable {
