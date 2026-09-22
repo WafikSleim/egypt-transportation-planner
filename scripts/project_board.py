@@ -44,7 +44,7 @@ AREA = {
 
 # Shipped and machine-verified: analyze, tests and a build settle these, so
 # there is nothing left for a person to judge.
-DONE = {1, 4, 5, 10, 29}
+DONE = {1, 4, 5, 10, 29, 35}
 
 # Shipped, but "done" here is a claim I cannot check myself. Two things need
 # the maintainer: whether the Arabic reads as Egyptian speech rather than

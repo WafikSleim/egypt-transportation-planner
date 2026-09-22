@@ -25,7 +25,7 @@ from zoneinfo import ZoneInfo
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import config, modes, otp
+from . import config, logs, modes, otp
 from .models import (
     Attribution,
     FeedInfo,
@@ -40,6 +40,11 @@ from .models import (
     StopSummary,
     StopsResponse,
 )
+
+# At import, not behind a flag: this is what keeps the access log from
+# becoming a record of where people travelled, and `api.main` is imported
+# however the app is started. See logs.py.
+logs.install_access_log_redaction()
 
 TZ = ZoneInfo(config.TIMEZONE)
 

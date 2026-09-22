@@ -72,7 +72,7 @@ Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
 and `Radii` are scaled getters rather than constants — which is why widgets
 using them are not `const`.
 
-Tests live in `tests/` (Python, 75) and `app/test/` (Dart, 63). The Dart
+Tests live in `tests/` (Python, 79) and `app/test/` (Dart, 103). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
@@ -86,6 +86,16 @@ stand up Photon — it needs Elasticsearch on top of OTP's 3.4 GB. Build a
 `places` table from the OSM extract already on disk (`OTP/*.osm.pbf`), clipped
 to the Cairo bbox, with `pg_trgm` for fuzzy matching and OSM `name:ar` for
 Arabic. Postgres was Phase 4; this pulls it into Phase 3.
+
+**The access log does not record where people travelled.** `api/logs.py`
+strips the query string from uvicorn's access lines, because for `/plan` that
+query string is a person's origin, destination and a timestamp — and the app
+promises otherwise in the dialog it shows before asking for location. Method,
+path and status survive, so error rates still work. Do not "fix" this by
+turning plain access logging back on, and do not raise `httpx`/`httpcore` to
+DEBUG in production: at DEBUG, `httpcore` logs the GraphQL request body.
+Caddy has its own access log with the same query string in it and is not
+covered — see `api/README.md`.
 
 Keep that table **separate from the TfC data**. OSM is ODbL, TfC is CC BY-NC,
 and the two cannot be merged into one derived database.

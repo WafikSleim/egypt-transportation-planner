@@ -28,6 +28,58 @@ All optional, all environment variables.
 | `TIMEZONE` | `Africa/Cairo` | Departure times are rendered in this zone |
 | `CORS_ORIGINS` | `*` | Lock down before this is public |
 
+### Logging
+
+**The access log keeps the path and throws the query string away.** A `/plan`
+query string is a person's origin, their destination and a timestamp, and the
+app promises in the dialog before the OS location prompt that there is «مافيش
+سجل للأماكن اللي رحتها» — no record of the places you have been. A default
+uvicorn access log makes that sentence false.
+
+Before:
+
+```
+INFO: 127.0.0.1:52104 - "GET /plan?from=30.0444,31.2357&to=30.1220,31.2450&date=2026-09-22&time=08:00&lang=ar HTTP/1.1" 200
+```
+
+After:
+
+```
+INFO: 127.0.0.1:52104 - "GET /plan?<redacted> HTTP/1.1" 200
+```
+
+What is still logged: client address, method, path, HTTP version, status. That
+is error rates per endpoint and evidence a request arrived, which is what one
+maintainer on one box actually uses. What is deliberately gone: every query
+parameter, on every endpoint — `/stops?q=` is a place someone typed, not just
+`/plan`. The `?<redacted>` marker is only present when there *was* a query
+string, so a plain path in the log means a plain request.
+
+This is a filter on the `uvicorn.access` logger, installed at import of
+`api.main` — see [logs.py](logs.py) for why it is not a `--log-config` file.
+Because it is attached at import, it applies however the app is started, and
+there is no launch command that produces the unredacted log. **Do not "fix"
+this by turning access logging back on or passing a log config that bypasses
+it**; `tests/test_access_log.py` will fail, which is the point.
+
+Three other doors the same data could walk out of:
+
+- **Whatever terminates TLS.** Caddy is planned for that, and its `log`
+  directive records the full URI, query string included — fixing uvicorn does
+  not fix Caddy. There is no deploy config in this repo yet (no Caddyfile, no
+  Dockerfile, no compose file), so there is nothing here to correct; whoever
+  adds one has to handle it there — Caddy's log encoder supports field
+  filters, which is where this would go, but the exact directive has not been
+  checked against a running Caddy and should not be copied from here.
+- **`httpx` at DEBUG.** At INFO it logs `HTTP Request: POST <OTP_URL>`, which
+  is harmless — the coordinates travel in the GraphQL POST body, not the URL.
+  At DEBUG, `httpcore` logs that body. Do not raise either logger in
+  production.
+- **`HTTPException` detail.** `_coords` puts the rejected coordinates into its
+  422 message so the caller can see what was wrong with them. That is a
+  response, not a log line, and it should stay that way — never log
+  `exc.detail`.
+
 ## Tests
 
 ```bash
@@ -48,14 +100,14 @@ likely to break quietly.
 Covered: mode mapping by operator, paratransit display names, walk-only
 detection, empty-result explanations, fare suppression (including that fare
 fields are never *requested*), coordinate validation, language forwarding,
-`/stops` truncation and the two-hop route lookup, and degradation when OTP is
-down. `tests/test_fix_gtfs_calendar.py` covers the calendar script separately,
+`/stops` truncation and the two-hop route lookup, degradation when OTP is
+down, and that a `/plan` request's coordinates never reach the access log. `tests/test_fix_gtfs_calendar.py` covers the calendar script separately,
 including the two bugs that already shipped: the non-idempotent re-run, and
 `--daily` quietly quadrupling metro service.
 
 The suite has been mutation-checked — disabling mode mapping, walk-only
-detection, the microbus display name, `Accept-Language`, or the calendar
-overlap guard each makes it fail.
+detection, the microbus display name, `Accept-Language`, the access-log
+redaction, or the calendar overlap guard each makes it fail.
 
 ## Endpoints
 
