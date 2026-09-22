@@ -355,7 +355,9 @@ void main() {
 
         await tester.pumpWidget(
           host(
-            Center(child: _Catalogue(pills: pills, metros: metros)),
+            Center(
+              child: _Catalogue(pills: pills, metros: metros),
+            ),
             brightness: brightness,
           ),
         );
