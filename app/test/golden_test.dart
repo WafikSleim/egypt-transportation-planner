@@ -113,6 +113,51 @@ import 'fixtures.dart';
 /// transfers, because two of its three microbus legs are consecutive with no
 /// walk between them. That is the real captured response, not a fixture
 /// edited to look tidy.
+/// Where this platform's golden set lives, and whether it exists.
+///
+/// **Goldens are per-platform here, and that is not paranoia.** Run this
+/// suite on Linux against a set rasterised on Windows and `badges_*` fails
+/// with *"image sizes do not match"* — not a tolerance problem, a layout
+/// difference: the same Arabic string measures differently, so the catalogue
+/// sizes itself differently. `cards_*` and `legs_*` come out 2.75%–5.84%
+/// apart. Measured on `ubuntu-latest` against the Windows set, 2026-09-23.
+///
+/// A single shared set would therefore be green in exactly one place. Since
+/// CLAUDE.md asks for `flutter test` before and after every change, and CI
+/// gates every push, "one place" is not good enough for either.
+final String _platform = Platform.operatingSystem;
+
+String _golden(String name) => 'goldens/$_platform/$name.png';
+
+/// `null` to run, or the reason these are being skipped.
+///
+/// A platform with no committed golden set **skips with a reason** rather
+/// than failing. A red suite on a platform nobody has generated for asserts
+/// nothing, and a permanently red check is one people learn to ignore — at
+/// which point it stops catching the thing it exists for. A skip says what is
+/// missing and how to supply it, and shows up in the CI log either way.
+///
+/// `--update-goldens` writes whatever set is missing, so generating one is
+/// the documented one-liner below rather than a special mode.
+final String? _skipReason = Directory('test/goldens/$_platform').existsSync()
+    ? null
+    : 'No golden set for $_platform. Generate one with '
+          '`flutter test --update-goldens test/golden_test.dart` on this '
+          'platform and commit `app/test/goldens/$_platform/`. A set from '
+          'another platform cannot stand in: see the note above `_golden`.';
+
+/// Call first in every golden body: skips with the reason, or returns false.
+///
+/// `markTestSkipped` rather than `testWidgets(skip:)`, which takes a bool and
+/// so cannot carry the reason -- and the reason is the whole point. Without
+/// it a skipped golden is indistinguishable from a golden nobody wrote.
+bool _skippedForPlatform() {
+  final reason = _skipReason;
+  if (reason == null) return false;
+  markTestSkipped(reason);
+  return true;
+}
+
 void main() {
   const presenter = TripPresenter(languageCode: 'ar');
 
@@ -340,6 +385,7 @@ void main() {
   group('badge catalogue', () {
     for (final brightness in Brightness.values) {
       testWidgets('every mode, in ${brightness.name}', (tester) async {
+        if (_skippedForPlatform()) return;
         useDesignFrame(tester);
 
         final pills = pillBadges();
@@ -365,7 +411,7 @@ void main() {
 
         await expectLater(
           find.byType(_Catalogue),
-          matchesGoldenFile('goldens/badges_${brightness.name}.png'),
+          matchesGoldenFile(_golden('badges_${brightness.name}')),
         );
       });
     }
@@ -376,6 +422,7 @@ void main() {
       testWidgets('metro transfer and microbus chain, in ${brightness.name}', (
         tester,
       ) async {
+        if (_skippedForPlatform()) return;
         useDesignFrame(tester);
 
         final metro = presenter.plan(PlanResponse.fromJson(planMetro));
@@ -405,7 +452,7 @@ void main() {
 
         await expectLater(
           find.byType(_Cards),
-          matchesGoldenFile('goldens/cards_${brightness.name}.png'),
+          matchesGoldenFile(_golden('cards_${brightness.name}')),
         );
       });
     }
@@ -416,6 +463,7 @@ void main() {
       testWidgets('the number-badge rule, in ${brightness.name}', (
         tester,
       ) async {
+        if (_skippedForPlatform()) return;
         useDesignFrame(tester);
 
         final itinerary = mixedItinerary();
@@ -437,7 +485,7 @@ void main() {
 
         await expectLater(
           find.byType(ItineraryPage),
-          matchesGoldenFile('goldens/legs_${brightness.name}.png'),
+          matchesGoldenFile(_golden('legs_${brightness.name}')),
         );
       });
     }
