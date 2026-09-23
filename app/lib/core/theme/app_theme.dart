@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -64,7 +66,10 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: p.accent,
           foregroundColor: p.accentInk,
-          minimumSize: Size.fromHeight(52.h),
+          // 52 in the design frame, but never below the 48dp floor. `.h`
+          // scales against an 844-tall design: on a 640-tall phone it returns
+          // 39, which is under the minimum and looks entirely normal.
+          minimumSize: Size.fromHeight(math.max(52.h, A11y.minTapTarget)),
           textStyle: text.labelLarge,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(Radii.field),
@@ -80,7 +85,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: p.surface,
-        hintStyle: text.bodyMedium?.copyWith(color: p.ink3),
+        // ink2, not ink3: a placeholder is text someone reads, and ink3 on
+        // any of the three grounds measures under 3.2:1. See
+        // `test/accessibility_test.dart`.
+        hintStyle: text.bodyMedium?.copyWith(color: p.ink2),
         contentPadding: EdgeInsetsDirectional.symmetric(
           horizontal: Insets.lg,
           vertical: Insets.md,
@@ -154,11 +162,21 @@ class AppTheme {
         height: 1.6,
         color: p.ink2,
       ),
+      // The quietest text in the product — attribution, hints, "kept on this
+      // phone", the line under a card. It carried `ink3`, which measures
+      // 3.00:1 on `bg` in light and 4.21:1 in dark: under WCAG AA's 4.5 for
+      // normal text in both themes. `ink2` clears it at 5.73 and 7.29.
+      //
+      // This is a change to the **text** theme, not to the palette. `ink3`
+      // stays exactly as designed for the things it is actually good at —
+      // rules, the leg spine, decorative dots, icons — none of which anybody
+      // has to read. It does flatten the small-text hierarchy slightly, which
+      // is the part a person has to look at.
       bodySmall: TextStyle(
         fontFamily: Faces.ui,
         fontSize: 13.sp,
         height: 1.55,
-        color: p.ink3,
+        color: p.ink2,
       ),
       labelLarge: TextStyle(
         fontFamily: Faces.ui,

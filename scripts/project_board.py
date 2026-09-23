@@ -50,10 +50,10 @@ DONE = {1, 4, 5, 10, 29, 35}
 # need the maintainer: whether the Arabic reads as Egyptian speech rather
 # than translated English; how any of it behaves on a real phone - nothing in
 # this project has ever run on hardware, only in widget tests and an APK
-# build; and, for #28, whether the golden PNGs reproduce anywhere but the one
-# Windows machine that rasterised them, since the font stack and the engine
-# version decide those pixels. Each carries a comment saying what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 26, 28, 30, 32, 33, 34}
+# build; and, for #28, that CI checks no goldens at all - they are
+# per-platform and only a Windows set is committed, so Linux skips them.
+# Each carries a comment saying what to check.
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 26, 27, 28, 30, 32, 33, 34}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}
