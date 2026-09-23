@@ -43,7 +43,6 @@ class _SearchView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final p = context.colors;
 
     return Scaffold(
       appBar: AppBar(
@@ -95,11 +94,12 @@ class _SearchView extends StatelessWidget {
               SizedBox(height: Insets.xl),
               HonestyPanel(text: l.honestyNoRealtime),
               SizedBox(height: Insets.lg),
+              // No colour override: `bodySmall` already carries the quietest
+              // readable ink. It used to be pushed down to ink3, which is
+              // 3.00:1 on this ground.
               Text(
                 l.aboutCoverage,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: p.ink3),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
@@ -211,57 +211,77 @@ class _EndpointField extends StatelessWidget {
     final p = context.colors;
     final filled = value != null;
 
-    return InkWell(
-      onTap: () async {
-        final history = context.read<TripHistory>();
-        final picked = await Navigator.of(context).push<TripEndpoint>(
-          MaterialPageRoute(
-            builder: (_) => StopPickerPage(
-              title: label,
-              presenter: TripPresenter(
-                languageCode: Localizations.localeOf(context).languageCode,
+    // Merged and marked a button. Unmerged, a screen reader stopped twice on
+    // every field — once on the word "from", once on the stop name — with
+    // nothing saying either one could be tapped.
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: InkWell(
+          onTap: () async {
+            final history = context.read<TripHistory>();
+            final picked = await Navigator.of(context).push<TripEndpoint>(
+              MaterialPageRoute(
+                builder: (_) => StopPickerPage(
+                  title: label,
+                  presenter: TripPresenter(
+                    languageCode: Localizations.localeOf(context).languageCode,
+                  ),
+                  repository: context.read<PlannerRepository>(),
+                  history: context.read<TripHistory>(),
+                ),
               ),
-              repository: context.read<PlannerRepository>(),
-              history: context.read<TripHistory>(),
-            ),
-          ),
-        );
-        if (picked == null) return;
-        onPick(picked);
-        // Remembered here rather than inside the picker: what makes a place
-        // recent is that it was chosen, not that it was looked at.
-        await history.remember(picked);
-      },
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          Insets.lg,
-          Insets.md,
-          56,
-          Insets.md,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            );
+            if (picked == null) return;
+            onPick(picked);
+            // Remembered here rather than inside the picker: what makes a place
+            // recent is that it was chosen, not that it was looked at.
+            await history.remember(picked);
+          },
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: A11y.minTapTarget),
+            child: Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                Insets.lg,
+                Insets.md,
+                56,
+                Insets.md,
+              ),
+              child: Row(
                 children: [
-                  Text(label, style: Theme.of(context).textTheme.labelMedium),
-                  const SizedBox(height: 2),
-                  Text(
-                    // Isolated: a metro stop's Latin name inside an Arabic
-                    // form would otherwise reorder around the label.
-                    filled ? bidiIsolate(value!.label) : hint,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: filled ? p.ink : p.ink3,
-                      fontWeight: filled ? FontWeight.w600 : FontWeight.w400,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          label,
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          // Isolated: a metro stop's Latin name inside an Arabic
+                          // form would otherwise reorder around the label.
+                          filled ? bidiIsolate(value!.label) : hint,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            // ink2 rather than ink3 for the placeholder: it is text
+                            // a passenger reads, and ink3 measures 3.13:1 on this
+                            // ground. Weight still separates chosen from empty.
+                            color: filled ? p.ink : p.ink2,
+                            fontWeight: filled
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -279,17 +299,29 @@ class _DepartureRow extends StatelessWidget {
     return BlocBuilder<SearchCubit, SearchState>(
       builder: (context, state) {
         final when = state.departAt;
-        return Row(
+        // A Wrap rather than a Row with a Spacer: at 200% text "leaving now"
+        // and "change the time" cannot share a line on a small phone, and a
+        // Row drops the button off the edge instead of moving it down.
+        return Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: WrapAlignment.spaceBetween,
+          spacing: Insets.sm,
           children: [
-            Icon(Icons.schedule_rounded, size: 18, color: p.ink2),
-            SizedBox(width: Insets.sm),
-            Text(
-              when == null ? l.departNow : l.departAt(clockTime(when)),
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: p.ink),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.schedule_rounded, size: 18, color: p.ink2),
+                SizedBox(width: Insets.sm),
+                Flexible(
+                  child: Text(
+                    when == null ? l.departNow : l.departAt(clockTime(when)),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: p.ink),
+                  ),
+                ),
+              ],
             ),
-            const Spacer(),
             TextButton(
               onPressed: () => _pick(context, state),
               child: Text(l.changeTime),
@@ -557,46 +589,72 @@ class _SavedTripsState extends State<_SavedTrips> {
         Text(l.savedTrips, style: Theme.of(context).textTheme.titleMedium),
         SizedBox(height: Insets.sm),
         for (final trip in trips)
-          InkWell(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ResultsPage(
-                  from: trip.from,
-                  to: trip.to,
-                  // Now, not when it was saved. A saved trip is a pair of
-                  // places; the times are today's.
-                  departAt: DateTime.now(),
-                ),
-              ),
-            ),
-            child: Padding(
-              padding: EdgeInsetsDirectional.symmetric(vertical: Insets.md),
-              child: Row(
-                children: [
-                  Icon(Icons.bookmark_rounded, size: 17.r, color: p.ink3),
-                  SizedBox(width: Insets.md),
-                  Expanded(
-                    child: Text(
-                      l.tripArrow(
-                        bidiIsolate(trip.from.label),
-                        bidiIsolate(trip.to.label),
+          // The remove button sits outside the row's own tap target rather
+          // than inside it. Nested, the two were one semantics node — a
+          // screen reader offered "open this trip" and the only way to reach
+          // "remove" was to already know it was there.
+          Row(
+            children: [
+              Expanded(
+                child: MergeSemantics(
+                  child: Semantics(
+                    button: true,
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ResultsPage(
+                            from: trip.from,
+                            to: trip.to,
+                            // Now, not when it was saved. A saved trip is a
+                            // pair of places; the times are today's.
+                            departAt: DateTime.now(),
+                          ),
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minHeight: A11y.minTapTarget,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsetsDirectional.symmetric(
+                            vertical: Insets.md,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.bookmark_rounded,
+                                size: 17.r,
+                                color: p.ink3,
+                              ),
+                              SizedBox(width: Insets.md),
+                              Expanded(
+                                child: Text(
+                                  l.tripArrow(
+                                    bidiIsolate(trip.from.label),
+                                    bidiIsolate(trip.to.label),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  IconButton(
-                    tooltip: l.unsaveTrip,
-                    icon: Icon(Icons.close_rounded, size: 17.r, color: p.ink3),
-                    onPressed: () async {
-                      await context.read<TripHistory>().unsave(trip.id);
-                      if (context.mounted) setState(() {});
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
+              IconButton(
+                tooltip: l.unsaveTrip,
+                icon: Icon(Icons.close_rounded, size: 17.r, color: p.ink3),
+                onPressed: () async {
+                  await context.read<TripHistory>().unsave(trip.id);
+                  if (context.mounted) setState(() {});
+                },
+              ),
+            ],
           ),
         SizedBox(height: Insets.xs),
         Text(l.savedOnDevice, style: Theme.of(context).textTheme.bodySmall),
