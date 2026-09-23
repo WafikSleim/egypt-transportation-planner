@@ -194,71 +194,79 @@ class _StopRow extends StatelessWidget {
     final stop = result.stop;
     final latin = isLatinName(stop.name);
 
-    return InkWell(
-      onTap: () => Navigator.of(context).pop(TripEndpoint.fromStop(stop)),
-      child: Padding(
-        padding: EdgeInsetsDirectional.symmetric(
-          horizontal: Insets.lg,
-          vertical: Insets.md,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // A stop mark, distinct from the place mark the picker will use
-            // once places exist: a stop is where a vehicle calls, a place is
-            // where you're going, and they behave differently in search.
-            Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.modeColors.microbus.withValues(alpha: 0.13),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.signpost_outlined,
-                size: 17,
-                color: context.modeColors.microbus,
-              ),
+    // One node, announced as a button: the stop's name, how many routes call
+    // there, and its mode chips are one answer to one question, not four
+    // stops for a screen reader to walk through.
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: InkWell(
+          onTap: () => Navigator.of(context).pop(TripEndpoint.fromStop(stop)),
+          child: Padding(
+            padding: EdgeInsetsDirectional.symmetric(
+              horizontal: Insets.lg,
+              vertical: Insets.md,
             ),
-            SizedBox(width: Insets.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    bidiIsolate(stop.name),
-                    textDirection: latin ? TextDirection.ltr : null,
-                    style: Theme.of(context).textTheme.titleMedium,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // A stop mark, distinct from the place mark the picker will use
+                // once places exist: a stop is where a vehicle calls, a place is
+                // where you're going, and they behave differently in search.
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: context.modeColors.microbus.withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  SizedBox(height: Insets.xs),
-                  Text(
-                    l.routesServed(stop.routeCount),
-                    style: Theme.of(context).textTheme.bodySmall,
+                  child: Icon(
+                    Icons.signpost_outlined,
+                    size: 17,
+                    color: context.modeColors.microbus,
                   ),
-                  if (result.badges.isNotEmpty) ...[
-                    SizedBox(height: Insets.sm),
-                    Wrap(
-                      spacing: Insets.sm,
-                      runSpacing: Insets.xs,
-                      children: [
-                        for (final badge in result.badges)
-                          ModeBadge(badge, compact: true),
+                ),
+                SizedBox(width: Insets.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        bidiIsolate(stop.name),
+                        textDirection: latin ? TextDirection.ltr : null,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      SizedBox(height: Insets.xs),
+                      Text(
+                        l.routesServed(stop.routeCount),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      if (result.badges.isNotEmpty) ...[
+                        SizedBox(height: Insets.sm),
+                        Wrap(
+                          spacing: Insets.sm,
+                          runSpacing: Insets.xs,
+                          children: [
+                            for (final badge in result.badges)
+                              ModeBadge(badge, compact: true),
+                          ],
+                        ),
                       ],
-                    ),
-                  ],
-                ],
-              ),
+                    ],
+                  ),
+                ),
+                // Points the way the page reads, which is not the same in both
+                // locales - Material does not mirror this glyph for us.
+                Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.chevron_left_rounded
+                      : Icons.chevron_right_rounded,
+                  color: p.ink3,
+                ),
+              ],
             ),
-            // Points the way the page reads, which is not the same in both
-            // locales - Material does not mirror this glyph for us.
-            Icon(
-              Directionality.of(context) == TextDirection.rtl
-                  ? Icons.chevron_left_rounded
-                  : Icons.chevron_right_rounded,
-              color: p.ink3,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -339,26 +347,36 @@ class _RecentsState extends State<_Recents> {
           ),
         ),
         for (final endpoint in _recents)
-          InkWell(
-            onTap: () => Navigator.of(context).pop(endpoint),
-            child: Padding(
-              padding: EdgeInsetsDirectional.symmetric(
-                horizontal: Insets.lg,
-                vertical: Insets.md,
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.history_rounded, size: 18.r, color: p.ink3),
-                  SizedBox(width: Insets.md),
-                  Expanded(
-                    child: Text(
-                      bidiIsolate(endpoint.label),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium,
+          MergeSemantics(
+            child: Semantics(
+              button: true,
+              child: InkWell(
+                onTap: () => Navigator.of(context).pop(endpoint),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: A11y.minTapTarget,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.symmetric(
+                      horizontal: Insets.lg,
+                      vertical: Insets.md,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.history_rounded, size: 18.r, color: p.ink3),
+                        SizedBox(width: Insets.md),
+                        Expanded(
+                          child: Text(
+                            bidiIsolate(endpoint.label),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),

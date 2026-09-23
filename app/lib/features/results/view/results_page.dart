@@ -63,7 +63,12 @@ class _ResultsView extends StatelessWidget {
       appBar: AppBar(
         title: Text(l.resultsTitle),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(28),
+          // Scaled with the text it holds. A fixed 28 clips the trip line the
+          // moment someone raises their font size, and the app bar is the one
+          // place on this screen that says which trip these answers are for.
+          preferredSize: Size.fromHeight(
+            MediaQuery.textScalerOf(context).scale(28),
+          ),
           child: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(
               Insets.lg,
@@ -71,8 +76,12 @@ class _ResultsView extends StatelessWidget {
               Insets.lg,
               Insets.md,
             ),
+            // `tripArrow`, not a hardcoded glyph. The arrow between two
+            // places is not the same arrow in both languages — ← in Arabic,
+            // → in English — and this one was ← in both, so the English
+            // header named the trip backwards.
             child: Text(
-              '${bidiIsolate(from.label)} ← ${bidiIsolate(to.label)}',
+              l.tripArrow(bidiIsolate(from.label), bidiIsolate(to.label)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodyMedium,
