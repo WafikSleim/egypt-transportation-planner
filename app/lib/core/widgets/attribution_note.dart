@@ -34,11 +34,14 @@ class AttributionNote extends StatelessWidget {
             child: Text(
               bidiIsolate(attribution.text),
               textAlign: TextAlign.start,
+              // ink2. This is the one paragraph the licence requires be
+              // shown, so it is the last text in the app that should be hard
+              // to read — and ink3 measures 3.00:1 against the page.
               style: TextStyle(
                 fontFamily: Faces.ui,
                 fontSize: compact ? 11.5 : 13,
                 height: 1.55,
-                color: p.ink3,
+                color: p.ink2,
               ),
             ),
           ),
@@ -51,7 +54,7 @@ class AttributionNote extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: Faces.mono,
                   fontSize: 11.5,
-                  color: p.ink3,
+                  color: p.ink2,
                 ),
               ),
             ),

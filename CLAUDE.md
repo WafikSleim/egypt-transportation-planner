@@ -77,7 +77,7 @@ Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
 and `Radii` are scaled getters rather than constants — which is why widgets
 using them are not `const`.
 
-Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 103). The Dart
+Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 201). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
@@ -181,13 +181,64 @@ type, Egyptian-Arabic copy and the non-negotiable rules live in
 [docs/design-system.md](docs/design-system.md) — build from that, not by
 reading colours out of the prototypes in `design/`.
 
-Two things in there are easy to undo by accident:
+Three things in there are easy to undo by accident:
 
 - **Mode colours are real licence-plate colours** (microbus orange, tomnaya
   blue, cooperative grey), because that is how Cairenes identify a vehicle
   before reading it. Mode comes from `agency_id`, never `route_type`.
 - **Metro uses circular line badges, not pills.** That form difference is the
   only thing keeping M1's blue from reading as a tomnaya.
+- **The metro badge's label is not always white**, as of the accessibility
+  pass below. The disc keeps the operator's own line colour byte for byte;
+  only the glyph on top is chosen, by measured contrast, between near-black
+  and white. White failed WCAG AA on M3 in light (3.00:1) and on all three
+  lines in dark, where the line colours are lightened for the dark ground —
+  M3 bottomed out at 2.27:1. The prototype's `color:#fff` is a fact about the
+  prototype; the document wins.
+
+## Accessibility (#27, 2026-09-23)
+
+`app/test/accessibility_test.dart` is where the four machine-checkable
+acceptance criteria live — 57 tests over every screen, both locales, both
+themes. The fifth, whether TalkBack announces this in Arabic a Cairene would
+recognise, cannot come from a widget test, which is why the issue sits in
+**In review**.
+
+Four things in here are easy to undo:
+
+- **`A11y.minTapTarget` is a raw 48, deliberately not scaled.** Every other
+  figure in `core/theme/tokens.dart` runs through screenutil against the
+  390x844 frame, which is right for spacing and wrong for a touch target: a
+  floor set by the human finger does not shrink with the phone. `.h` on 52
+  returns 39 on a 640-tall screen — under the minimum, on exactly the cheap
+  Androids this app is for, and it looks entirely normal.
+- **`bodySmall` carries `ink2`, not `ink3`.** `ink3` measures 3.00:1 on `bg`
+  in light and 4.21:1 in dark, both under AA's 4.5 for normal text, and it
+  was the colour of the attribution, the hints and every "kept on this phone"
+  line. This is a change to the *text theme*, not the palette — `ink3` is
+  unchanged and still correct for rules, the leg spine and decorative dots,
+  none of which anyone reads. It does flatten the small-text hierarchy, which
+  is the part a person has to look at.
+- **The mode chips still fail AA and that is recorded, not fixed.** A chip
+  draws its label in the plate colour on a 13% tint of itself: microbus
+  measures 3.27:1, walk 2.76:1. The hue cannot move without putting a colour
+  on screen with no plate behind it — and that failure would be invisible in
+  a diff. The remaining lever is the label's size and weight (13px/w600 is
+  below WCAG's "large text" threshold), which is the maintainer's call. The
+  shortfalls are asserted to their measured figures in `shortfalls` in the
+  test, so a *regression* still fails while the known gap stays visible.
+- **`core/theme/contrast.dart` is one implementation, used by the widget that
+  picks a foreground and by the test that records the numbers.** Two copies
+  would drift and the drift would be silent: the test would keep passing
+  against ratios the app no longer draws. Same arrangement as
+  `api.places.normalize_name`.
+
+Two directional bugs were found by the same pass and are worth not
+reintroducing: the results header hardcoded `←` while `tripArrow` already
+localises it (`←` ar, `→` en), so the English header named the trip
+backwards; and the separator between leg badges used
+`Icons.arrow_back_rounded`, which carries `matchTextDirection: true` and so
+pointed *against* the flow in both locales rather than one.
 
 Next: deployment to Oracle Cloud Always Free
 (chosen because the licence forbids revenue; OTP measures 3.4 GB serving, and
