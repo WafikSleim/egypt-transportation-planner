@@ -161,49 +161,57 @@ class _LegTile extends StatelessWidget {
                   // scales with the reader's font size — "ميكروباص" at 200%
                   // is most of a small phone's width — and a Row pushes the
                   // departure time off the edge rather than moving it down.
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    alignment: WrapAlignment.spaceBetween,
-                    spacing: Insets.sm,
-                    runSpacing: Insets.xs,
-                    children: [
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: Insets.sm,
-                        runSpacing: Insets.xs,
-                        children: [
-                          ModeBadge(leg.badge),
-                          // Only drawn when the route genuinely has a number.
-                          // Hundreds of microbus routes are named literally
-                          // "Microbus"; an empty badge would read as missing
-                          // data, and a filled one as a line called Microbus.
-                          if (leg.showNumberBadge)
-                            Container(
-                              padding: EdgeInsetsDirectional.symmetric(
-                                horizontal: Insets.sm,
-                                vertical: 2.h,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: p.line),
-                                borderRadius: BorderRadius.circular(6.r),
-                              ),
-                              child: Text(
-                                leg.numberBadgeText!,
-                                textDirection: TextDirection.ltr,
-                                style: dataStyle(
-                                  context,
-                                  size: 12.sp,
-                                  color: p.ink2,
+                  //
+                  // The `SizedBox` is what makes `spaceBetween` mean anything:
+                  // a Wrap sizes itself to its content, so with nothing to
+                  // fill there is no space between the badge and the time and
+                  // they end up adjacent.
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceBetween,
+                      spacing: Insets.sm,
+                      runSpacing: Insets.xs,
+                      children: [
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: Insets.sm,
+                          runSpacing: Insets.xs,
+                          children: [
+                            ModeBadge(leg.badge),
+                            // Only drawn when the route genuinely has a number.
+                            // Hundreds of microbus routes are named literally
+                            // "Microbus"; an empty badge would read as missing
+                            // data, and a filled one as a line called Microbus.
+                            if (leg.showNumberBadge)
+                              Container(
+                                padding: EdgeInsetsDirectional.symmetric(
+                                  horizontal: Insets.sm,
+                                  vertical: 2.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: p.line),
+                                  borderRadius: BorderRadius.circular(6.r),
+                                ),
+                                child: Text(
+                                  leg.numberBadgeText!,
+                                  textDirection: TextDirection.ltr,
+                                  style: dataStyle(
+                                    context,
+                                    size: 12.sp,
+                                    color: p.ink2,
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                      Text(
-                        clockTime(leg.startTime),
-                        style: dataStyle(context, size: 13.sp, color: p.ink2),
-                      ),
-                    ],
+                          ],
+                        ),
+                        Text(
+                          clockTime(leg.startTime),
+                          style: dataStyle(context, size: 13.sp, color: p.ink2),
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: Insets.sm),
                   Text(

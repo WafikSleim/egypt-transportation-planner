@@ -43,6 +43,15 @@ app/ios/.symlinks/
 app/android/.gradle/
 app/android/local.properties
 app/android/key.properties
+
+# Release signing. `app/android/.gitignore` already covers these inside the
+# Android tree; these two lines catch a keystore dropped anywhere else in the
+# repository, which is how one actually gets committed by accident. The
+# committed file is `app/android/key.properties.example`, which holds no
+# secret - the real `key.properties` names a keystore and two passwords, and
+# the signing key cannot be rotated once Play has seen it.
+*.jks
+*.keystore
 **/Flutter/ephemeral/
 **/Flutter/Flutter.podspec
 **/Flutter/Generated.xcconfig

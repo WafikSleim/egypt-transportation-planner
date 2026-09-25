@@ -77,7 +77,32 @@ Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
 and `Radii` are scaled getters rather than constants — which is why widgets
 using them are not `const`.
 
-Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 207). The Dart
+**The release build is configured and has a size budget** as of 2026-09-23
+(issue #31). R8 and resource shrinking are on, and per-ABI splits give
+25.0 MiB on `armeabi-v7a` and 30.1 MiB on `arm64-v8a` — against 181.1 MiB for
+the debug APK. The measured numbers, the budget they have to stay under and
+how to re-measure are in [app/README.md](app/README.md); update that table in
+the same commit as anything that moves it. Three things there are easy to get
+wrong: the `.aab` is 63.1 MiB and that is **not** a download size, because
+Play splits it per device; 92% of the APK is three native libraries
+(`libflutter.so`, `libmaplibre.so`, `libapp.so`), so the fonts everyone
+reaches for first are 2.2% of it; and the Arabic faces are **not subsetted**
+on purpose — shaping needs the whole glyph set and the join/ligature tables,
+and a missing glyph shows up as a box in one stop name rather than as a build
+error.
+
+Signing reads `app/android/key.properties`, which is untracked, as are `*.jks`
+and `*.keystore` anywhere in the tree. **Never create a keystore or write a
+password here** — that is the maintainer's to do once, with the `keytool`
+command in `app/README.md`, and Play will not allow the key to be changed
+afterwards. With no `key.properties` the release build falls back to the debug
+key so a fresh clone and CI still build; do not "fix" that into a hard error.
+R8 correctness is the part nothing here can check: a stripped class fails at
+runtime, not at build time, so `app/android/app/proguard-rules.pro` records
+which plugins ship their own consumer rules (all three do) and what to try
+first if the map is what breaks.
+
+Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 239). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
@@ -163,6 +188,37 @@ it, no materialised join, and `/places` answering with
 `© OpenStreetMap contributors` / ODbL rather than TfC's text. `/plan`,
 `/stops` and `/attribution` still carry TfC's. Two datasets, two credits.
 
+**Notifications exist as infrastructure only**, as of 2026-09-23 (issue #21) —
+`app/lib/core/notifications/`. Nothing schedules one yet; #22–#25 do that.
+What is there is a seam built so that a fourth kind of notification cannot be
+added by accident:
+
+- **`NotificationKind` is a closed enum** with four members —
+  departure reminder, the ongoing tracking notice, next-stop alert, one
+  post-trip question — and `NotificationRequest` is sealed and carries
+  **data, not words**. There is no `show(title, body)` anywhere, so no call
+  site can put arbitrary text on a phone; the copy is derived from the
+  request in `notification_copy.dart`, the way `TripPresenter` derives what a
+  widget may draw. A test pins the set.
+- **There is no remote-push package and there must never be one.** No
+  `firebase_messaging`, no `UIBackgroundModes` in `Info.plist`. This project
+  has no push server and nothing to send, and a package that can receive a
+  payload from one is a growth notification waiting to be written — which is
+  the single thing #21 exists to rule out.
+- **The opt-out is enforced in `NotificationService.post`, not by callers**,
+  and the "turn these off" action is handled in `handleResponse` rather than
+  routed to a feature. Both are written once on the base class, so the fake
+  in `app/test/fake_notification_service.dart` overrides only `deliver` and
+  `retract` and the tests exercise the real gate.
+- **The ongoing tracking notice cannot be silenced.** That is the one place
+  the enum's `canBeSilenced` says no: switching it off would let a GPS
+  subscription run with nothing on screen admitting it. Stopping the trip is
+  what removes it.
+- **Reminders are scheduled inexactly, and `RECEIVE_BOOT_COMPLETED` is in the
+  manifest.** No `SCHEDULE_EXACT_ALARM` — Play audits it as an alarm-clock
+  feature and a departure reminder tolerates a minute. Without the boot
+  receiver a reminder set the night before is gone by morning, silently.
+
 Work is tracked on the **Masar** project board (project 2 on the repo), as
 issues #1–#34. The full specification is in [docs/board.md](docs/board.md) —
 read it before moving anything.
@@ -175,8 +231,11 @@ ever run on a phone — only widget tests and an APK build — so anything
 resting on that belongs in `In review`, not `Done`.
 
 `P0` is the critical path: #11 storage, ~~#14 `/places`~~ (backend done
-2026-09-22; the client half of P-10/P-18/P-19 is not), #19 map rendering, #21
-notifications. Every Backlog item waits on one of those.
+2026-09-22; the client half of P-10/P-18/P-19 is not), #19 map rendering,
+~~#21 notifications~~ (infrastructure done 2026-09-23; #22–#25 are still
+`Backlog`, because what shipped is the seam they schedule through and not the
+features). The `P0` set in `scripts/project_board.py` is now empty — every
+Backlog item waits on a blocker that has been built.
 
 `scripts/project_board.py` re-syncs the board; it is idempotent and needs
 `gh auth refresh -s project`. **Its `DONE` / `REVIEW` / `BLOCKED` sets are
@@ -244,6 +303,21 @@ Four things in here are easy to undo:
   would drift and the drift would be silent: the test would keep passing
   against ratios the app no longer draws. Same arrangement as
   `api.places.normalize_name`.
+
+One thing that pass got wrong, and the fix is easy to undo again: replacing a
+`Row` + `Spacer` with a `Wrap` so two items can move onto separate lines at
+200% text **also makes the row shrink to its content**, and
+`WrapAlignment.spaceBetween` then has nothing to spread within. The itinerary
+card's duration and clock range, and the leg tile's badge and departure time,
+silently became adjacent instead of sitting at opposite ends. Both are now
+`SizedBox(width: double.infinity)` around the `Wrap`, and
+`screens_smoke_test.dart` holds it.
+
+That test runs **in English on purpose**: widget tests render in a
+placeholder font whose every glyph is a full em, so the Arabic strings are
+wider than the card and a shrink-wrapped row is indistinguishable from a
+full-width one — the broken layout passes. Nothing caught this but the
+goldens in #28, which load the real faces.
 
 Two directional bugs were found by the same pass and are worth not
 reintroducing: the results header hardcoded `←` while `tripArrow` already
@@ -607,11 +681,15 @@ violates OSM's own licence and the community treats it seriously.
    About screen — `app/lib/core/map/` records why that and not an
    itinerary map. `/places` and `/places/reverse` went live the same
    day (#14), so the client half of place search and map picking is no
-   longer blocked — but neither is built yet. Also missing:
-   notifications and background tracking. **Nothing in this app has
+   longer blocked — but neither is built yet. Notification
+   infrastructure landed 2026-09-23 (#21): `app/lib/core/notifications/`
+   holds the seam, the permission flow and the opt-out, but none of the
+   four notifications is scheduled by anything yet (#22–#25), and
+   background tracking is still missing. **Nothing in this app has
    been seen on a screen**, only in widget tests and an APK build. No
-   auth, no accounts, no settings screen — language and theme are the
-   only two choices offered, and they live on the About screen
+   auth, no accounts, no settings screen — language, theme and the
+   three notification switches are the only choices offered, and they
+   live on the About screen
 5. Contribution pipeline: a `submissions` table separate from the main data,
    promoted to confirmed after two independent confirmations, with a
    `trust_score` per contributor and a `confidence` level exposed in the UI

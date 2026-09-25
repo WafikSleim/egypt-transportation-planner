@@ -38,7 +38,7 @@ automated or delegated. Two kinds:
    Claude. The test is not grammar — it is whether a Cairene would say it.
    Only the maintainer can apply that test.
 2. **Behaviour on real hardware.** Nothing in this project has ever run on a
-   phone. `flutter analyze` is clean, 63 Dart tests pass and a debug APK
+   phone. `flutter analyze` is clean, 175 Dart tests pass and a debug APK
    builds, but no device or emulator has been attached. Widget tests cannot
    see a plate colour vibrating on a dark ground, an Arabic IME, or a
    clipped attribution line.
@@ -65,8 +65,9 @@ A closed issue is never in this column — if it needs review, it is open.
 ### Priority
 
 - **`P0` — the critical path.** In the v1 gate *and* blocking other issues.
-  There are four, and every one of the ten Backlog items waits on one of
-  them.
+  There were four; **the set is empty as of 2026-09-23**, when the last of
+  them shipped. Every Backlog item now waits on something that has been
+  built, which is not the same as being unblocked — see below.
 - **`P1`** — everything else in `v1 - Cairo`.
 - **`P2`** — `After v1`. Wanted; not holding the release.
 
@@ -94,14 +95,22 @@ to be hours.
 
 ## The critical path
 
-Four issues, each in the v1 gate and each holding up others:
+Four issues, each in the v1 gate and each holding up others. **All four have
+now shipped** — `P0` in `scripts/project_board.py` is the empty set:
 
-| | Unblocks |
-| --- | --- |
-| **#11** On-device storage | recents, saved trips, reminder scheduling |
-| **#14** `places` table + `/places` | place search, map picking, the unified picker |
-| **#19** Map rendering | the itinerary map, map picking |
-| **#21** Notification infrastructure | reminders, post-trip prompt, background tracking |
+| | Unblocks | |
+| --- | --- | --- |
+| ~~**#11** On-device storage~~ | recents, saved trips, reminder scheduling | In review |
+| ~~**#14** `places` table + `/places`~~ | place search, map picking, the unified picker | In review, backend only |
+| ~~**#19** Map rendering~~ | the itinerary map, map picking | In review |
+| ~~**#21** Notification infrastructure~~ | reminders, post-trip prompt, background tracking | In review, 2026-09-23 |
+
+**A built blocker is not an unblocked issue.** #22, #23, #24 and #25 are still
+`Backlog` after #21, because what #21 shipped is the seam they schedule
+through — `app/lib/core/notifications/`, the permission flow, the opt-out —
+and not the four notifications themselves. The same is true of #14's client
+half. Moving something out of `Backlog` means the thing it named as its
+blocker exists, in the sense that issue meant it.
 
 **#14 was the largest single blocker** — three v1 `must` stories waited on it,
 and it was backend work rather than app work. The backend half shipped on

@@ -4,11 +4,13 @@ import 'package:egypt_transport/core/location/location_service.dart';
 import 'package:egypt_transport/core/storage/key_value_store.dart';
 import 'package:egypt_transport/data/repositories/trip_history.dart';
 import 'package:egypt_transport/core/theme/app_theme.dart';
+import 'package:egypt_transport/core/theme/tokens.dart';
 import 'package:egypt_transport/data/models/models.dart';
 import 'package:egypt_transport/domain/repositories/planner_repository.dart';
 import 'package:egypt_transport/features/itinerary/view/itinerary_page.dart';
 import 'package:egypt_transport/features/results/view/results_page.dart';
 import 'package:egypt_transport/domain/entities/trip_endpoint.dart';
+import 'package:egypt_transport/features/results/widgets/itinerary_card.dart';
 import 'package:egypt_transport/features/search/view/search_page.dart';
 import 'package:egypt_transport/features/stops/view/stop_picker_page.dart';
 import 'package:egypt_transport/l10n/generated/app_localizations.dart';
@@ -274,6 +276,60 @@ void main() {
 
       expect(find.textContaining('المنيب'), findsWidgets);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('a card reads across its full width', () {
+    const presenter = TripPresenter(languageCode: 'ar');
+
+    /// The duration sits at one end of the card and the clock range at the
+    /// other. That is the design, and it went away once without anyone
+    /// noticing: a `Row` with a `Spacer` became a `Wrap` so the two could move
+    /// onto separate lines at 200% text, and a `Wrap` sizes itself to its
+    /// content — so `spaceBetween` had nothing to spread within and the two
+    /// ended up adjacent. Nothing failed; a golden caught it.
+    ///
+    /// Asserted in **English**, which is the only reason this can be a widget
+    /// test at all. Widget tests render in a placeholder font whose every
+    /// glyph is a full em wide, so the Arabic strings are wider than the card
+    /// and a shrink-wrapped row is indistinguishable from a full-width one —
+    /// the broken layout passes. The English strings are short enough that the
+    /// difference is real. (Verified by reverting the fix: this fails.)
+    testWidgets('the duration and the clock sit at opposite ends', (
+      tester,
+    ) async {
+      final plan = presenter.plan(PlanResponse.fromJson(planMetro));
+
+      await tester.pumpWidget(
+        host(
+          Scaffold(
+            body: ListView(
+              children: [ItineraryCard(itinerary: plan.itineraries.first)],
+            ),
+          ),
+          locale: const Locale('en'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final card = tester.getRect(find.byType(ItineraryCard).first);
+      final row = tester.getRect(find.byType(Wrap).first);
+      final duration = tester.getRect(find.text('102 min').first);
+      final clock = tester.getRect(find.textContaining('–').first);
+
+      // The row spans the card rather than shrinking to its content. This is
+      // the property that broke, and the one everything else follows from.
+      expect(
+        row.width,
+        greaterThan(card.width - 4 * Insets.lg),
+        reason:
+            'the top row should fill the card, or `spaceBetween` has '
+            'nothing to spread within',
+      );
+
+      // English, so the duration is on the left and the clock on the right.
+      expect(duration.left, closeTo(row.left, 1));
+      expect(clock.right, closeTo(row.right, 1));
     });
   });
 }

@@ -4,6 +4,21 @@
 	<dict>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Used only when you tap "my location", to plan a trip from where you are. The coordinates are sent to our server to find a route; there is no account and no record of where you have been.</string>
+		<!-- Notifications (#21). iOS asks for authorisation at runtime, so
+		     there is no usage-description key to fill in here; what belongs
+		     in this file is what is deliberately absent.
+
+		     There is no UIBackgroundModes array, and in particular no
+		     `remote-notification`. This app has no push server, no account
+		     and nothing to send: the three notifications it can show - a
+		     departure reminder, a next-stop alert while tracking, and one
+		     post-trip question - are all created on the device by something
+		     the passenger started. Adding `remote-notification` here would
+		     be the first step to a growth notification, which #21 exists to
+		     make impossible rather than merely discouraged.
+
+		     Action buttons are registered as UNNotificationCategories in
+		     Dart, at startup - see LocalNotificationService.initialise. -->
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>CFBundleDevelopmentRegion</key>
