@@ -174,6 +174,187 @@ declared once in `app.dart`; `Insets` and `Radii` are scaled getters, so no
 screen can opt out. They are therefore not compile-time constants — that is why
 widgets using them are not `const`.
 
+## Release builds, and the size budget
+
+Measured on 2026-09-23, Flutter 3.44.6, AGP 9.0.1, from a clean
+`flutter build apk --release --split-per-abi`:
+
+| Artifact | Bytes | | Budget |
+| --- | ---: | ---: | ---: |
+| `app-armeabi-v7a-release.apk` | 26,235,782 | 25.0 MiB | **28 MiB** |
+| `app-arm64-v8a-release.apk` | 31,523,614 | 30.1 MiB | **33 MiB** |
+| `app-x86_64-release.apk` | 33,358,978 | 31.8 MiB | **35 MiB** |
+| `app-debug.apk` (all three ABIs in one file) | 189,936,842 | 181.1 MiB | — |
+| `app-release.aab` | 66,119,896 | 63.1 MiB | *not a download size* |
+
+The budget is deliberately about 10% above what is there now. It is a
+tripwire, not a target: anything that crosses it is a change big enough that
+somebody should have to say out loud why. The number that matters is
+**`armeabi-v7a`** — 32-bit ARM is the low-end fleet this app is built for, on
+phones where storage is the thing that runs out — and `arm64-v8a` is what
+almost everyone actually installs.
+
+**The `.aab` is not a size.** Play splits a bundle per device and ships each
+phone one ABI, one density and one language, so 63 MiB is what the upload
+weighs, not what anyone downloads. The real download is close to the matching
+per-ABI APK above, minus the densities and translations that phone does not
+need. `bundletool get-size total` measures it properly; `bundletool` is not
+installed here, so that number has never been taken. Do not quote the `.aab`
+figure as an install size.
+
+### Where the weight actually is
+
+For `arm64-v8a`, compressed, out of 30.1 MiB:
+
+| | |
+| --- | ---: |
+| `libflutter.so` — the engine | 11.0 MiB |
+| `libmaplibre.so` — the map renderer (#19) | 10.4 MiB |
+| `libapp.so` — all of our Dart, AOT-compiled | 6.2 MiB |
+| everything else — dex, fonts, resources, assets | 2.5 MiB |
+
+Which is the fact to keep hold of before optimising anything: **92% of this
+app is three native libraries, two of which are somebody else's.** Every
+lever available on the Dart and Java side is working inside the remaining
+8%. If the budget ever needs to come down by a lot rather than a little,
+the honest answer is a smaller map renderer, not a smaller anything else.
+
+### R8 and resource shrinking
+
+On, in `android/app/build.gradle.kts`. Measured both ways on the same commit:
+
+| | armeabi-v7a | arm64-v8a | x86_64 |
+| --- | ---: | ---: | ---: |
+| without | 28.9 MiB | 34.0 MiB | 35.7 MiB |
+| with | 25.0 MiB | 30.1 MiB | 31.8 MiB |
+
+The saving is 4,083,574 bytes — 3.9 MiB, and *identical* on all three, which
+is the clearest possible demonstration of what R8 does here. It never sees a
+native library; it shrinks the JVM half only, and the JVM half is the same
+bytes whatever the CPU. Most of that 3.9 MiB is `play-services-base` and
+`play-services-location`, which arrive transitively through `maplibre_gl` and
+which nothing in this app calls. The dex ends up at 0.78 MiB.
+
+**R8 correctness is not verified and cannot be verified here.** A build with a
+class stripped that something reaches by name succeeds exactly like a correct
+one; the failure is at runtime, and for the map that means the first time the
+coverage map on the About screen opens. `android/app/proguard-rules.pro`
+records which plugins ship their own consumer rules — all three do — and what
+to try if the map is what breaks. That check is part of the on-hardware review
+of #31, along with everything else in this project that has never run on a
+phone.
+
+### Fonts: measured, and not subsetted
+
+The four IBM Plex Sans Arabic weights, the two IBM Plex Mono weights and the
+variable Readex Pro come to 1,523,972 bytes on disk — but TTF compresses, and
+what they weigh **in the APK** is 674 KiB:
+
+| File | On disk | In the APK |
+| --- | ---: | ---: |
+| `ReadexPro-Variable.ttf` | 272.0 KiB | 149 KiB |
+| `IBMPlexSansArabic-SemiBold.ttf` | 238.9 KiB | 105 KiB |
+| `IBMPlexSansArabic-Medium.ttf` | 236.4 KiB | 105 KiB |
+| `IBMPlexSansArabic-Bold.ttf` | 241.2 KiB | 102 KiB |
+| `IBMPlexSansArabic-Regular.ttf` | 230.4 KiB | 100 KiB |
+| `IBMPlexMono-SemiBold.ttf` | 136.9 KiB | 58 KiB |
+| `IBMPlexMono-Regular.ttf` | 132.4 KiB | 55 KiB |
+
+That is **2.2% of the release APK**, which is the first thing to know before
+spending any effort here. The issue that asked for this review assumed ~1.5 MB;
+1.5 MB is the on-disk figure and it never ships.
+
+**The Arabic faces are not subsetted, and should not be.** Subsetting means
+deciding in advance which glyphs the app will ever draw, and this app draws
+names it has never seen — 2,997 road stops, 105,984 places in the OSM index,
+and whatever a passenger types. Arabic is worse than Latin for this in two
+further ways: shaping needs all four positional forms of every letter plus the
+`GSUB`/`GPOS` tables that join and kern them, so a subsetter that keeps
+codepoints and drops lookups produces text that renders as disconnected
+letters rather than as words; and the required lam-alef ligatures are glyphs
+no codepoint-driven subsetter will find. The failure is also silent and
+late — a missing glyph is a box in one stop name on one screen, not a build
+error. Set against 100 KiB a face, that is not a trade worth making. Readex
+Pro is the display face specifically for its low-literacy legibility
+([`docs/design-system.md`](../docs/design-system.md)), which is product value
+here, not decoration.
+
+Two things that *are* worth knowing:
+
+- **IBM Plex Mono earns its 113 KiB.** It is not decorative — it sets route
+  numbers in `ModeBadge` and the licence lines in `AttributionNote` and the
+  map attribution. Removing it would change what a route number looks like.
+- **Upstream ships a variable IBM Plex Sans Arabic.** Four static weights
+  become one file, which would save roughly 250–300 KiB in the APK with *no*
+  glyph or ligature coverage lost — the opposite trade from subsetting. It is
+  not done because a variable face has to be looked at on a real screen at
+  each of the four weights before anyone can say it is the same design, and
+  nothing here has been on a real screen yet. Recorded so the next person does
+  not have to rediscover it. Readex Pro is already variable.
+
+`--tree-shake-icons` is on by default in release and does apply to
+`MaterialIcons-Regular.otf`: 1,645,184 bytes down to 5,700. It does **not**
+apply to text fonts — those ship whole, always.
+
+### Re-measuring
+
+```bash
+cd app
+flutter build apk --release --split-per-abi
+ls -l build/app/outputs/flutter-apk/*-release.apk
+```
+
+Compare the bytes against the table above. `flutter build appbundle --release`
+gives the upload artifact. If a number has moved and it is not obvious why,
+the breakdown that produced the table above is just the zip directory:
+
+```bash
+python -c "import zipfile,collections; z=zipfile.ZipFile('build/app/outputs/flutter-apk/app-arm64-v8a-release.apk'); a=collections.Counter(); [a.update({'/'.join(i.filename.split('/')[:2]): i.compress_size}) for i in z.infolist()]; [print('%-40s %8.2f MiB' % (k, v/1048576)) for k, v in a.most_common(10)]"
+```
+
+### Signing
+
+There is no keystore in this repository and there never will be. Release
+signing reads `android/key.properties`, which is untracked; `*.jks` and
+`*.keystore` are ignored repository-wide.
+[`android/key.properties.example`](android/key.properties.example) shows the
+four keys.
+
+**With no `key.properties` present the release build falls back to the debug
+signing key.** That is on purpose — `flutter build apk --release` has to keep
+working for a fresh clone and for CI, neither of which should hold a signing
+key. What it produces runs, and cannot be uploaded to Play. The failure is
+therefore visible at exactly the moment it matters and invisible the rest of
+the time.
+
+Creating the keystore is the maintainer's job, and is done once. Play will not
+let the signing key be replaced after the first upload, so a lost keystore
+means the app can never be updated under this listing again — back it up
+somewhere that is not this machine:
+
+```bash
+keytool -genkey -v \
+  -keystore ~/keys/masar-upload.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -alias upload
+```
+
+No `-storetype`: `keytool` on JDK 9 and later defaults to PKCS12, and asking
+for the older JKS gets a migration warning on every use. The `.jks` extension
+is kept anyway because that is what the `.gitignore` rules and every piece of
+Flutter documentation expect to see; the extension is not the format.
+
+Then copy `android/key.properties.example` to `android/key.properties`, fill
+in the two passwords, the alias and the absolute path to the keystore, and
+check that `git status` still shows nothing.
+
+`storeFile` is resolved by Gradle against `android/app/`, so a relative path
+there is relative to the module, not to the file it is written in. An absolute
+path avoids the question. None of this has been run — no `key.properties` has
+ever existed on this machine, so the `release` signing config has never been
+evaluated by Gradle. Expect the first real signed build to be the thing that
+proves it.
+
 ## Identity and versions
 
 The icon, the adaptive foreground and both splash marks are **generated**:

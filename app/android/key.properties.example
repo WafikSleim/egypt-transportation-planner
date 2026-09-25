@@ -1,0 +1,25 @@
+# Copy this file to `key.properties` in the same directory and fill it in.
+#
+# `key.properties` is ignored by git, and so are `*.jks` and `*.keystore`.
+# Keep both the file and the keystore off this repository and out of any chat,
+# issue or CI log: whoever holds them can publish an update to this app under
+# its own identity, and Play will not let the signing key be replaced once the
+# first release is uploaded. Back the keystore up somewhere that is not this
+# machine.
+#
+# Generating the keystore is the maintainer's job, not a script's. The exact
+# `keytool` command, and where to put what it produces, is in `app/README.md`
+# under "Release builds".
+#
+# With no `key.properties` present the release build falls back to the debug
+# signing key - it still builds and still runs, it just cannot be uploaded.
+
+storePassword=
+keyPassword=
+keyAlias=upload
+
+# Path to the keystore. Gradle resolves this against the `:app` module, so a
+# relative path here is relative to `android/app/` and not to this file - use
+# an absolute one and the question does not arise. Forward slashes work on
+# Windows too.
+storeFile=C:/Users/you/keys/masar-upload.jks

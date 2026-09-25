@@ -52,30 +52,39 @@ class ItineraryCard extends StatelessWidget {
                   // A Wrap, not a Row with a Spacer. At 200% text the duration
                   // and the clock range cannot share a line on a small phone, and
                   // a Row clips the one on the end rather than moving it.
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    alignment: WrapAlignment.spaceBetween,
-                    spacing: Insets.md,
-                    runSpacing: Insets.xs,
-                    children: [
-                      // The one figure that decides which trip to take, so it
-                      // gets the display treatment and nothing else on the card
-                      // competes with it.
-                      Text(
-                        l.durationMinutes(itinerary.durationMinutes),
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
-                      ),
-                      Text(
-                        '${clockTime(itinerary.startTime)} – ${clockTime(itinerary.endTime)}',
-                        textDirection: TextDirection.ltr,
-                        style: dataStyle(context, size: 13.sp, color: p.ink2),
-                      ),
-                    ],
+                  //
+                  // The `SizedBox` is what makes `spaceBetween` mean anything.
+                  // A Wrap sizes itself to its content, so with no width to
+                  // fill there is no space between anything and the two sit
+                  // adjacent — which is what happened here, silently, and is
+                  // now held by a test in `screens_smoke_test.dart`.
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceBetween,
+                      spacing: Insets.md,
+                      runSpacing: Insets.xs,
+                      children: [
+                        // The one figure that decides which trip to take, so
+                        // it gets the display treatment and nothing else on
+                        // the card competes with it.
+                        Text(
+                          l.durationMinutes(itinerary.durationMinutes),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                        ),
+                        Text(
+                          '${clockTime(itinerary.startTime)} – ${clockTime(itinerary.endTime)}',
+                          textDirection: TextDirection.ltr,
+                          style: dataStyle(context, size: 13.sp, color: p.ink2),
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: Insets.md),
                   Wrap(
