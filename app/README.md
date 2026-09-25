@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 175 tests, no device, no network, a few seconds
+flutter test      # 239 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -407,6 +407,27 @@ curl "http://localhost:8000/plan?from=29.8490,31.3340&to=30.1220,31.2450&date=20
 `test/mode_catalog_test.dart` reads `../api/modes.py` directly and fails if a
 mode exists there without a label here — `ModeCatalog` duplicates a server-side
 table, and duplicated tables drift.
+
+### Goldens
+
+`test/golden_test.dart` photographs the badge catalogue, two itinerary cards
+and the itinerary screen, in light and dark; the PNGs are in `test/goldens/`.
+The mode colours are real licence-plate colours and the metro's circle is the
+only thing keeping M1's blue from reading as a tomnaya — neither survives as
+an assertion in words, which is what these are for. Every view model in them
+comes out of the real `TripPresenter`, so a presenter rule that stops firing
+shows up as a picture of the wrong screen.
+
+```bash
+flutter test --update-goldens test/golden_test.dart
+```
+
+**Then look at the diff.** A golden is worth exactly what the last person to
+regenerate it looked at. Failures land in `test/failures/` (ignored) as the
+actual image, the expected one and a masked diff. The file's doc comment
+explains the two things that decide whether these reproduce at all: the real
+bundled fonts are loaded, and the test surface is pinned to the 390x844
+design frame.
 
 ## Not built yet
 

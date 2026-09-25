@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Written by `flutter test` when a golden does not match: the actual image, a
+# masked diff and an isolated copy of each, for looking at. Evidence, not
+# source - the goldens themselves live in test/goldens/ and are tracked.
+/test/failures/

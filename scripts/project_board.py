@@ -46,12 +46,14 @@ AREA = {
 # there is nothing left for a person to judge.
 DONE = {1, 4, 5, 10, 29, 35}
 
-# Shipped, but "done" here is a claim I cannot check myself. Two things need
-# the maintainer: whether the Arabic reads as Egyptian speech rather than
-# translated English, and how any of it behaves on a real phone - nothing in
+# Shipped, but "done" here is a claim I cannot check myself. Three things
+# need the maintainer: whether the Arabic reads as Egyptian speech rather
+# than translated English; how any of it behaves on a real phone - nothing in
 # this project has ever run on hardware, only in widget tests and an APK
-# build. Each carries a comment saying exactly what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 21, 26, 27, 30, 31, 32, 33, 34}
+# build; and, for #28, that CI checks no goldens at all - they are
+# per-platform and only a Windows set is committed, so Linux skips them.
+# Each carries a comment saying what to check.
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 21, 26, 27, 28, 30, 31, 32, 33, 34}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}
@@ -67,7 +69,7 @@ P2 = {28, 34}          # milestone "After v1"
 SIZE = {
     11: 'M', 12: 'S', 13: 'S', 14: 'L', 15: 'L', 16: 'M', 17: 'M', 18: 'S',
     19: 'L', 20: 'M', 21: 'M', 22: 'S', 23: 'M', 24: 'L', 25: 'M', 26: 'M',
-    27: 'M', 28: 'S', 29: 'S', 30: 'S', 31: 'M', 32: 'XS', 33: 'XS', 34: 'M', 35: 'S',
+    27: 'M', 29: 'S', 30: 'S', 31: 'M', 32: 'XS', 33: 'XS', 34: 'M', 35: 'S',
 }
 # Shipped issues get Status and Area only. Estimating work that is already
 # finished would be inventing numbers.
