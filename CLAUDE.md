@@ -77,7 +77,7 @@ Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
 and `Radii` are scaled getters rather than constants — which is why widgets
 using them are not `const`.
 
-Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 201). The Dart
+Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 202). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
@@ -232,6 +232,21 @@ Four things in here are easy to undo:
   would drift and the drift would be silent: the test would keep passing
   against ratios the app no longer draws. Same arrangement as
   `api.places.normalize_name`.
+
+One thing that pass got wrong, and the fix is easy to undo again: replacing a
+`Row` + `Spacer` with a `Wrap` so two items can move onto separate lines at
+200% text **also makes the row shrink to its content**, and
+`WrapAlignment.spaceBetween` then has nothing to spread within. The itinerary
+card's duration and clock range, and the leg tile's badge and departure time,
+silently became adjacent instead of sitting at opposite ends. Both are now
+`SizedBox(width: double.infinity)` around the `Wrap`, and
+`screens_smoke_test.dart` holds it.
+
+That test runs **in English on purpose**: widget tests render in a
+placeholder font whose every glyph is a full em, so the Arabic strings are
+wider than the card and a shrink-wrapped row is indistinguishable from a
+full-width one — the broken layout passes. Nothing caught this but the
+goldens in #28, which load the real faces.
 
 Two directional bugs were found by the same pass and are worth not
 reintroducing: the results header hardcoded `←` while `tripArrow` already
