@@ -77,6 +77,31 @@ Sizing goes through `flutter_screenutil` against a 390x844 frame, so `Insets`
 and `Radii` are scaled getters rather than constants — which is why widgets
 using them are not `const`.
 
+**The release build is configured and has a size budget** as of 2026-09-23
+(issue #31). R8 and resource shrinking are on, and per-ABI splits give
+25.0 MiB on `armeabi-v7a` and 30.1 MiB on `arm64-v8a` — against 181.1 MiB for
+the debug APK. The measured numbers, the budget they have to stay under and
+how to re-measure are in [app/README.md](app/README.md); update that table in
+the same commit as anything that moves it. Three things there are easy to get
+wrong: the `.aab` is 63.1 MiB and that is **not** a download size, because
+Play splits it per device; 92% of the APK is three native libraries
+(`libflutter.so`, `libmaplibre.so`, `libapp.so`), so the fonts everyone
+reaches for first are 2.2% of it; and the Arabic faces are **not subsetted**
+on purpose — shaping needs the whole glyph set and the join/ligature tables,
+and a missing glyph shows up as a box in one stop name rather than as a build
+error.
+
+Signing reads `app/android/key.properties`, which is untracked, as are `*.jks`
+and `*.keystore` anywhere in the tree. **Never create a keystore or write a
+password here** — that is the maintainer's to do once, with the `keytool`
+command in `app/README.md`, and Play will not allow the key to be changed
+afterwards. With no `key.properties` the release build falls back to the debug
+key so a fresh clone and CI still build; do not "fix" that into a hard error.
+R8 correctness is the part nothing here can check: a stripped class fails at
+runtime, not at build time, so `app/android/app/proguard-rules.pro` records
+which plugins ship their own consumer rules (all three do) and what to try
+first if the map is what breaks.
+
 Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 202). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
