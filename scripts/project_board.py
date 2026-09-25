@@ -51,13 +51,17 @@ DONE = {1, 4, 5, 10, 29, 35}
 # translated English, and how any of it behaves on a real phone - nothing in
 # this project has ever run on hardware, only in widget tests and an APK
 # build. Each carries a comment saying exactly what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 26, 27, 30, 31, 32, 33, 34}
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 21, 26, 27, 30, 31, 32, 33, 34}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}
 
 # The critical path: each of these is in the v1 gate *and* holds up others.
-P0 = {21}
+# Empty since 2026-09-23, when #21 shipped the notification seam - every P0 on
+# the board has now been built. #22, #23, #24 and #25 stay in BLOCKED: what
+# landed is the infrastructure they schedule through, not the features
+# themselves, so the thing each of them waits on is still unwritten.
+P0 = set()
 P2 = {28, 34}          # milestone "After v1"
 
 SIZE = {

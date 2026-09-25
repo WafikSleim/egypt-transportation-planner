@@ -5,6 +5,10 @@ import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/location/location_service.dart';
 import 'core/network/api_client.dart';
+import 'core/notifications/local_notification_service.dart';
+import 'core/notifications/notification_copy.dart';
+import 'core/notifications/notification_preferences.dart';
+import 'core/notifications/notification_service.dart';
 import 'core/settings/settings_cubit.dart';
 import 'core/storage/key_value_store.dart';
 import 'data/cache/plan_cache.dart';
@@ -30,6 +34,17 @@ Future<void> main() async {
     languageCode: () => settings.state.locale.languageCode,
   );
 
+  // Nothing is scheduled here and no permission is asked — that happens in
+  // context, from the screen that needs it. This only opens the channels and
+  // wires the copy, which has to resolve through the settings the same way
+  // `lang` does: the notification is written in the language the passenger
+  // chose, at the moment it fires.
+  final notifications = LocalNotificationService(
+    preferences: NotificationPreferences(store),
+    copy: () => AppNotificationCopy.forLocale(settings.state.locale),
+  );
+  await notifications.initialise();
+
   runApp(
     MultiBlocProvider(
       providers: [BlocProvider<SettingsCubit>.value(value: settings)],
@@ -40,6 +55,7 @@ Future<void> main() async {
           RepositoryProvider<LocationService>(
             create: (_) => const GeolocatorLocationService(),
           ),
+          RepositoryProvider<NotificationService>.value(value: notifications),
           RepositoryProvider<PlannerRepository>(
             // The plan cache goes in here rather than being provided
             // separately: the repository is what plans a trip, so it is what

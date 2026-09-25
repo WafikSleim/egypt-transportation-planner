@@ -1,5 +1,7 @@
 import 'package:egypt_transport/core/location/location_service.dart';
 import 'package:egypt_transport/core/network/api_failure.dart';
+import 'package:egypt_transport/core/notifications/notification_preferences.dart';
+import 'package:egypt_transport/core/notifications/notification_service.dart';
 import 'package:egypt_transport/core/presentation/trip_presenter.dart';
 import 'package:egypt_transport/core/settings/settings_cubit.dart';
 import 'package:egypt_transport/core/storage/key_value_store.dart';
@@ -24,6 +26,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_location_service.dart';
+import 'fake_notification_service.dart';
 import 'fake_repository.dart';
 import 'fixtures.dart';
 
@@ -261,6 +264,18 @@ void main() {
           ),
           RepositoryProvider<TripHistory>.value(
             value: TripHistory(InMemoryStore()),
+          ),
+          // Required since #21: the About screen reads this to build its
+          // notification section. It sits below the fold at the 320x640 frame
+          // these tests use, so `BlocProvider.create` happens not to run —
+          // which means leaving it out passes today and throws the moment the
+          // frame, the text scale or the copy above it changes. That is not a
+          // dependency worth leaving to luck in the suite whose job is to
+          // render every screen at 200%.
+          RepositoryProvider<NotificationService>.value(
+            value: FakeNotificationService(
+              preferences: NotificationPreferences(InMemoryStore()),
+            ),
           ),
         ],
         child: child,

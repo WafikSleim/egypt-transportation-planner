@@ -48,6 +48,28 @@ dependencies:
   # lib/core/map/map_view.dart for the decision and what would reverse it.
   maplibre_gl: ^0.27.1
 
+  # Notifications (#21), and local ones only. The name is the decision: this
+  # app has no push server and must never acquire one, so there is no
+  # firebase_messaging here and no remote-push package of any kind. The three
+  # notifications that exist are created on the phone from something the
+  # passenger started; a package that can receive a payload from a server is
+  # a growth notification waiting to be written.
+  #
+  # No permission_handler either. This package asks for POST_NOTIFICATIONS on
+  # Android 13+ and for iOS authorisation itself, which is one call each, and
+  # a second permissions package would be a second answer to "may we?".
+  # What would reverse either choice: needing a permission this package does
+  # not cover, which for a planner that reads location on demand and shows
+  # three local notifications is nothing on the roadmap.
+  flutter_local_notifications: ^22.3.1
+
+  # Scheduling a reminder needs a zoned timestamp, not a wall clock — the one
+  # zone this app can plan in is Africa/Cairo, because that is where the
+  # coverage box is. Set once in LocalNotificationService, which is why
+  # `flutter_timezone` (another native plugin, to detect what is already
+  # known) is not here.
+  timezone: ^0.11.1
+
   intl: any
 
 dev_dependencies:

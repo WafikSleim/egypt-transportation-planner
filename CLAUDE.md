@@ -102,7 +102,7 @@ runtime, not at build time, so `app/android/app/proguard-rules.pro` records
 which plugins ship their own consumer rules (all three do) and what to try
 first if the map is what breaks.
 
-Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 202). The Dart
+Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 233). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
@@ -176,6 +176,37 @@ it, no materialised join, and `/places` answering with
 `© OpenStreetMap contributors` / ODbL rather than TfC's text. `/plan`,
 `/stops` and `/attribution` still carry TfC's. Two datasets, two credits.
 
+**Notifications exist as infrastructure only**, as of 2026-09-23 (issue #21) —
+`app/lib/core/notifications/`. Nothing schedules one yet; #22–#25 do that.
+What is there is a seam built so that a fourth kind of notification cannot be
+added by accident:
+
+- **`NotificationKind` is a closed enum** with four members —
+  departure reminder, the ongoing tracking notice, next-stop alert, one
+  post-trip question — and `NotificationRequest` is sealed and carries
+  **data, not words**. There is no `show(title, body)` anywhere, so no call
+  site can put arbitrary text on a phone; the copy is derived from the
+  request in `notification_copy.dart`, the way `TripPresenter` derives what a
+  widget may draw. A test pins the set.
+- **There is no remote-push package and there must never be one.** No
+  `firebase_messaging`, no `UIBackgroundModes` in `Info.plist`. This project
+  has no push server and nothing to send, and a package that can receive a
+  payload from one is a growth notification waiting to be written — which is
+  the single thing #21 exists to rule out.
+- **The opt-out is enforced in `NotificationService.post`, not by callers**,
+  and the "turn these off" action is handled in `handleResponse` rather than
+  routed to a feature. Both are written once on the base class, so the fake
+  in `app/test/fake_notification_service.dart` overrides only `deliver` and
+  `retract` and the tests exercise the real gate.
+- **The ongoing tracking notice cannot be silenced.** That is the one place
+  the enum's `canBeSilenced` says no: switching it off would let a GPS
+  subscription run with nothing on screen admitting it. Stopping the trip is
+  what removes it.
+- **Reminders are scheduled inexactly, and `RECEIVE_BOOT_COMPLETED` is in the
+  manifest.** No `SCHEDULE_EXACT_ALARM` — Play audits it as an alarm-clock
+  feature and a departure reminder tolerates a minute. Without the boot
+  receiver a reminder set the night before is gone by morning, silently.
+
 Work is tracked on the **Masar** project board (project 2 on the repo), as
 issues #1–#34. The full specification is in [docs/board.md](docs/board.md) —
 read it before moving anything.
@@ -188,8 +219,11 @@ ever run on a phone — only widget tests and an APK build — so anything
 resting on that belongs in `In review`, not `Done`.
 
 `P0` is the critical path: #11 storage, ~~#14 `/places`~~ (backend done
-2026-09-22; the client half of P-10/P-18/P-19 is not), #19 map rendering, #21
-notifications. Every Backlog item waits on one of those.
+2026-09-22; the client half of P-10/P-18/P-19 is not), #19 map rendering,
+~~#21 notifications~~ (infrastructure done 2026-09-23; #22–#25 are still
+`Backlog`, because what shipped is the seam they schedule through and not the
+features). The `P0` set in `scripts/project_board.py` is now empty — every
+Backlog item waits on a blocker that has been built.
 
 `scripts/project_board.py` re-syncs the board; it is idempotent and needs
 `gh auth refresh -s project`. **Its `DONE` / `REVIEW` / `BLOCKED` sets are
@@ -635,11 +669,15 @@ violates OSM's own licence and the community treats it seriously.
    About screen — `app/lib/core/map/` records why that and not an
    itinerary map. `/places` and `/places/reverse` went live the same
    day (#14), so the client half of place search and map picking is no
-   longer blocked — but neither is built yet. Also missing:
-   notifications and background tracking. **Nothing in this app has
+   longer blocked — but neither is built yet. Notification
+   infrastructure landed 2026-09-23 (#21): `app/lib/core/notifications/`
+   holds the seam, the permission flow and the opt-out, but none of the
+   four notifications is scheduled by anything yet (#22–#25), and
+   background tracking is still missing. **Nothing in this app has
    been seen on a screen**, only in widget tests and an APK build. No
-   auth, no accounts, no settings screen — language and theme are the
-   only two choices offered, and they live on the About screen
+   auth, no accounts, no settings screen — language, theme and the
+   three notification switches are the only choices offered, and they
+   live on the About screen
 5. Contribution pipeline: a `submissions` table separate from the main data,
    promoted to confirmed after two independent confirmations, with a
    `trust_score` per contributor and a `confidence` level exposed in the UI
