@@ -1,3 +1,6 @@
+import 'package:egypt_transport/core/notifications/notification_preferences.dart';
+import 'package:egypt_transport/core/notifications/notification_service.dart';
+import 'package:egypt_transport/data/repositories/reminder_ledger.dart';
 import 'package:egypt_transport/core/presentation/trip_presenter.dart';
 import 'package:egypt_transport/core/settings/settings_cubit.dart';
 import 'package:egypt_transport/core/location/location_service.dart';
@@ -20,6 +23,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_location_service.dart';
+import 'fake_notification_service.dart';
 import 'fake_repository.dart';
 import 'fixtures.dart';
 
@@ -62,6 +66,14 @@ void main() {
           ),
           RepositoryProvider<TripHistory>.value(
             value: TripHistory(InMemoryStore()),
+          ),
+          RepositoryProvider<ReminderLedger>.value(
+            value: ReminderLedger(InMemoryStore()),
+          ),
+          RepositoryProvider<NotificationService>.value(
+            value: FakeNotificationService(
+              preferences: NotificationPreferences(InMemoryStore()),
+            ),
           ),
         ],
         child: child,

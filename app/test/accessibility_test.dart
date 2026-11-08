@@ -11,7 +11,9 @@ import 'package:egypt_transport/core/theme/mode_theme.dart';
 import 'package:egypt_transport/core/theme/tokens.dart';
 import 'package:egypt_transport/core/widgets/app_error_view.dart';
 import 'package:egypt_transport/data/models/models.dart';
+import 'package:egypt_transport/data/repositories/reminder_ledger.dart';
 import 'package:egypt_transport/data/repositories/trip_history.dart';
+import 'package:egypt_transport/features/itinerary/widgets/trip_actions.dart';
 import 'package:egypt_transport/domain/entities/trip_endpoint.dart';
 import 'package:egypt_transport/domain/repositories/planner_repository.dart';
 import 'package:egypt_transport/features/about/view/about_page.dart';
@@ -265,6 +267,9 @@ void main() {
           RepositoryProvider<TripHistory>.value(
             value: TripHistory(InMemoryStore()),
           ),
+          RepositoryProvider<ReminderLedger>.value(
+            value: ReminderLedger(InMemoryStore()),
+          ),
           // Required since #21: the About screen reads this to build its
           // notification section. It sits below the fold at the 320x640 frame
           // these tests use, so `BlocProvider.create` happens not to run —
@@ -297,9 +302,16 @@ void main() {
 
   Widget itinerary(Map<String, dynamic> json) {
     final plan = presenter.plan(PlanResponse.fromJson(json));
-    return ItineraryPage(
-      itinerary: plan.itineraries.first,
-      attribution: plan.attribution,
+    // With the reminder and trip-following section, which is where the new
+    // buttons are: this suite's 48dp, 200%-text and contrast checks have to
+    // cover them, and `ItineraryPage` alone does not draw them.
+    return withRepo(
+      ItineraryPage(
+        itinerary: plan.itineraries.first,
+        attribution: plan.attribution,
+        tripActions: TripActions(itinerary: plan.itineraries.first),
+      ),
+      FakeRepository(),
     );
   }
 

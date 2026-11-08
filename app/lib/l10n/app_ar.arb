@@ -299,5 +299,25 @@
   "notifyPostTripBody": "لو فاضي، قولنا المشوار كان زي ما اتوقّع ولا لأ. مش لازم تردّ، ومش هنسألك تاني.",
   "@notifyPostTripBody": {
     "description": "One question per trip, asked kindly, dismissible without answering (#23)."
-  }
+  },
+  "reminderTitle": "تنبيه قبل المشوار",
+  "reminderEstimate": "الميعاد ده تقدير من جدول مسجّل، مش مكان العربية دلوقتي. التنبيه بيتعمل على تليفونك.",
+  "reminderPickTitle": "فكّرني قبل الميعاد بكام؟",
+  "reminderSetLine": "هنفكّرك الساعة {time}، قبل الميعاد التقديري بـ {minutes} دقيقة.",
+  "@reminderSetLine": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderCancel": "الغي التذكير",
+  "reminderCancelled": "اتلغى التذكير.",
+  "reminderTimePassed": "الميعاد ده قرّب أو عدّى، مش هينفع نفكّرك قبله.",
+  "reminderTooMany": "عندك تذكيرات كتير مستنية. الغي واحد الأول.",
+  "reminderNotificationsOff": "التنبيهات مقفولة على الجهاز، فمش هنقدر نفكّرك.",
+  "reminderCachedUnavailable": "المشوار ده من نتيجة محفوظة، فمواعيده مش مضمونة. دوّر عليه من جديد لو عايزنا نفكّرك."
 }

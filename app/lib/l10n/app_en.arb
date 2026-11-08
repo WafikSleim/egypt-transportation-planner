@@ -192,5 +192,25 @@
     }
   },
   "notifyPostTripTitle": "Did you get there safely?",
-  "notifyPostTripBody": "If you have a second, tell us whether the trip went as planned. No need to answer, and we will not ask again."
+  "notifyPostTripBody": "If you have a second, tell us whether the trip went as planned. No need to answer, and we will not ask again.",
+  "reminderTitle": "Reminder before the trip",
+  "reminderEstimate": "That time is an estimate from a recorded schedule, not where the vehicle is right now. The reminder is made on your phone.",
+  "reminderPickTitle": "Remind me how long before?",
+  "reminderSetLine": "We will remind you at {time}, {minutes} minutes before the estimated departure.",
+  "@reminderSetLine": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderCancel": "Cancel the reminder",
+  "reminderCancelled": "Reminder cancelled.",
+  "reminderTimePassed": "That departure is too close or already gone, so we cannot remind you before it.",
+  "reminderTooMany": "You already have many reminders waiting. Cancel one first.",
+  "reminderNotificationsOff": "Notifications are turned off on this device, so we cannot remind you.",
+  "reminderCachedUnavailable": "This trip comes from a saved result, so its times are not reliable. Search for it again if you want a reminder."
 }
