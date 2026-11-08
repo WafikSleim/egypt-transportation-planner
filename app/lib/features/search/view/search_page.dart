@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/location/location_service.dart';
-import '../../../core/presentation/trip_presenter.dart';
 import '../../../core/text/bidi.dart';
 import '../../../core/text/formatting.dart';
 import '../../../core/theme/mode_theme.dart';
@@ -11,11 +10,12 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/honesty_panel.dart';
 import '../../../data/repositories/trip_history.dart';
 import '../../../domain/entities/trip_endpoint.dart';
+import '../../../domain/repositories/places_repository.dart';
 import '../../../domain/repositories/planner_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../about/view/about_page.dart';
 import '../../results/view/results_page.dart';
-import '../../stops/view/stop_picker_page.dart';
+import '../../picker/view/picker_page.dart';
 import '../view_model/my_location_cubit.dart';
 import '../view_model/search_cubit.dart';
 import '../view_model/search_state.dart';
@@ -160,6 +160,7 @@ class _EndpointFields extends StatelessWidget {
                     hint: l.toHint,
                     value: state.to,
                     onPick: (e) => context.read<SearchCubit>().setTo(e),
+                    near: state.from?.point,
                   ),
                 ],
               ),
@@ -199,12 +200,18 @@ class _EndpointField extends StatelessWidget {
     required this.hint,
     required this.value,
     required this.onPick,
+    this.near,
   });
 
   final String label;
   final String hint;
   final TripEndpoint? value;
   final ValueChanged<TripEndpoint?> onPick;
+
+  /// A point the passenger already chose, to order place results by. Only the
+  /// destination field passes one (the origin) — see [PickerPage.near] for why
+  /// it is never a location fix taken for the search.
+  final GeoPoint? near;
 
   @override
   Widget build(BuildContext context) {
@@ -222,13 +229,12 @@ class _EndpointField extends StatelessWidget {
             final history = context.read<TripHistory>();
             final picked = await Navigator.of(context).push<TripEndpoint>(
               MaterialPageRoute(
-                builder: (_) => StopPickerPage(
+                builder: (_) => PickerPage(
                   title: label,
-                  presenter: TripPresenter(
-                    languageCode: Localizations.localeOf(context).languageCode,
-                  ),
-                  repository: context.read<PlannerRepository>(),
+                  planner: context.read<PlannerRepository>(),
+                  places: context.read<PlacesRepository>(),
                   history: context.read<TripHistory>(),
+                  near: near,
                 ),
               ),
             );

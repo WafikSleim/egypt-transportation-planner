@@ -1,0 +1,71 @@
+{
+  "query": "كايرو فستيفال",
+  "count": 3,
+  "total_matches": 3,
+  "truncated": false,
+  "places": [
+    {
+      "id": "w101",
+      "name": "كايرو فستيفال سيتي مول",
+      "name_language": "ar",
+      "name_is_fallback": false,
+      "name_ar": "كايرو فستيفال سيتي مول",
+      "name_en": "Cairo Festival City Mall",
+      "category": {
+        "id": "mall",
+        "label_en": "Mall",
+        "label_ar": "مول"
+      },
+      "area": "التجمع الخامس",
+      "lat": 30.0287,
+      "lon": 31.4079,
+      "distance_m": 18420,
+      "source": "osm",
+      "confidence": "reported"
+    },
+    {
+      "id": "w102",
+      "name": "American University in Cairo",
+      "name_language": "en",
+      "name_is_fallback": true,
+      "name_ar": null,
+      "name_en": "American University in Cairo",
+      "category": {
+        "id": "university",
+        "label_en": "University",
+        "label_ar": "جامعة"
+      },
+      "area": "التجمع الخامس",
+      "lat": 30.0195,
+      "lon": 31.5002,
+      "distance_m": 26211,
+      "source": "osm",
+      "confidence": "reported"
+    },
+    {
+      "id": "w103",
+      "name": "شارع التسعين الجنوبي",
+      "name_language": "ar",
+      "name_is_fallback": false,
+      "name_ar": "شارع التسعين الجنوبي",
+      "name_en": null,
+      "category": {
+        "id": "street",
+        "label_en": "Street",
+        "label_ar": "شارع"
+      },
+      "area": "التجمع الخامس",
+      "lat": 30.0311,
+      "lon": 31.46,
+      "distance_m": 22980,
+      "source": "osm",
+      "confidence": "reported"
+    }
+  ],
+  "attribution": {
+    "text": "© OpenStreetMap contributors",
+    "licence": "ODbL 1.0",
+    "source_url": "https://www.openstreetmap.org/copyright"
+  },
+  "matching": "substring"
+}

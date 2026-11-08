@@ -32,3 +32,47 @@ Map<String, dynamic> get planNoCoverage => fixture('plan_no_coverage_ar');
 Map<String, dynamic> get planWalkOnly => fixture('plan_walk_only_ar');
 
 Map<String, dynamic> get stopsMoneeb => fixture('stops_ar');
+
+// ---------------------------------------------------------------------------
+// Places and nearby stops (#15, #16, #17).
+//
+// **Provenance, stated plainly: these are not live captures.** There was no
+// OTP, no graph and no Postgres on the machine they were made on. They are the
+// *real* `api/` code — the real routes, the real `_place_result` name
+// resolution, the real response models and JSON encoding — run in-process over
+// a stubbed place index (`api.places.EXECUTOR`) and a stubbed OTP, exactly as
+// `tests/` does. What that guarantees is the **shape** the server emits,
+// including the three-way name resolution (`name_language`,
+// `name_is_fallback`). What it does not guarantee is that the names,
+// coordinates and distances are what OSM holds: the rows were written by hand
+// to be plausible, so do not quote them as data about Cairo.
+//
+// Regenerate against a live API when one is up:
+//
+//     curl "http://localhost:8000/places?q=كايرو فستيفال&near=30.0444,31.2357&lang=ar"
+//     curl "http://localhost:8000/places/reverse?at=30.0312,31.4601&lang=ar"
+//     curl "http://localhost:8000/stops/nearby?at=30.0312,31.4601&lang=ar"
+// ---------------------------------------------------------------------------
+
+/// Three places, lang=ar, ordered from a point: a mall with an Arabic name, a
+/// university with **no Arabic name** (a fallback to Latin) and a street.
+Map<String, dynamic> get placesAr => fixture('places_ar');
+
+/// The same rows asked for in English: the street has **no English name**, so
+/// it comes back in Arabic with `name_is_fallback` set — the mirror case.
+Map<String, dynamic> get placesEn => fixture('places_en');
+
+/// One place and no `near` point, so `distance_m` is null.
+Map<String, dynamic> get placesNoNear => fixture('places_ar_no_near');
+
+Map<String, dynamic> get placesEmpty => fixture('places_empty_ar');
+
+/// Two places from `/places/reverse`, nearest first.
+Map<String, dynamic> get placesReverse => fixture('places_reverse_ar');
+
+/// Nothing named within 500 m — a real answer, not an error.
+Map<String, dynamic> get placesReverseEmpty =>
+    fixture('places_reverse_empty_ar');
+
+Map<String, dynamic> get stopsNearby => fixture('stops_nearby_ar');
+Map<String, dynamic> get stopsNearbyEmpty => fixture('stops_nearby_empty_ar');

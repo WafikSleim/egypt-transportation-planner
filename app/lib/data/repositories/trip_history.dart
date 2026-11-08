@@ -60,6 +60,10 @@ Map<String, dynamic> _endpointToJson(TripEndpoint e) => {
   'lat': e.point.lat,
   'lon': e.point.lon,
   if (e.stopId != null) 'stop_id': e.stopId,
+  // Added with the place picker (#17). Absent in everything saved before it,
+  // which reads back as "not a place" — a stored recent from an older build
+  // must still load, so this key is only ever optional.
+  if (e.placeId != null) 'place_id': e.placeId,
   if (e.modes.isNotEmpty) 'modes': e.modes,
 };
 
@@ -69,10 +73,16 @@ TripEndpoint? _endpointFromJson(Object? raw) {
   final lat = raw['lat'];
   final lon = raw['lon'];
   if (label is! String || lat is! num || lon is! num) return null;
+  final stopId = raw['stop_id'] is String ? raw['stop_id'] as String : null;
   return TripEndpoint(
     label: label,
     point: GeoPoint(lat.toDouble(), lon.toDouble()),
-    stopId: raw['stop_id'] is String ? raw['stop_id'] as String : null,
+    stopId: stopId,
+    // A record claiming both (hand-edited, or from a bug) is a stop: stops
+    // are the older, better-grounded kind, and the constructor refuses both.
+    placeId: stopId == null && raw['place_id'] is String
+        ? raw['place_id'] as String
+        : null,
     modes: (raw['modes'] as List?)?.map((e) => '$e').toList() ?? const [],
   );
 }
@@ -130,6 +140,27 @@ class TripHistory {
         .toList();
     trips.sort((a, b) => b.savedAt.compareTo(a.savedAt));
     return List.unmodifiable(trips);
+  }
+
+  /// The stops and places that appear in saved trips, newest trip first,
+  /// each once. This is what the picker offers as "saved" before anything is
+  /// typed: there is no store of saved places beyond saved trips, and one is
+  /// not invented here.
+  ///
+  /// Plain points are left out. A point is either a map pick or the "my
+  /// location" fix, and the fix is a coordinate that was true on one morning —
+  /// offering it back as a place somebody goes would send them from a spot
+  /// they are no longer standing at.
+  List<TripEndpoint> savedEndpoints() {
+    final seen = <String>{};
+    final out = <TripEndpoint>[];
+    for (final trip in saved()) {
+      for (final e in [trip.to, trip.from]) {
+        if (e.kind == EndpointKind.point) continue;
+        if (seen.add(SavedTrip._key(e))) out.add(e);
+      }
+    }
+    return List.unmodifiable(out);
   }
 
   bool isSaved(TripEndpoint from, TripEndpoint to) {

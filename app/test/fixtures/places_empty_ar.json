@@ -1,0 +1,13 @@
+{
+  "query": "ءءءء",
+  "count": 0,
+  "total_matches": 0,
+  "truncated": false,
+  "places": [],
+  "attribution": {
+    "text": "© OpenStreetMap contributors",
+    "licence": "ODbL 1.0",
+    "source_url": "https://www.openstreetmap.org/copyright"
+  },
+  "matching": "substring"
+}

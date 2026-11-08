@@ -45,8 +45,8 @@ The backend API exists too, as of 2026-09-20: FastAPI in `api/`, in front of
 OTP, verified against the live graph. See [api/README.md](api/README.md).
 
 The Flutter client was started on 2026-09-21 and lives in `app/`. What runs
-end to end today: search → stop picker over `/stops` → results over `/plan` →
-itinerary detail, in Arabic and English, light and dark. See
+end to end today: search → one picker over `/stops`, `/places` and recents (or
+a pin dropped on the map) → results over `/plan` → itinerary detail, in Arabic and English, light and dark. See
 [app/README.md](app/README.md) — read the section on `TripPresenter` before
 changing any screen.
 
@@ -102,7 +102,7 @@ runtime, not at build time, so `app/android/app/proguard-rules.pro` records
 which plugins ship their own consumer rules (all three do) and what to try
 first if the map is what breaks.
 
-Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 239). The Dart
+Tests live in `tests/` (Python, 164) and `app/test/` (Dart, 323). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter pub get && flutter test` (`pub get` generates the
@@ -189,6 +189,48 @@ it, no materialised join, and `/places` answering with
 `© OpenStreetMap contributors` / ODbL rather than TfC's text. `/plan`,
 `/stops` and `/attribution` still carry TfC's. Two datasets, two credits.
 
+**The places client exists** as of 2026-11-08 (issues #15, #16, #17, all in
+`In review`): one picker over stops, places and recents, and a map-pick screen.
+Nothing in it has run on a device. `/stops/nearby` is the one server change it
+needed, and **its GraphQL has never been run against a live OTP** — it is
+written from OTP's `stopsByRadius` schema and the tests only drive it through
+the stub. Run it once against the built graph before trusting it.
+
+Things in there that are easy to undo:
+
+- **`PlacesRepository` is its own interface**, apart from `PlannerRepository`,
+  and the wire models are in their own file (`data/models/place_models.dart`).
+  Stops are TfC's (CC BY-NC) and places are OSM's (ODbL); one repository
+  serving both is how a join eventually gets written. The nearest stop is
+  transit data, so `nearbyStops` is on `PlannerRepository`, not on the places
+  one.
+- **Each result keeps its own credit.** The picker shows TfC's text under stops
+  and `© OpenStreetMap contributors` under places, each from its own response,
+  and only when something from that dataset is on screen. Never hardcode either.
+- **A `/places` failure is not an error screen.** The API says it is the one
+  survivable outage, so the picker degrades to stops plus a quiet note; only
+  both failing is `PickerFailed`. Likewise on the map-pick screen a failed
+  name lookup leaves the nearest stop standing and vice versa — and "nothing
+  named here" (an empty list) is kept distinct from "could not ask".
+- **A map-picked endpoint is at the pin, not at the named place.** A street's
+  stored position can be far from where somebody pointed. The OSM name is only
+  the label, or the coordinates when there is none.
+- **Places are ordered by distance only from a point the passenger already
+  chose** (the origin, when picking the destination). No location fix is taken
+  to sort a search — location is on demand, for a stated purpose.
+- **"Saved places" is saved trips' stops and places** (`TripHistory.
+  savedEndpoints`). #11 stores recents and saved trips and nothing else, and a
+  new store was not invented. Plain points are left out: the "my location" fix
+  is a coordinate that was true on one morning.
+- **Under "all" the two lists are interleaved, not stacked**, each keeping its
+  own order, so twenty prefix matches cannot bury the mall. The rankings are
+  not comparable and are not merged.
+- **`TripEndpoint` is a stop, a place or a point, never two** (an assert), and
+  `place_id` is optional in storage so a recent written before #17 still loads.
+- The place fixtures in `app/test/fixtures/` are **not live captures**: the real
+  `api/` code run in-process over a stubbed index and OTP. They guarantee the
+  server's *shape*, not that the names or distances are what OSM holds.
+
 **Notifications exist as infrastructure only**, as of 2026-09-23 (issue #21) —
 `app/lib/core/notifications/`. Nothing schedules one yet; #22–#25 do that.
 What is there is a seam built so that a fourth kind of notification cannot be
@@ -232,7 +274,8 @@ ever run on a phone — only widget tests and an APK build — so anything
 resting on that belongs in `In review`, not `Done`.
 
 `P0` is the critical path: #11 storage, ~~#14 `/places`~~ (backend done
-2026-09-22; the client half of P-10/P-18/P-19 is not), #19 map rendering,
+2026-09-22; the client half landed 2026-11-08 as #15/#16/#17, in `In review`),
+#19 map rendering,
 ~~#21 notifications~~ (infrastructure done 2026-09-23; #22–#25 are still
 `Backlog`, because what shipped is the seam they schedule through and not the
 features). The `P0` set in `scripts/project_board.py` is now empty — every
@@ -681,8 +724,8 @@ violates OSM's own licence and the community treats it seriously.
    the design tokens, reachable today only as the coverage map on the
    About screen — `app/lib/core/map/` records why that and not an
    itinerary map. `/places` and `/places/reverse` went live the same
-   day (#14), so the client half of place search and map picking is no
-   longer blocked — but neither is built yet. Notification
+   day (#14), and the client half is built as of 2026-11-08 (#15, #16,
+   #17) — see "The places client" above. Notification
    infrastructure landed 2026-09-23 (#21): `app/lib/core/notifications/`
    holds the seam, the permission flow and the opt-out, but none of the
    four notifications is scheduled by anything yet (#22–#25), and

@@ -53,10 +53,10 @@ DONE = {1, 4, 5, 10, 29, 35}
 # build; and, for #28, that CI checks no goldens at all - they are
 # per-platform and only a Windows set is committed, so Linux skips them.
 # Each carries a comment saying what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 21, 26, 27, 28, 30, 31, 32, 33, 34}
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 26, 27, 28, 30, 31, 32, 33, 34}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
-BLOCKED = {15, 16, 17, 20, 22, 23, 24, 25}
+BLOCKED = {20, 22, 23, 24, 25}
 
 # The critical path: each of these is in the v1 gate *and* holds up others.
 # Empty since 2026-09-23, when #21 shipped the notification seam - every P0 on

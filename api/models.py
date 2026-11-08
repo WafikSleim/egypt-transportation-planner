@@ -190,6 +190,35 @@ class StopsResponse(BaseModel):
     attribution: Attribution
 
 
+class NearbyStop(BaseModel):
+    id: str
+    name: str
+    lat: float
+    lon: float
+    distance_m: int = Field(
+        ..., description="Straight-line metres from the queried point. Not a "
+                         "walking distance -- the street network can make the "
+                         "real walk considerably longer."
+    )
+    source: Source = "tfc"
+    confidence: Confidence = "confirmed"
+
+
+class NearbyStopsResponse(BaseModel):
+    """The stops nearest a point, nearest first (P-18, map picking).
+
+    Transit data from OTP, credited to TfC. It is deliberately **not** part of
+    `/places/reverse`, which answers from the OSM index: putting the nearest
+    stop in that response would join the two datasets the licences forbid
+    joining. The client asks for both and shows them as two labelled things.
+    """
+    at: str
+    radius_m: int
+    count: int
+    stops: list[NearbyStop]
+    attribution: Attribution
+
+
 class FeedInfo(BaseModel):
     feed_id: str
     agencies: list[str]

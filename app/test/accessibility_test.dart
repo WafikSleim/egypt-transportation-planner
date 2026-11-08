@@ -18,7 +18,9 @@ import 'package:egypt_transport/features/about/view/about_page.dart';
 import 'package:egypt_transport/features/itinerary/view/itinerary_page.dart';
 import 'package:egypt_transport/features/results/view/results_page.dart';
 import 'package:egypt_transport/features/search/view/search_page.dart';
-import 'package:egypt_transport/features/stops/view/stop_picker_page.dart';
+import 'package:egypt_transport/features/map_pick/view/map_pick_page.dart';
+import 'package:egypt_transport/features/picker/view/picker_page.dart';
+import 'package:egypt_transport/data/models/place_models.dart';
 import 'package:egypt_transport/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,6 +29,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_location_service.dart';
 import 'fake_notification_service.dart';
+import 'fake_places_repository.dart';
 import 'fake_repository.dart';
 import 'fixtures.dart';
 
@@ -313,13 +316,27 @@ void main() {
     'itinerary': () => itinerary(planMetro),
     'microbus itinerary': () => itinerary(planMicrobus),
     'nothing found': () => results(planNoCoverage),
-    'stop picker': () => withRepo(
-      StopPickerPage(
+    'picker': () => withRepo(
+      PickerPage(
         title: 'من فين',
-        presenter: presenter,
-        repository: FakeRepository(
+        planner: FakeRepository(
           stopsResponse: StopsResponse.fromJson(stopsMoneeb),
         ),
+        places: FakePlacesRepository(
+          searchResponse: PlacesResponse.fromJson(placesAr),
+        ),
+      ),
+      FakeRepository(),
+    ),
+    'map pick': () => withRepo(
+      MapPickPage(
+        planner: FakeRepository(
+          nearbyResponse: NearbyStopsResponse.fromJson(stopsNearby),
+        ),
+        places: FakePlacesRepository(
+          reverseResponse: PlacesResponse.fromJson(placesReverse),
+        ),
+        surfaceBuilder: (_, _) => const SizedBox.expand(),
       ),
       FakeRepository(),
     ),
@@ -383,6 +400,94 @@ void main() {
         await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
       });
     }
+  });
+
+  // ------------------------------------------------- picker, with results
+
+  /// The `screens` table pumps each page once, so the picker above is only
+  /// ever seen empty. Its interesting state is the one with stops, places,
+  /// the Latin-fallback note and two credits on it.
+  group('the picker with results on screen', () {
+    Future<void> typed(
+      WidgetTester tester, {
+      Locale locale = const Locale('ar'),
+      Brightness brightness = Brightness.light,
+      double textScale = 1.0,
+    }) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        host(
+          withRepo(
+            PickerPage(
+              title: 'من فين',
+              planner: FakeRepository(
+                stopsResponse: StopsResponse.fromJson(stopsMoneeb),
+              ),
+              places: FakePlacesRepository(
+                searchResponse: PlacesResponse.fromJson(placesAr),
+              ),
+            ),
+            FakeRepository(),
+          ),
+          locale: locale,
+          brightness: brightness,
+          textScale: textScale,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'المنيب');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+    }
+
+    for (final locale in const [Locale('ar'), Locale('en')]) {
+      for (final brightness in Brightness.values) {
+        testWidgets(
+          'survives 2x in ${locale.languageCode}, ${brightness.name}',
+          (tester) async {
+            await typed(
+              tester,
+              locale: locale,
+              brightness: brightness,
+              textScale: 2.0,
+            );
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
+    }
+
+    testWidgets('meets the 48dp minimum', (tester) async {
+      await typed(tester);
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    });
+
+    testWidgets('has no unlabelled control', (tester) async {
+      await typed(tester);
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    });
+
+    testWidgets('a place row is one node that says what it is', (tester) async {
+      final handle = tester.ensureSemantics();
+      await typed(tester);
+
+      // The name, its category and its district are one answer, announced as
+      // one button - not a mark, a name, a subtitle and a chevron.
+      final row = tester.getSemantics(
+        find
+            .ancestor(
+              of: find.textContaining('كايرو فستيفال سيتي مول'),
+              matching: find.byType(InkWell),
+            )
+            .first,
+      );
+      expect(row.getSemanticsData().flagsCollection.isButton, isTrue);
+      expect(row.label, contains('مول'));
+      handle.dispose();
+    });
   });
 
   // --------------------------------------------------------------- semantics

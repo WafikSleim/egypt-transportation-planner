@@ -339,6 +339,82 @@ async def test_stops_query_does_not_ask_for_routes(fake_otp, client):
 
 
 # --------------------------------------------------------------------------
+# Nearest stops -- the map-pick screen's "can I get there from here" (P-18)
+# --------------------------------------------------------------------------
+
+def _near(stop_id, name, distance, lat=30.0311, lon=31.46):
+    return {"distance": distance,
+            "stop": {"gtfsId": stop_id, "name": name, "lat": lat, "lon": lon}}
+
+
+async def test_nearby_stops_come_back_nearest_first_with_tfc_credit(
+        fake_otp, client):
+    fake_otp.nearby = [_near("2:9", "Far Stop", 640.4),
+                       _near("2:1", "Near Stop", 238.6)]
+    async with client as c:
+        r = await c.get("/stops/nearby", params={"at": "30.0312,31.4601"})
+
+    body = r.json()
+    assert [s["id"] for s in body["stops"]] == ["2:1", "2:9"]
+    assert [s["distance_m"] for s in body["stops"]] == [239, 640]
+    # Transit data, so TfC's credit -- never the OSM one the place index uses.
+    assert "Transport for Cairo" in body["attribution"]["text"]
+    assert "OpenStreetMap" not in body["attribution"]["text"]
+
+
+async def test_nearby_stops_ask_otp_for_the_radius_and_limit(fake_otp, client):
+    async with client as c:
+        await c.get("/stops/nearby",
+                    params={"at": "30.0312,31.4601", "radius_m": 800, "limit": 2})
+
+    sent = fake_otp.requests[0]["variables"]
+    assert sent == {"lat": 30.0312, "lon": 31.4601, "radius": 800, "first": 2}
+
+
+async def test_nothing_within_the_radius_is_an_answer_not_an_error(
+        fake_otp, client):
+    fake_otp.nearby = []
+    async with client as c:
+        r = await c.get("/stops/nearby", params={"at": "30.0312,31.4601"})
+
+    assert r.status_code == 200
+    assert r.json()["stops"] == []
+
+
+async def test_nearby_stop_names_are_localised_in_a_second_hop(fake_otp, client):
+    """Same trap as /plan: a stop reached through a nested resolver comes back
+    in Latin under Accept-Language: ar, while stops(ids:) translates."""
+    fake_otp.nearby = [_near("2:1145", "Moneeb", 120)]
+    fake_otp.stop_names = {"2:1145": "المنيب"}
+    async with client as c:
+        body = (await c.get("/stops/nearby",
+                            params={"at": "30.0312,31.4601", "lang": "ar"})).json()
+
+    assert body["stops"][0]["name"] == "المنيب"
+
+
+async def test_nearby_stops_skip_the_name_round_trip_in_english(fake_otp, client):
+    fake_otp.nearby = [_near("2:1145", "Moneeb", 120)]
+    async with client as c:
+        await c.get("/stops/nearby", params={"at": "30.0312,31.4601"})
+
+    assert len(fake_otp.requests) == 1
+
+
+async def test_nearby_stops_reject_a_point_outside_egypt(fake_otp, client):
+    async with client as c:
+        r = await c.get("/stops/nearby", params={"at": "51.5,-0.12"})
+    assert r.status_code == 422
+
+
+async def test_nearby_stops_report_otp_down_as_503(fake_otp, client):
+    fake_otp.status_code = 503
+    async with client as c:
+        r = await c.get("/stops/nearby", params={"at": "30.0312,31.4601"})
+    assert r.status_code == 503
+
+
+# --------------------------------------------------------------------------
 # Degradation -- OTP is a separate process and will not always be there
 # --------------------------------------------------------------------------
 

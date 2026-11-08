@@ -12,8 +12,10 @@ import 'core/notifications/notification_service.dart';
 import 'core/settings/settings_cubit.dart';
 import 'core/storage/key_value_store.dart';
 import 'data/cache/plan_cache.dart';
+import 'data/repositories/places_repository_impl.dart';
 import 'data/repositories/planner_repository_impl.dart';
 import 'data/repositories/trip_history.dart';
+import 'domain/repositories/places_repository.dart';
 import 'domain/repositories/planner_repository.dart';
 
 Future<void> main() async {
@@ -61,6 +63,11 @@ Future<void> main() async {
             // separately: the repository is what plans a trip, so it is what
             // records the answer, and no screen can plan one and forget to.
             create: (_) => PlannerRepositoryImpl(api, cache: PlanCache(store)),
+          ),
+          // A seam of its own: transit data and OpenStreetMap data are under
+          // two licences and are not served through one repository.
+          RepositoryProvider<PlacesRepository>(
+            create: (_) => PlacesRepositoryImpl(api),
           ),
         ],
         child: const EgyptTransportApp(),

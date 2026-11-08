@@ -183,6 +183,8 @@ class FakeOTP:
         self.itineraries: list[dict] = []
         self.stops: list[dict] = []
         self.stop_routes: dict[str, list[dict]] = {}
+        # What stopsByRadius answers with: `{distance, stop: {...}}` nodes.
+        self.nearby: list[dict] = []
         # Localised names by stop id, as OTP's stops(ids:) resolver returns
         # them. OTP will not supply these inside a plan response.
         self.stop_names: dict[str, str] = {}
@@ -207,7 +209,11 @@ class FakeOTP:
             return httpx.Response(200, json={"errors": self.graphql_errors})
 
         q = body["query"]
-        if "plan(" in q:
+        if "stopsByRadius" in q:
+            data = {"stopsByRadius": {"edges": [
+                {"node": n} for n in self.nearby
+            ]}}
+        elif "plan(" in q:
             data = {"plan": {"itineraries": self.itineraries}}
         elif "StopRoutes" in q:
             ids = body["variables"].get("ids") or []

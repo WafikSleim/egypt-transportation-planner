@@ -82,6 +82,27 @@ query Stops($name: String!) {
 }
 """
 
+# The stops nearest a point (map picking, P-18).
+#
+# UNVERIFIED against a live OTP: this was written from the GTFS GraphQL schema
+# (`stopsByRadius` returns a connection of `{ stop, distance }`, distance in
+# metres) with no graph on the machine to run it against. The route's tests
+# drive it through a stub, which checks the shape of what we send and what we
+# do with the answer -- not that OTP accepts the query. Run it once against the
+# built graph before trusting it, and fix this string if OTP disagrees.
+STOPS_NEARBY_QUERY = """
+query StopsNearby($lat: Float!, $lon: Float!, $radius: Int!, $first: Int!) {
+  stopsByRadius(lat: $lat, lon: $lon, radius: $radius, first: $first) {
+    edges {
+      node {
+        distance
+        stop { gtfsId name lat lon }
+      }
+    }
+  }
+}
+"""
+
 # Localised stop names by id.
 #
 # Needed because OTP applies translations.txt inconsistently: with

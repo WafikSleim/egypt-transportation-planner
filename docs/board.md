@@ -101,7 +101,7 @@ now shipped** — `P0` in `scripts/project_board.py` is the empty set:
 | | Unblocks | |
 | --- | --- | --- |
 | ~~**#11** On-device storage~~ | recents, saved trips, reminder scheduling | In review |
-| ~~**#14** `places` table + `/places`~~ | place search, map picking, the unified picker | In review, backend only |
+| ~~**#14** `places` table + `/places`~~ | place search, map picking, the unified picker | In review; client half built as #15 / #16 / #17, also In review |
 | ~~**#19** Map rendering~~ | the itinerary map, map picking | In review |
 | ~~**#21** Notification infrastructure~~ | reminders, post-trip prompt, background tracking | In review, 2026-09-23 |
 
@@ -119,8 +119,10 @@ from the OSM extract by `scripts/build_places.py`, and a `docker-compose.yml`
 that stands the database up. It sits in **In review** rather than Done for two
 reasons — the category labels are Arabic copy shown to every user, and whether
 searching «المعادي» ranks the district above the streets named after it is a
-judgement about the city. The client half of P-10, P-18 and P-19 is still to
-build, but it is no longer waiting on anything.
+judgement about the city. The client half of P-10, P-18 and P-19 shipped on 2026-11-08 as #15, #16
+and #17, which moved from `Backlog` to `In review` — nothing in them has run
+on a phone, and the Arabic copy is new. #16 also needed `GET /stops/nearby`,
+whose OTP query has not been run against a live graph.
 
 ---
 

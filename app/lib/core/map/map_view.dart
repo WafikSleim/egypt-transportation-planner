@@ -56,6 +56,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
+import '../../domain/entities/trip_endpoint.dart';
 import '../theme/tokens.dart';
 import 'map_attribution.dart';
 import 'map_palette.dart';
@@ -78,7 +79,26 @@ class CityMapView extends StatelessWidget {
     this.source,
     this.showCoverage = true,
     this.surfaceBuilder,
+    this.onSettled,
+    this.initialCenter,
+    this.initialZoom,
   });
+
+  /// Called with the map's centre each time the camera comes to rest — a
+  /// pan, a fling or a zoom has finished. Not called for the opening
+  /// position (the caller already knows it: it chose [initialCenter]) and not
+  /// called while the camera is moving: reverse geocoding every
+  /// frame of a drag would be a request per frame on a phone that is already
+  /// busy drawing the map.
+  ///
+  /// This is the whole of what map picking needs from the map. The widget
+  /// stays ignorant of why: the pin is the caller's to draw, over the centre.
+  /// The coverage map leaves it null and is unchanged.
+  final ValueChanged<GeoPoint>? onSettled;
+
+  /// Where the camera opens. Defaults to Tahrir at city zoom.
+  final GeoPoint? initialCenter;
+  final double? initialZoom;
 
   /// Defaults to [MapTileSource.fromEnvironment], which is the demo planet
   /// archive until the Cairo extract is hosted.
@@ -115,7 +135,18 @@ class CityMapView extends StatelessWidget {
           // only ever produces two or three distinct styles.
           child: KeyedSubtree(
             key: ValueKey(styleJson),
-            child: (surfaceBuilder ?? _defaultSurface)(context, styleJson),
+            // The real map gets `onSettled` and the opening camera through
+            // [_LiveMap]'s constructor rather than through
+            // [MapSurfaceBuilder], so the typedef every existing test
+            // implements did not have to change.
+            child: surfaceBuilder != null
+                ? surfaceBuilder!(context, styleJson)
+                : _LiveMap(
+                    styleJson: styleJson,
+                    onSettled: onSettled,
+                    center: initialCenter,
+                    zoom: initialZoom,
+                  ),
           ),
         ),
         // ODbL wants the credit where the map is, not two taps away on an
@@ -128,13 +159,52 @@ class CityMapView extends StatelessWidget {
       ],
     );
   }
+}
 
-  static Widget _defaultSurface(BuildContext context, String styleJson) {
+/// The platform view, and the one place MapLibre's own types are used.
+class _LiveMap extends StatefulWidget {
+  const _LiveMap({
+    required this.styleJson,
+    this.onSettled,
+    this.center,
+    this.zoom,
+  });
+
+  final String styleJson;
+  final ValueChanged<GeoPoint>? onSettled;
+  final GeoPoint? center;
+  final double? zoom;
+
+  @override
+  State<_LiveMap> createState() => _LiveMapState();
+}
+
+class _LiveMapState extends State<_LiveMap> {
+  MapLibreMapController? _controller;
+
+  void _idle() {
+    // The controller's `cameraPosition` is the last one the platform
+    // reported, which is exactly the camera that just came to rest. It is
+    // null unless `trackCameraPosition` is on.
+    final target = _controller?.cameraPosition?.target;
+    if (target == null) return;
+    widget.onSettled?.call(GeoPoint(target.latitude, target.longitude));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MapLibreMap(
-      styleString: styleJson,
-      initialCameraPosition: const CameraPosition(
-        target: LatLng(MapCamera.cairoLat, MapCamera.cairoLon),
-        zoom: MapCamera.cityZoom,
+      styleString: widget.styleJson,
+      onMapCreated: (c) => _controller = c,
+      // Only paid for when somebody is listening: tracking makes the platform
+      // report every camera change across the channel.
+      trackCameraPosition: widget.onSettled != null,
+      onCameraIdle: widget.onSettled == null ? null : _idle,
+      initialCameraPosition: CameraPosition(
+        target: widget.center == null
+            ? const LatLng(MapCamera.cairoLat, MapCamera.cairoLon)
+            : LatLng(widget.center!.lat, widget.center!.lon),
+        zoom: widget.zoom ?? MapCamera.cityZoom,
       ),
       // The box the transit data covers, and therefore the box the map is
       // allowed to reach. Panning to Aswan invites a trip request there is no

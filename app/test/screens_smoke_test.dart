@@ -12,7 +12,7 @@ import 'package:egypt_transport/features/results/view/results_page.dart';
 import 'package:egypt_transport/domain/entities/trip_endpoint.dart';
 import 'package:egypt_transport/features/results/widgets/itinerary_card.dart';
 import 'package:egypt_transport/features/search/view/search_page.dart';
-import 'package:egypt_transport/features/stops/view/stop_picker_page.dart';
+import 'package:egypt_transport/features/picker/view/picker_page.dart';
 import 'package:egypt_transport/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +20,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_location_service.dart';
+import 'fake_places_repository.dart';
 import 'fake_repository.dart';
 import 'fixtures.dart';
 
@@ -232,26 +233,28 @@ void main() {
     });
   });
 
-  group('stop picker', () {
-    testWidgets('states that search matches from the start of a name', (
-      tester,
-    ) async {
+  group('picker', () {
+    testWidgets('states that stops match from the start of a name and '
+        'places anywhere in it', (tester) async {
       final repo = FakeRepository(
         stopsResponse: StopsResponse.fromJson(stopsMoneeb),
       );
 
       await tester.pumpWidget(
         host(
-          StopPickerPage(
+          PickerPage(
             title: 'من فين',
-            repository: repo,
-            presenter: const TripPresenter(languageCode: 'ar'),
+            planner: repo,
+            places: FakePlacesRepository(),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('البحث بيبدأ من أول الاسم'), findsOneWidget);
+      expect(
+        find.textContaining('المحطات بتتلاقى من أول الاسم'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows stops once a query is typed', (tester) async {
@@ -261,10 +264,10 @@ void main() {
 
       await tester.pumpWidget(
         host(
-          StopPickerPage(
+          PickerPage(
             title: 'من فين',
-            repository: repo,
-            presenter: const TripPresenter(languageCode: 'ar'),
+            planner: repo,
+            places: FakePlacesRepository(),
           ),
         ),
       );

@@ -180,6 +180,11 @@ class MapCamera {
   /// Shows Greater Cairo on a 390-wide frame without the desert either side.
   static const cityZoom = 10.5;
 
+  /// Where the map-pick screen opens: street level, where a thumb can put a
+  /// pin on a junction. The archive is built to z14, so this is its deepest
+  /// native zoom and nothing is being overzoomed.
+  static const pickZoom = 14.0;
+
   /// Below this the coverage box no longer fills the frame, which makes the
   /// covered area look smaller than it is.
   static const minZoom = 8.0;
