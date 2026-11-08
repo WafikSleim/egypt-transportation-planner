@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/map/map_view.dart';
+import '../../../core/map/tile_source.dart';
 import '../../../core/presentation/view_models.dart';
 import '../../../core/text/bidi.dart';
 import '../../../core/text/formatting.dart';
@@ -12,6 +14,7 @@ import '../../../core/widgets/honesty_panel.dart';
 import '../../../core/widgets/mode_badge.dart';
 import '../../../data/models/models.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../widgets/itinerary_map_card.dart';
 
 /// Leg by leg.
 ///
@@ -30,6 +33,8 @@ class ItineraryPage extends StatelessWidget {
     required this.itinerary,
     required this.attribution,
     this.tripActions,
+    this.mapSource,
+    this.mapSurfaceBuilder,
   });
 
   final ItineraryVm itinerary;
@@ -40,6 +45,11 @@ class ItineraryPage extends StatelessWidget {
   /// model, which is what the goldens and the accessibility pass photograph,
   /// and it should stay one.
   final Widget? tripActions;
+
+  /// Both injected by tests, which have no platform view to draw into.
+  /// Production leaves them null.
+  final MapTileSource? mapSource;
+  final MapSurfaceBuilder? mapSurfaceBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +69,15 @@ class ItineraryPage extends StatelessWidget {
                 severity: HonestySeverity.warning,
                 icon: Icons.history_rounded,
                 text: l.cachedItineraryNote(clockTime(itinerary.cachedAt!)),
+              ),
+              SizedBox(height: Insets.lg),
+            ],
+            // Absent, not empty, when no leg has a path — see the card.
+            if (itinerary.routeMap.hasRoute) ...[
+              ItineraryMapCard(
+                route: itinerary.routeMap,
+                source: mapSource,
+                surfaceBuilder: mapSurfaceBuilder,
               ),
               SizedBox(height: Insets.lg),
             ],
@@ -124,9 +143,7 @@ class _LegTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final p = context.colors;
-    final color = leg.badge.shape == ModeBadgeShape.metroCircle
-        ? context.modeColors.forMetroLine(leg.badge.metroLine)
-        : context.modeColors.forModeId(leg.badge.modeId);
+    final color = context.modeColors.forBadge(leg.badge);
 
     return IntrinsicHeight(
       child: Row(

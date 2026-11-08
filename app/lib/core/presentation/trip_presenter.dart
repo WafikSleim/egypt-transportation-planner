@@ -1,5 +1,5 @@
 import '../../data/models/models.dart';
-import '../../domain/entities/trip_endpoint.dart';
+import '../map/geo.dart';
 import 'mode_catalog.dart';
 import 'view_models.dart';
 
@@ -61,15 +61,68 @@ class TripPresenter {
     );
   }
 
-  ItineraryVm itinerary(Itinerary it, {DateTime? cachedAt}) => ItineraryVm(
-    startTime: it.startTime,
-    endTime: it.endTime,
-    durationMinutes: it.durationMinutes,
-    walkDistanceM: it.walkDistanceM,
-    transfers: it.transfers,
-    legs: it.legs.map(leg).toList(growable: false),
-    cachedAt: cachedAt,
-  );
+  ItineraryVm itinerary(Itinerary it, {DateTime? cachedAt}) {
+    final legs = it.legs.map(leg).toList(growable: false);
+    return ItineraryVm(
+      startTime: it.startTime,
+      endTime: it.endTime,
+      durationMinutes: it.durationMinutes,
+      walkDistanceM: it.walkDistanceM,
+      transfers: it.transfers,
+      legs: legs,
+      cachedAt: cachedAt,
+      routeMap: routeMap(legs),
+    );
+  }
+
+  /// What the map draws for these legs.
+  ///
+  /// **A leg with no path is left out, not joined up.** The straight line
+  /// between a microbus's boarding and alighting stops runs through Nasr City
+  /// in one hop, and a map is exactly where someone will believe it. Plans
+  /// cached before geometry existed, and any leg OTP sent no shape for, land
+  /// here; the screen counts them in [RouteMapVm.undrawnLegs] and says so.
+  ///
+  /// Stops are marked only for legs that are drawn, so no marker floats
+  /// unconnected. Origin and destination are the ends of what is drawn, not
+  /// of the trip, for the same reason.
+  RouteMapVm routeMap(List<LegVm> legs) {
+    final drawn = legs.where((l) => l.path.length >= 2).toList();
+    if (drawn.isEmpty) return RouteMapVm(undrawnLegs: legs.length);
+
+    final stops = <RouteStopVm>[
+      RouteStopVm(point: drawn.first.path.first, role: RouteStopRole.origin),
+      for (final l in drawn)
+        if (l.isTransit) ...[
+          RouteStopVm(
+            point: l.path.first,
+            role: RouteStopRole.board,
+            badge: l.badge,
+          ),
+          if (!identical(l, drawn.last))
+            RouteStopVm(
+              point: l.path.last,
+              role: RouteStopRole.alight,
+              badge: l.badge,
+            ),
+        ],
+      RouteStopVm(point: drawn.last.path.last, role: RouteStopRole.destination),
+    ];
+
+    return RouteMapVm(
+      segments: [
+        for (final l in drawn)
+          RouteSegmentVm(
+            badge: l.badge,
+            isWalk: l.isWalk,
+            points: l.path,
+            approximate: l.pathApproximate,
+          ),
+      ],
+      stops: stops,
+      undrawnLegs: legs.length - drawn.length,
+    );
+  }
 
   LegVm leg(Leg l) {
     final route = l.route;
@@ -86,6 +139,10 @@ class TripPresenter {
     // The metro is the one case where a number exists and still gets no
     // separate chip: its circular badge already *is* the line number, so a
     // number chip beside it renders "M1" twice.
+    final decoded = l.geometry == null
+        ? const <GeoPoint>[]
+        : decodePolyline(l.geometry!);
+
     final showNumber =
         route != null &&
         route.hasLineNumber &&
@@ -107,6 +164,8 @@ class TripPresenter {
       showNumberBadge: showNumber,
       numberBadgeText: showNumber ? route.shortName : null,
       operatorName: route?.operator,
+      path: decoded.length >= 2 ? decoded : const [],
+      pathApproximate: l.geometryApproximate,
       fromPoint: GeoPoint(l.from.lat, l.from.lon),
       toPoint: GeoPoint(l.to.lat, l.to.lon),
     );

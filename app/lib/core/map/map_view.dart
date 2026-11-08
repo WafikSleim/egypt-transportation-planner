@@ -51,16 +51,25 @@
 /// **No vehicles, ever.** There is no real-time vehicle feed for Cairo
 /// paratransit and none to buy. A moving dot on a map is precisely the lie
 /// this product exists not to tell — rule 5 in `docs/design-system.md`.
+///
+/// **An itinerary rides in the style, not on the controller.** [CityMapView]
+/// takes an optional `route` (see `route_overlay.dart`) that becomes a GeoJSON
+/// source and `route-*` layers inside the style document, so the same
+/// stub-surface seam covers it. The only controller call is fitting the
+/// camera once the style has loaded. Map picking (P-18/P-19) should extend
+/// this widget the same way — an optional input folded into the style, not
+/// imperative annotations — so both features share one surface.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
-import '../../domain/entities/trip_endpoint.dart';
 import '../theme/tokens.dart';
 import 'map_attribution.dart';
 import 'map_palette.dart';
+import 'geo.dart';
 import 'map_style.dart';
+import 'route_overlay.dart';
 import 'tile_source.dart';
 
 /// The seam that keeps this testable.
@@ -82,6 +91,7 @@ class CityMapView extends StatelessWidget {
     this.onSettled,
     this.initialCenter,
     this.initialZoom,
+    this.route,
   });
 
   /// Called with the map's centre each time the camera comes to rest — a
@@ -99,6 +109,13 @@ class CityMapView extends StatelessWidget {
   /// Where the camera opens. Defaults to Tahrir at city zoom.
   final GeoPoint? initialCenter;
   final double? initialZoom;
+
+  /// An itinerary to draw, and to fit the camera to. Null leaves the map
+  /// exactly as the coverage map has it: the whole city, no overlay.
+  ///
+  /// It is part of the style document, not a set of controller calls, so the
+  /// same seam covers it: a test reads the style [surfaceBuilder] was handed.
+  final MapRouteOverlay? route;
 
   /// Defaults to [MapTileSource.fromEnvironment], which is the demo planet
   /// archive until the Cairo extract is hosted.
@@ -122,6 +139,7 @@ class CityMapView extends StatelessWidget {
       source: tiles,
       languageCode: Localizations.localeOf(context).languageCode,
       showCoverage: showCoverage,
+      route: route,
     );
 
     return Stack(
@@ -146,6 +164,7 @@ class CityMapView extends StatelessWidget {
                     onSettled: onSettled,
                     center: initialCenter,
                     zoom: initialZoom,
+                    fit: route?.bounds,
                   ),
           ),
         ),
@@ -168,12 +187,17 @@ class _LiveMap extends StatefulWidget {
     this.onSettled,
     this.center,
     this.zoom,
+    this.fit,
   });
 
   final String styleJson;
   final ValueChanged<GeoPoint>? onSettled;
   final GeoPoint? center;
   final double? zoom;
+
+  /// The trip to fit the camera to, once the style is in. Null leaves the
+  /// camera at [center] / [zoom].
+  final GeoBounds? fit;
 
   @override
   State<_LiveMap> createState() => _LiveMapState();
@@ -191,11 +215,33 @@ class _LiveMapState extends State<_LiveMap> {
     widget.onSettled?.call(GeoPoint(target.latitude, target.longitude));
   }
 
+  // Fitted once the style is in, not at creation: a camera move issued
+  // before the style loads can be dropped, which would leave the map on the
+  // whole of Cairo with the trip somewhere in it. Unverified on hardware.
+  // The camera target bounds below still clamp it to the covered box.
+  void _fitToRoute() {
+    final fit = widget.fit;
+    if (fit == null) return;
+    _controller?.moveCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(fit.south, fit.west),
+          northeast: LatLng(fit.north, fit.east),
+        ),
+        left: Insets.xl,
+        top: Insets.xl,
+        right: Insets.xl,
+        bottom: Insets.xl,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MapLibreMap(
       styleString: widget.styleJson,
       onMapCreated: (c) => _controller = c,
+      onStyleLoadedCallback: widget.fit == null ? null : _fitToRoute,
       // Only paid for when somebody is listening: tracking makes the platform
       // report every camera change across the channel.
       trackCameraPosition: widget.onSettled != null,

@@ -50,6 +50,7 @@ query Plan($from: InputCoordinates!, $to: InputCoordinates!, $date: String!,
         distance
         transitLeg
         headsign
+        legGeometry { points }
         from { name lat lon stop { gtfsId } }
         to   { name lat lon stop { gtfsId } }
         intermediatePlaces { name }

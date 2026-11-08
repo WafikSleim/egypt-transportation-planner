@@ -439,5 +439,25 @@
   "postTripDialogQuestion": "المشوار كان زي ما اتوقّعنا؟",
   "postTripYes": "أيوه",
   "postTripNo": "لأ",
-  "postTripLocalOnly": "ردّك بيتسجّل على تليفونك بس، ومابيتبعتش لحد. ومش هنسألك عن المشوار ده تاني."
+  "postTripLocalOnly": "ردّك بيتسجّل على تليفونك بس، ومابيتبعتش لحد. ومش هنسألك عن المشوار ده تاني.",
+  "routeMapLabel": "خريطة المشوار",
+  "@routeMapLabel": {
+    "description": "Accessibility label for the itinerary map."
+  },
+  "routeMapCaption": "الخطوط دي مسار المشوار المخطَّط، مش مكان العربيات دلوقتي.",
+  "@routeMapCaption": {
+    "description": "Under the itinerary map. Must not imply live vehicle positions."
+  },
+  "routeMapWalkLegend": "مشي",
+  "@routeMapWalkLegend": {
+    "description": "Legend entry next to a dashed sample line."
+  },
+  "routeMapApproximate": "الخط الباهت تقريبي: خطوط مستقيمة بين المحطات، مش مسار القضبان الفعلي.",
+  "@routeMapApproximate": {
+    "description": "Shown when the server flags a leg's path as straight lines between stations (metro line 3)."
+  },
+  "routeMapUndrawn": "بعض أجزاء المشوار مش مرسومة لأن مسارها مش متاح. مش هنرسم خط مستقيم ونوهمك إنه الطريق.",
+  "@routeMapUndrawn": {
+    "description": "Shown when some legs have no path data."
+  }
 }
