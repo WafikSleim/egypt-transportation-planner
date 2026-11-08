@@ -29,6 +29,7 @@ import 'fake_location_service.dart';
 import 'fake_notification_service.dart';
 import 'fake_repository.dart';
 import 'fixtures.dart';
+import 'route_fixtures.dart';
 
 /// Accessibility (#27).
 ///
@@ -300,6 +301,9 @@ void main() {
     return ItineraryPage(
       itinerary: plan.itineraries.first,
       attribution: plan.attribution,
+      // A platform view cannot be built on the VM. Only matters when the
+      // plan carries geometry; the plain fixtures draw no map at all.
+      mapSurfaceBuilder: (_, _) => const SizedBox.expand(),
     );
   }
 
@@ -312,6 +316,9 @@ void main() {
     'results': () => results(planMetro),
     'itinerary': () => itinerary(planMetro),
     'microbus itinerary': () => itinerary(planMicrobus),
+    // The itinerary map (#20): legend, caption and the honesty notes.
+    'itinerary with map': () =>
+        itinerary(withGeometry(planMetro, skip: {4}, approximate: {1})),
     'nothing found': () => results(planNoCoverage),
     'stop picker': () => withRepo(
       StopPickerPage(

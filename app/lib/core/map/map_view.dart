@@ -59,7 +59,9 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import '../theme/tokens.dart';
 import 'map_attribution.dart';
 import 'map_palette.dart';
+import 'geo.dart';
 import 'map_style.dart';
+import 'route_overlay.dart';
 import 'tile_source.dart';
 
 /// The seam that keeps this testable.
@@ -78,7 +80,15 @@ class CityMapView extends StatelessWidget {
     this.source,
     this.showCoverage = true,
     this.surfaceBuilder,
+    this.route,
   });
+
+  /// An itinerary to draw, and to fit the camera to. Null leaves the map
+  /// exactly as the coverage map has it: the whole city, no overlay.
+  ///
+  /// It is part of the style document, not a set of controller calls, so the
+  /// same seam covers it: a test reads the style [surfaceBuilder] was handed.
+  final MapRouteOverlay? route;
 
   /// Defaults to [MapTileSource.fromEnvironment], which is the demo planet
   /// archive until the Cairo extract is hosted.
@@ -102,6 +112,7 @@ class CityMapView extends StatelessWidget {
       source: tiles,
       languageCode: Localizations.localeOf(context).languageCode,
       showCoverage: showCoverage,
+      route: route,
     );
 
     return Stack(
@@ -129,9 +140,31 @@ class CityMapView extends StatelessWidget {
     );
   }
 
-  static Widget _defaultSurface(BuildContext context, String styleJson) {
+  Widget _defaultSurface(BuildContext context, String styleJson) {
+    final GeoBounds? fit = route?.bounds;
+    MapLibreMapController? controller;
     return MapLibreMap(
       styleString: styleJson,
+      onMapCreated: (c) => controller = c,
+      // Fitted once the style is in, not at creation: a camera move issued
+      // before the style loads can be dropped, which would leave the map on
+      // the whole of Cairo with the trip somewhere in it. Unverified on
+      // hardware — nothing in this project has run on a phone. The camera
+      // target bounds below still clamp it to the covered box.
+      onStyleLoadedCallback: fit == null
+          ? null
+          : () => controller?.moveCamera(
+              CameraUpdate.newLatLngBounds(
+                LatLngBounds(
+                  southwest: LatLng(fit.south, fit.west),
+                  northeast: LatLng(fit.north, fit.east),
+                ),
+                left: Insets.xl,
+                top: Insets.xl,
+                right: Insets.xl,
+                bottom: Insets.xl,
+              ),
+            ),
       initialCameraPosition: const CameraPosition(
         target: LatLng(MapCamera.cairoLat, MapCamera.cairoLon),
         zoom: MapCamera.cityZoom,

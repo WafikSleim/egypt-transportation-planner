@@ -40,7 +40,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import 'map_color.dart';
 import 'map_palette.dart';
+import 'route_overlay.dart';
 import 'tile_source.dart';
 
 /// The source id every layer hangs off. Only meaningful inside this file.
@@ -82,6 +84,7 @@ Map<String, Object?> buildMapStyle({
   required MapTileSource source,
   required String languageCode,
   bool showCoverage = true,
+  MapRouteOverlay? route,
 }) {
   final label = _localisedName(languageCode);
 
@@ -98,6 +101,7 @@ Map<String, Object?> buildMapStyle({
         'attribution': source.attribution.text,
       },
       if (showCoverage) 'coverage': _coverageSource(),
+      if (route != null) routeSourceId: routeSource(route),
     },
     'layers': <Map<String, Object?>>[
       // Painted before any tile arrives, so a slow connection shows the map's
@@ -293,6 +297,10 @@ Map<String, Object?> buildMapStyle({
           'text-halo-width': 1.4,
         },
       },
+      // Last of all: the trip is the thing the screen is about, so it is
+      // drawn over the labels rather than under them. Every id here starts
+      // with `route-`; the basemap test relies on that.
+      if (route != null) ...routeLayers(colors),
     ],
   };
 }
@@ -303,12 +311,14 @@ String encodeMapStyle({
   required MapTileSource source,
   required String languageCode,
   bool showCoverage = true,
+  MapRouteOverlay? route,
 }) => jsonEncode(
   buildMapStyle(
     colors: colors,
     source: source,
     languageCode: languageCode,
     showCoverage: showCoverage,
+    route: route,
   ),
 );
 
@@ -421,15 +431,4 @@ List<Map<String, Object?>> _coverageLayers(MapPalette colors) => [
   },
 ];
 
-/// MapLibre wants `#rrggbb`. Flutter's [Color] is ARGB and its alpha would
-/// come out as the first pair, which silently produces a nonsense colour
-/// rather than an error.
-String _hex(Color color) {
-  final r = (color.r * 255).round();
-  final g = (color.g * 255).round();
-  final b = (color.b * 255).round();
-  return '#'
-      '${r.toRadixString(16).padLeft(2, '0')}'
-      '${g.toRadixString(16).padLeft(2, '0')}'
-      '${b.toRadixString(16).padLeft(2, '0')}';
-}
+String _hex(Color color) => mapHex(color);

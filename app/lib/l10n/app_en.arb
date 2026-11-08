@@ -189,5 +189,10 @@
     }
   },
   "notifyPostTripTitle": "Did you get there safely?",
-  "notifyPostTripBody": "Tell us whether the trip was right, if you can."
+  "notifyPostTripBody": "Tell us whether the trip was right, if you can.",
+  "routeMapLabel": "Trip map",
+  "routeMapCaption": "The lines show the planned route, not where any vehicle is right now.",
+  "routeMapWalkLegend": "Walk",
+  "routeMapApproximate": "The faded line is approximate: straight lines between stations, not the actual track.",
+  "routeMapUndrawn": "Some parts of the trip are not drawn because their path is not available. We will not draw a straight line and pass it off as the road."
 }
