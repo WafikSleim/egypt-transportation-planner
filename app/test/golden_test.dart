@@ -99,15 +99,11 @@ import 'fixtures.dart';
 ///
 /// ### Two things in the images that are the app's, not the test's
 ///
-/// The clock lines read `05:00 – 07:10` for a trip the fixture departs at
-/// `08:00+03:00`. `DateTime.parse` returns a **UTC** `DateTime` when the
-/// string carries an offset, and `clockTime` prints `.hour` off it, so every
-/// time in the app is drawn three hours early in Cairo. It is captured here
-/// rather than worked around because that is what the screen does today, and
-/// a golden that quietly corrected it would be the only place the bug is
-/// invisible. (It does mean these images do not depend on the machine's
-/// timezone, which is a genuine help — but it is a side effect, not a
-/// design.)
+/// The clock lines read `08:00 – 10:10` for a trip the fixture departs at
+/// `08:00+03:00`. They read `05:00 – 07:10` until #38: `DateTime.parse`
+/// returns a **UTC** `DateTime`, and `clockTime` printed `.hour` off it. It
+/// now converts instants to Africa/Cairo, so these images do not depend on the
+/// machine's timezone, and `clock_time_test.dart` asserts the strings.
 ///
 /// The microbus card shows three chips for an itinerary the API calls two
 /// transfers, because two of its three microbus legs are consecutive with no

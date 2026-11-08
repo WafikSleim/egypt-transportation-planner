@@ -7,8 +7,30 @@
 /// Modern Standard Arabic typography and wrong for this audience.
 library;
 
-String clockTime(DateTime t) =>
-    '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
+
+/// Cairo is the one clock this app plans in: the coverage box is Greater
+/// Cairo and the API renders every instant in it. Resolved lazily so no
+/// caller has to remember to initialise the database first; Egypt's DST is
+/// in the database, so no offset is hardcoded.
+final tz.Location _cairo = () {
+  tz_data.initializeTimeZones();
+  return tz.getLocation('Africa/Cairo');
+}();
+
+/// `HH:mm` on the Cairo clock.
+///
+/// `DateTime.parse` turns any string carrying an offset into a **UTC**
+/// instant, so reading `.hour` off a parsed API time prints it three hours
+/// early (#38). A UTC value is therefore an instant and is converted to
+/// Cairo. A non-UTC value is a wall-clock time already (the departure the
+/// passenger picked, or the moment the phone saved a plan) and is printed as
+/// it is. Rendering never depends on the device's timezone.
+String clockTime(DateTime t) {
+  final c = t.isUtc ? tz.TZDateTime.from(t, _cairo) : t;
+  return '${c.hour.toString().padLeft(2, '0')}:${c.minute.toString().padLeft(2, '0')}';
+}
 
 /// Metres, rounded the way a person would say it.
 String distance(int metres) {
