@@ -33,6 +33,8 @@ from .models import (
     Itinerary,
     Leg,
     ModeInfo,
+    NearbyStop,
+    NearbyStopsResponse,
     Place,
     PlaceCategory,
     PlaceIndexInfo,
@@ -429,7 +431,7 @@ async def root() -> dict:
         "name": "Egypt Transportation Planner API",
         "version": app.version,
         "docs": "/docs",
-        "endpoints": ["/health", "/plan", "/stops", "/places",
+        "endpoints": ["/health", "/plan", "/stops", "/stops/nearby", "/places",
                       "/places/reverse", "/attribution"],
         "coverage": "Greater Cairo only. No other Egyptian city has transit "
                     "data yet.",
@@ -618,6 +620,67 @@ async def stops(
         total_matches=total,
         truncated=total > len(results),
         stops=results,
+        attribution=ATTRIBUTION,
+    )
+
+
+@app.get("/stops/nearby", response_model=NearbyStopsResponse, tags=["places"])
+async def stops_nearby(
+    at: str = Query(
+        ..., description="'lat,lon' -- where the map pin settled.",
+        examples=["30.0444,31.2357"],
+    ),
+    radius_m: int = Query(
+        1000, ge=50, le=5000,
+        description="How far to look. An empty list within this radius is a "
+                    "real answer: nothing here is within an easy walk of a stop.",
+    ),
+    limit: int = Query(3, ge=1, le=10),
+    lang: str = Query("en", pattern="^(en|ar)$"),
+) -> NearbyStopsResponse:
+    """The stops closest to a point, nearest first, with their distance.
+
+    Lets the map-pick screen say "nearest stop: 240 m" before a passenger
+    commits to a point. Distances are straight-line; the street network can
+    make the walk longer. Transit data, so the response carries TfC's
+    attribution; the name of the place at that point is `/places/reverse`'s
+    job, from a different dataset, and is asked for separately.
+    """
+    point = _coords(at, "at")
+    data = await _otp(
+        otp.STOPS_NEARBY_QUERY,
+        {"lat": point["lat"], "lon": point["lon"], "radius": radius_m,
+         "first": limit},
+        lang,
+    )
+    edges = ((data.get("stopsByRadius") or {}).get("edges")) or []
+    nodes = [e["node"] for e in edges
+             if e and e.get("node") and (e["node"].get("stop") or {}).get("gtfsId")]
+    nodes.sort(key=lambda n: n.get("distance") or 0)
+    nodes = nodes[:limit]
+
+    # The same localisation workaround as /plan: names reached through a
+    # nested resolver can come back in Latin under Accept-Language: ar, while
+    # the top-level stops(ids:) resolver translates. See `_stop_names`.
+    names: dict[str, str] = {}
+    if lang != "en" and nodes:
+        ids = sorted({n["stop"]["gtfsId"] for n in nodes})
+        extra = await _otp(otp.STOP_NAMES_QUERY, {"ids": ids}, lang)
+        names = {s["gtfsId"]: s["name"] for s in extra.get("stops") or []
+                 if s and s.get("gtfsId") and s.get("name")}
+
+    stops = [
+        NearbyStop(
+            id=n["stop"]["gtfsId"],
+            name=names.get(n["stop"]["gtfsId"]) or n["stop"].get("name") or "",
+            lat=n["stop"].get("lat") or 0.0,
+            lon=n["stop"].get("lon") or 0.0,
+            distance_m=round(n.get("distance") or 0),
+        )
+        for n in nodes
+    ]
+    return NearbyStopsResponse(
+        at=at, radius_m=radius_m, count=len(stops), stops=stops,
         attribution=ATTRIBUTION,
     )
 
