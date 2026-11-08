@@ -44,7 +44,14 @@ AREA = {
 
 # Shipped and machine-verified: analyze, tests and a build settle these, so
 # there is nothing left for a person to judge.
-DONE = {1, 4, 5, 10, 29, 35}
+#
+# Also: anything already closed on GitHub, because a closed issue is never In
+# review (docs/board.md) and the board moves it to Done on close. #21, #27,
+# #28 and #31 were in REVIEW here and got closed with their PRs, so applying
+# this script then would have reopened their column. Their hardware and
+# Arabic checks are still owed; they live on as comments on the issues, not
+# as a status. #38 and #41 are bugs fixed and closed by PR #43.
+DONE = {1, 4, 5, 10, 21, 27, 28, 29, 31, 35, 38, 41}
 
 # Shipped, but "done" here is a claim I cannot check myself. Three things
 # need the maintainer: whether the Arabic reads as Egyptian speech rather
@@ -55,8 +62,8 @@ DONE = {1, 4, 5, 10, 29, 35}
 # for #28, that CI checks no goldens at all - they are
 # per-platform and only a Windows set is committed, so Linux skips them.
 # Each carries a comment saying what to check.
-REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-          26, 27, 28, 30, 31, 32, 33, 34}
+REVIEW = {2, 3, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25,
+          26, 30, 32, 33, 34}
 
 # Waiting on another issue. Matches the `blocked` label exactly.
 BLOCKED = set()
