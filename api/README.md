@@ -170,7 +170,7 @@ redaction, or the calendar overlap guard each makes it fail.
 
 | Endpoint | Purpose |
 | --- | --- |
-| `GET /plan` | Plan a trip. `from`/`to` as `lat,lon`, optional `date`, `time`, `arrive_by`, `max_itineraries`, `lang` |
+| `GET /plan` | Plan a trip. `from`/`to` as `lat,lon`, optional `date`, `time`, `arrive_by`, `max_itineraries`, `lang`. Each leg carries `geometry` (encoded polyline, precision 5, or null) and `geometry_approximate` (set server-side for metro line 3, whose path is straight lines between stations) |
 | `GET /stops` | Search stops by name. `q`, `limit`, `lang` |
 | `GET /places` | Search the OSM place index. `q`, `near`, `limit`, `lang` |
 | `GET /places/reverse` | Name the point a map pin settled on. `at`, `radius_m`, `limit`, `lang` |

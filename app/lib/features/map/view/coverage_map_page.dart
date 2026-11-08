@@ -11,13 +11,13 @@ import '../../../l10n/generated/app_localizations.dart';
 ///
 /// ### Why the first map in this app is this screen
 ///
-/// The obvious home for a basemap is behind an itinerary, and that is where
-/// it goes next. It does not go there yet because `/plan` returns each leg's
-/// endpoints and no geometry: drawing a straight line between two stops would
-/// render a microbus as going through Nasr City in one hop. A wrong line on a
-/// map is not a rough sketch, it is a claim about a route — and this is the
-/// product that exists because other tools make claims about Cairo they
-/// cannot support.
+/// The obvious home for a basemap is behind an itinerary, and since #20 it is
+/// there too — but only once `/plan` returned each leg's real geometry. Before
+/// that, drawing a straight line between two stops would have rendered a
+/// microbus as going through Nasr City in one hop. A wrong line on a map is
+/// not a rough sketch, it is a claim about a route — and this is the product
+/// that exists because other tools make claims about Cairo they cannot
+/// support. The itinerary map leaves a leg out rather than guess it.
 ///
 /// Coverage is a claim the data *does* support, exactly. The box comes from
 /// the same constants the app refuses requests with, so the map cannot say

@@ -102,7 +102,7 @@ runtime, not at build time, so `app/android/app/proguard-rules.pro` records
 which plugins ship their own consumer rules (all three do) and what to try
 first if the map is what breaks.
 
-Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 239). The Dart
+Tests live in `tests/` (Python, 161) and `app/test/` (Dart, 278). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
@@ -187,6 +187,27 @@ data and join — its own schema `osm`, no TfC-derived value ever written into
 it, no materialised join, and `/places` answering with
 `© OpenStreetMap contributors` / ODbL rather than TfC's text. `/plan`,
 `/stops` and `/attribution` still carry TfC's. Two datasets, two credits.
+
+**The itinerary map exists** as of 2026-11-08 (issue #20). `/plan` now
+returns each leg's `geometry` (encoded polyline) and a server-set
+`geometry_approximate`; the client draws one line per leg in its badge colour,
+walking dashed, as a `route` source inside the MapLibre style. Three things are
+easy to undo:
+
+- **A leg with no geometry is left off the map, never replaced by a line from
+  its `from` to its `to`.** That line is a claim about the route nobody made.
+  Plans cached before this shipped have no geometry and show no map at all.
+- **Metro line 3 is drawn faded and labelled approximate** because its shapes
+  are straight lines between stations. The flag is set by the API from the feed
+  id (`config.FEED_PROVENANCE`), not inferred by the client. Every trip in the
+  road, TfC metro and L3 feeds has a `shape_id` (checked 2026-11-08).
+- **`ModeColors.forBadge` is the only place a badge becomes a colour**, used by
+  the badge widget, the leg list and the map. The basemap still never uses a
+  mode colour; route layers all start with `route-` and read one source.
+
+Not verified: the API change against a live OTP (`legGeometry { points }` is
+from OTP's documented schema, Docker was not running), and everything about how
+the map looks and fits on a phone. It is `In review` for that reason.
 
 **Notifications exist as infrastructure only**, as of 2026-09-23 (issue #21) —
 `app/lib/core/notifications/`. Nothing schedules one yet; #22–#25 do that.
@@ -677,9 +698,9 @@ violates OSM's own licence and the community treats it seriously.
 4. Flutter client — started, `app/`. Search, stop picker, results and
    itinerary detail work. Map rendering landed 2026-09-22 (#19):
    MapLibre Native over Protomaps `.pmtiles`, style built in Dart from
-   the design tokens, reachable today only as the coverage map on the
-   About screen — `app/lib/core/map/` records why that and not an
-   itinerary map. `/places` and `/places/reverse` went live the same
+   the design tokens, reachable as the coverage map on the About screen
+   and, since 2026-11-08 (#20), as the map at the top of the itinerary
+   screen once `/plan` carries leg geometry. `/places` and `/places/reverse` went live the same
    day (#14), so the client half of place search and map picking is no
    longer blocked — but neither is built yet. Notification
    infrastructure landed 2026-09-23 (#21): `app/lib/core/notifications/`

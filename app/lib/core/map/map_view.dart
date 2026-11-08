@@ -51,6 +51,14 @@
 /// **No vehicles, ever.** There is no real-time vehicle feed for Cairo
 /// paratransit and none to buy. A moving dot on a map is precisely the lie
 /// this product exists not to tell — rule 5 in `docs/design-system.md`.
+///
+/// **An itinerary rides in the style, not on the controller.** [CityMapView]
+/// takes an optional `route` (see `route_overlay.dart`) that becomes a GeoJSON
+/// source and `route-*` layers inside the style document, so the same
+/// stub-surface seam covers it. The only controller call is fitting the
+/// camera once the style has loaded. Map picking (P-18/P-19) should extend
+/// this widget the same way — an optional input folded into the style, not
+/// imperative annotations — so both features share one surface.
 library;
 
 import 'package:flutter/material.dart';

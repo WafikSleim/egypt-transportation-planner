@@ -160,6 +160,42 @@ while nothing else competes with it, and a basemap is thousands of shapes — a
 road casing in microbus orange would be the loudest orange on screen, by area.
 `test/map_style_test.dart` holds that.
 
+**The itinerary map draws what the data supports and says what it does not.**
+`/plan` returns each leg's `geometry` (an encoded polyline, which `core/map/
+geo.dart` decodes by hand — no package) and a server-set
+`geometry_approximate`. `TripPresenter.routeMap` turns the legs into a
+`RouteMapVm`; `MapRouteOverlay` turns that into colours; `map_style.dart` folds
+it into the style as a `route` GeoJSON source and `route-*` layers.
+
+- **A leg with no geometry is left off, never joined up.** Plans cached before
+  the API sent geometry, and any leg OTP sent no shape for, have none. The
+  straight line between a microbus's boarding and alighting stops goes through
+  Nasr City in one hop, and a map is where someone would believe it. With no
+  leg drawable the card is simply absent; with some, the screen counts what is
+  missing.
+- **Colour has one resolver**, `ModeColors.forBadge`, shared by the badge
+  widget, the leg list and the map. Walking is a separate dashed layer
+  (`line-dasharray` cannot be data-driven). A metro boarding is a disc carrying
+  its line name; the legend uses `ModeBadge`, so the metro is a circle there
+  too.
+- **Metro line 3 is faded and labelled approximate.** Its feed is ours and its
+  shapes are straight lines between stations. The flag comes from the server,
+  keyed on the feed, so the client never needs to know which feeds are ours.
+  The other feeds all ship shapes for every trip (checked 2026-11-08: no trip
+  in the road, TfC metro or L3 feeds lacks a `shape_id`).
+- **GeoJSON is longitude first and the polyline is latitude first.** A swap
+  draws nothing and raises nothing, so `test/map_route_test.dart` asserts a
+  known point lands inside the covered box.
+- **No vehicle, and no field that could hold one.** Features are lines and
+  stops by role, and the caption says the lines are the plan.
+- **The camera fit is the one thing not covered by a test.** It is a
+  controller call after `onStyleLoadedCallback`, behind the platform view.
+- While the tile source is the temporary demo server (`MapTileSource.
+  isTemporary`), opening a trip map sends tile requests for the area of the
+  trip to a third party. That is a privacy cost at odds with the location
+  promise; the card shows the same "temporary server" warning the coverage map
+  does, and it goes when the Cairo extract is hosted.
+
 **The map has its own attribution widget, and that is not duplication.**
 `AttributionNote` carries the transit data's credit (TfC, CC BY-NC, fetched
 from `/attribution`); `core/map/map_attribution.dart` carries the basemap's
@@ -440,7 +476,6 @@ backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
   About screen — but nothing schedules a notification yet, and none of it has
   run on a phone
 - **Background tracking** (P-17, #24)
-- Map tiles on results and itinerary screens. The renderer exists — see
-  `core/map/` and the coverage map reached from About — but `/plan` returns
-  each leg's endpoints and no geometry, so an itinerary map would be drawing
-  straight lines between stops and claiming they are routes
+- Map tiles on the **results** screen. The itinerary screen has its map (#20,
+  below); a thumbnail per result card would mean a platform view per list row,
+  which has not been argued for on the cheap phones this app is for
