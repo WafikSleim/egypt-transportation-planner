@@ -232,11 +232,17 @@ Measured on 2026-09-23, Flutter 3.44.6, AGP 9.0.1, from a clean
 
 | Artifact | Bytes | | Budget |
 | --- | ---: | ---: | ---: |
-| `app-armeabi-v7a-release.apk` | 26,235,782 | 25.0 MiB | **28 MiB** |
-| `app-arm64-v8a-release.apk` | 31,523,614 | 30.1 MiB | **33 MiB** |
-| `app-x86_64-release.apk` | 33,358,978 | 31.8 MiB | **35 MiB** |
+| `app-armeabi-v7a-release.apk` | 27,444,427 | 26.2 MiB | **28 MiB** |
+| `app-arm64-v8a-release.apk` | 32,715,875 | 31.2 MiB | **33 MiB** |
+| `app-x86_64-release.apk` | 34,567,623 | 33.0 MiB | **35 MiB** |
 | `app-debug.apk` (all three ABIs in one file) | 189,936,842 | 181.1 MiB | — |
 | `app-release.aab` | 66,119,896 | 63.1 MiB | *not a download size* |
+
+Re-measured 2026-11-08 after #22–#25: the three release APKs rose by about
+1.2 MiB (the debug APK, the `.aab` and the breakdown below were *not*
+re-measured). Part of that is likely the notifications dependencies from #21,
+which postdate the first measurement, so it is not all attributable to these
+four; arm64 sits at 31.2 of its 33 MiB budget.
 
 The budget is deliberately about 10% above what is there now. It is a
 tripwire, not a target: anything that crosses it is a change big enough that
@@ -496,7 +502,7 @@ backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 - **Everything in #22-#25 has never run on a phone.** The foreground service,
   background location, battery cost, the GPS thresholds, the exact wording of
   the new Egyptian Arabic copy and TalkBack reading the live panel are all
-  untested. The release APK size was not re-measured after these four
+  untested.
 - Map tiles on results and itinerary screens. The renderer exists — see
   `core/map/` and the coverage map reached from About — but `/plan` returns
   each leg's endpoints and no geometry, so an itinerary map would be drawing
