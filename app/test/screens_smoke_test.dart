@@ -1,3 +1,6 @@
+import 'package:egypt_transport/core/notifications/notification_preferences.dart';
+import 'package:egypt_transport/core/notifications/notification_service.dart';
+import 'package:egypt_transport/data/repositories/reminder_ledger.dart';
 import 'package:egypt_transport/core/presentation/trip_presenter.dart';
 import 'package:egypt_transport/core/settings/settings_cubit.dart';
 import 'package:egypt_transport/core/location/location_service.dart';
@@ -6,6 +9,7 @@ import 'package:egypt_transport/data/repositories/trip_history.dart';
 import 'package:egypt_transport/core/theme/app_theme.dart';
 import 'package:egypt_transport/core/theme/tokens.dart';
 import 'package:egypt_transport/data/models/models.dart';
+import 'package:egypt_transport/features/tracking/view_model/tracking_cubit.dart';
 import 'package:egypt_transport/domain/repositories/planner_repository.dart';
 import 'package:egypt_transport/features/itinerary/view/itinerary_page.dart';
 import 'package:egypt_transport/features/results/view/results_page.dart';
@@ -20,7 +24,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_location_service.dart';
+import 'fake_notification_service.dart';
 import 'fake_places_repository.dart';
+import 'fake_tracking_source.dart';
 import 'fake_repository.dart';
 import 'fixtures.dart';
 
@@ -54,7 +60,17 @@ void main() {
 
   Widget withRepo(Widget child, PlannerRepository repo) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => SettingsCubit(InMemoryStore()))],
+      providers: [
+        BlocProvider(create: (_) => SettingsCubit(InMemoryStore())),
+        BlocProvider<TrackingCubit>(
+          create: (_) => TrackingCubit(
+            source: FakeTrackingSource(),
+            notifications: FakeNotificationService(
+              preferences: NotificationPreferences(InMemoryStore()),
+            ),
+          ),
+        ),
+      ],
       child: MultiRepositoryProvider(
         providers: [
           RepositoryProvider<PlannerRepository>.value(value: repo),
@@ -63,6 +79,14 @@ void main() {
           ),
           RepositoryProvider<TripHistory>.value(
             value: TripHistory(InMemoryStore()),
+          ),
+          RepositoryProvider<ReminderLedger>.value(
+            value: ReminderLedger(InMemoryStore()),
+          ),
+          RepositoryProvider<NotificationService>.value(
+            value: FakeNotificationService(
+              preferences: NotificationPreferences(InMemoryStore()),
+            ),
           ),
         ],
         child: child,

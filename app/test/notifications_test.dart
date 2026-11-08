@@ -55,6 +55,7 @@ void main() {
           switch (kind) {
             NotificationKind.departureReminder => DepartureReminder(
               at: _never,
+              departureTime: _never,
               tripLabel: '',
             ).id,
             NotificationKind.tripInProgress => const TripInProgressNotice(
@@ -63,7 +64,9 @@ void main() {
             NotificationKind.nextStopAlert => const NextStopAlert(
               stopName: '',
             ).id,
-            NotificationKind.postTripQuestion => const PostTripQuestion().id,
+            NotificationKind.postTripQuestion => const PostTripQuestion(
+              sessionKey: 't1',
+            ).id,
           },
       };
       expect(ids.length, NotificationKind.values.length);
@@ -71,8 +74,19 @@ void main() {
       // Two reminders for two different saved trips are two notifications,
       // not one overwriting the other.
       expect(
-        DepartureReminder(at: _never, tripLabel: '', slot: 1).id,
-        isNot(DepartureReminder(at: _never, tripLabel: '').id),
+        DepartureReminder(
+          at: _never,
+          departureTime: _never,
+          tripLabel: '',
+          slot: 1,
+        ).id,
+        isNot(
+          DepartureReminder(
+            at: _never,
+            departureTime: _never,
+            tripLabel: '',
+          ).id,
+        ),
       );
     });
   });
@@ -98,7 +112,10 @@ void main() {
         permitted: const NotificationsDenied(permanently: false),
       );
 
-      expect(await service.post(const PostTripQuestion()), isFalse);
+      expect(
+        await service.post(const PostTripQuestion(sessionKey: 't1')),
+        isFalse,
+      );
       expect(service.delivered, isEmpty);
     });
 
@@ -111,6 +128,7 @@ void main() {
         service.post(
           DepartureReminder(
             at: DateTime.now().subtract(const Duration(minutes: 1)),
+            departureTime: DateTime.now(),
             tripLabel: 'المنيب ← رمسيس',
           ),
         ),
@@ -121,7 +139,10 @@ void main() {
     test('an allowed kind with permission is delivered', () async {
       final service = build();
 
-      expect(await service.post(const PostTripQuestion()), isTrue);
+      expect(
+        await service.post(const PostTripQuestion(sessionKey: 't1')),
+        isTrue,
+      );
       expect(service.delivered.single, isA<PostTripQuestion>());
     });
 
@@ -151,10 +172,15 @@ void main() {
           service.preferences.isAllowed(NotificationKind.postTripQuestion),
           isFalse,
         );
-        expect(service.retracted, [const PostTripQuestion().id]);
+        expect(service.retracted, [
+          const PostTripQuestion(sessionKey: 't1').id,
+        ]);
 
         // And it sticks: the next one is not shown either.
-        expect(await service.post(const PostTripQuestion()), isFalse);
+        expect(
+          await service.post(const PostTripQuestion(sessionKey: 't1')),
+          isFalse,
+        );
       },
     );
 
@@ -363,11 +389,15 @@ void main() {
 
         final texts = [
           copy.forRequest(
-            DepartureReminder(at: DateTime(2026, 9, 23), tripLabel: 'المنيب'),
+            DepartureReminder(
+              at: DateTime(2026, 9, 23, 8),
+              departureTime: DateTime(2026, 9, 23, 8, 15),
+              tripLabel: 'المنيب',
+            ),
           ),
           copy.forRequest(const TripInProgressNotice(tripLabel: 'المنيب')),
           copy.forRequest(const NextStopAlert(stopName: 'السيدة زينب')),
-          copy.forRequest(const PostTripQuestion()),
+          copy.forRequest(const PostTripQuestion(sessionKey: 't1')),
         ];
 
         for (final text in texts) {
@@ -390,7 +420,10 @@ void main() {
 
     test('the Arabic asks the question the design system settled on', () {
       final copy = AppNotificationCopy.forLocale(const Locale('ar'));
-      expect(copy.forRequest(const PostTripQuestion()).title, 'وصلت بالسلامة؟');
+      expect(
+        copy.forRequest(const PostTripQuestion(sessionKey: 't1')).title,
+        'وصلت بالسلامة؟',
+      );
     });
   });
 

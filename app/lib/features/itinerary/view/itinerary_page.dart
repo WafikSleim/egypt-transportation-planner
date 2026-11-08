@@ -29,10 +29,17 @@ class ItineraryPage extends StatelessWidget {
     super.key,
     required this.itinerary,
     required this.attribution,
+    this.tripActions,
   });
 
   final ItineraryVm itinerary;
   final Attribution attribution;
+
+  /// Reminder and trip-following, when the caller has the services for them.
+  /// A slot rather than built here: this screen is a pure function of its view
+  /// model, which is what the goldens and the accessibility pass photograph,
+  /// and it should stay one.
+  final Widget? tripActions;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +65,7 @@ class ItineraryPage extends StatelessWidget {
             _Summary(itinerary: itinerary),
             SizedBox(height: Insets.xl),
             for (final leg in itinerary.legs) _LegTile(leg: leg),
+            ?tripActions,
             SizedBox(height: Insets.lg),
             HonestyPanel(text: l.honestyNoRealtime),
             if (anyLatin) ...[

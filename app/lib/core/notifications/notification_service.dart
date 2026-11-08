@@ -91,9 +91,15 @@ abstract base class NotificationService {
 
   NotificationPreferences get preferences => _preferences;
 
-  /// The localisations as they are *now*. Resolved per notification rather
-  /// than captured once, so a reminder scheduled in Arabic and fired after a
-  /// switch to English speaks English.
+  /// The localisations as they are *now*, resolved per notification rather
+  /// than captured once.
+  ///
+  /// That is true for everything shown immediately. It is **not** true for a
+  /// scheduled reminder: the OS is handed its title and body when the
+  /// reminder is set, and fires them verbatim, so a reminder set in Arabic
+  /// and fired after a switch to English still speaks Arabic. Re-posting every
+  /// pending reminder on a language change would not fix it either — the trip
+  /// label inside is in the language the trip was planned in.
   @protected
   NotificationCopy get copyNow => _copy();
 
@@ -123,6 +129,15 @@ abstract base class NotificationService {
     // somebody for, and on Android a past schedule fires immediately.
     if (at != null && !at.isAfter(DateTime.now())) return false;
 
+    // The cap on the one unsolicited prompt per trip. Here, beside the opt-out
+    // and not in the feature that posts the question, for the same reason the
+    // opt-out is: a rule that has to be remembered by every caller is obeyed
+    // until the day it is not. Spent *before* delivery, so an ignored
+    // question is a spent one and nothing can ask a second time.
+    if (request case PostTripQuestion(:final sessionKey)) {
+      if (!await _preferences.claimPostTripQuestion(sessionKey)) return false;
+    }
+
     final words = copyNow;
     await deliver(
       request,
@@ -130,6 +145,24 @@ abstract base class NotificationService {
       silenceLabel: words.silenceAction(request.kind),
     );
     return true;
+  }
+
+  /// Switch a kind on or off, taking back everything already scheduled when it
+  /// goes off.
+  ///
+  /// The one way to change it, used by the About switches and by the opt-out
+  /// on the notification itself. [post] checks the preference when something
+  /// is *posted*, but a departure reminder is posted days before it fires and
+  /// the OS then shows it without asking this app — so turning the kind off
+  /// has to reach into what the OS is already holding, or "turn these off"
+  /// silences everything except the reminders that were already set.
+  Future<bool> setAllowed(
+    NotificationKind kind, {
+    required bool allowed,
+  }) async {
+    final changed = await _preferences.setAllowed(kind, allowed: allowed);
+    if (changed && !allowed) await retractAll(kind);
+    return changed;
   }
 
   /// Take a notification back — the trip was cancelled, the reminder is no
@@ -148,7 +181,7 @@ abstract base class NotificationService {
     String? actionId,
   }) async {
     if (actionId == silenceActionId && kind.canBeSilenced) {
-      await _preferences.setAllowed(kind, allowed: false);
+      await setAllowed(kind, allowed: false);
       await retract(kind.index * 1000 + slot);
       return;
     }
@@ -167,6 +200,10 @@ abstract base class NotificationService {
 
   @protected
   Future<void> retract(int id);
+
+  /// Take back every notification of [kind], shown or still scheduled.
+  @protected
+  Future<void> retractAll(NotificationKind kind);
 
   @mustCallSuper
   Future<void> dispose() => _actions.close();

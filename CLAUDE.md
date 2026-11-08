@@ -102,7 +102,7 @@ runtime, not at build time, so `app/android/app/proguard-rules.pro` records
 which plugins ship their own consumer rules (all three do) and what to try
 first if the map is what breaks.
 
-Tests live in `tests/` (Python, 164) and `app/test/` (Dart, 323). The Dart
+Tests live in `tests/` (Python, 164) and `app/test/` (Dart, 411). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter pub get && flutter test` (`pub get` generates the
@@ -231,10 +231,11 @@ Things in there that are easy to undo:
   `api/` code run in-process over a stubbed index and OTP. They guarantee the
   server's *shape*, not that the names or distances are what OSM holds.
 
-**Notifications exist as infrastructure only**, as of 2026-09-23 (issue #21) —
-`app/lib/core/notifications/`. Nothing schedules one yet; #22–#25 do that.
-What is there is a seam built so that a fourth kind of notification cannot be
-added by accident:
+**Notifications and trip following exist**, as of 2026-11-08 (issues #21–#25) —
+`app/lib/core/notifications/` is the seam, and #22 departure reminder, #23 the
+one post-trip question, #24 honest tracking and #25 the next-stop alert are
+built on it, all in `In review` because none of it has run on a phone. What
+is easy to undo:
 
 - **`NotificationKind` is a closed enum** with four members —
   departure reminder, the ongoing tracking notice, next-stop alert, one
@@ -242,25 +243,51 @@ added by accident:
   **data, not words**. There is no `show(title, body)` anywhere, so no call
   site can put arbitrary text on a phone; the copy is derived from the
   request in `notification_copy.dart`, the way `TripPresenter` derives what a
-  widget may draw. A test pins the set.
+  widget may draw. Tests pin the set and an exhaustive switch over the sealed
+  type means a fifth request fails to compile.
 - **There is no remote-push package and there must never be one.** No
-  `firebase_messaging`, no `UIBackgroundModes` in `Info.plist`. This project
-  has no push server and nothing to send, and a package that can receive a
-  payload from one is a growth notification waiting to be written — which is
-  the single thing #21 exists to rule out.
+  `firebase_messaging`, no `UIBackgroundModes` in `Info.plist`; a test reads
+  `pubspec.lock`, the plist and the manifest to hold it. This project has no
+  push server and nothing to send, and a package that can receive a payload
+  from one is a growth notification waiting to be written.
 - **The opt-out is enforced in `NotificationService.post`, not by callers**,
-  and the "turn these off" action is handled in `handleResponse` rather than
-  routed to a feature. Both are written once on the base class, so the fake
-  in `app/test/fake_notification_service.dart` overrides only `deliver` and
-  `retract` and the tests exercise the real gate.
-- **The ongoing tracking notice cannot be silenced.** That is the one place
-  the enum's `canBeSilenced` says no: switching it off would let a GPS
-  subscription run with nothing on screen admitting it. Stopping the trip is
-  what removes it.
+  and so is the cap on the post-trip question: `PostTripQuestion` carries an
+  opaque session key and `post` spends it in a ledger before delivering, so
+  an ignored question is a spent one. The "turn these off" action is handled
+  in `handleResponse`, and `setAllowed` now also takes back what the OS is
+  already holding — a reminder scheduled before the switch used to fire
+  anyway. The fake in `app/test/fake_notification_service.dart` overrides only
+  the platform half (`deliver`, `retract`, `retractAll`), so the tests
+  exercise the real gate.
+- **The ongoing tracking notice cannot be silenced.** `canBeSilenced` says no:
+  switching it off would let a GPS subscription run with nothing on screen
+  admitting it. Stopping the trip removes it. On Android it is the
+  notification of a `location` foreground service (`FOREGROUND_SERVICE`,
+  `FOREGROUND_SERVICE_LOCATION`, `stopWithTask`), posted through the seam —
+  geolocator's own `foregroundNotificationConfig` is **not** used, because it
+  takes title and body as plain strings. **No notice means no GPS:**
+  `TrackingCubit` orders permission, notice, subscription, and a notice that
+  was not shown ends the attempt.
+- **Tracking never says when a vehicle arrives and nothing leaves the phone.**
+  `/plan` has no geometry, so "the recorded route" is each ride's endpoints:
+  the alert is for the alighting stop, and a poor fix, a fix far off the line
+  or silence becomes "مش متأكدين إنك في السكة الصح" with no number. The
+  tracker's thresholds are documented guesses that have never met a road. The
+  cubit is given no repository or HTTP client; tests scan `core/tracking/` for
+  network, storage and logging. iPhone follows only while the app is open,
+  because background location needs `UIBackgroundModes`.
 - **Reminders are scheduled inexactly, and `RECEIVE_BOOT_COMPLETED` is in the
   manifest.** No `SCHEDULE_EXACT_ALARM` — Play audits it as an alarm-clock
   feature and a departure reminder tolerates a minute. Without the boot
-  receiver a reminder set the night before is gone by morning, silently.
+  receiver a reminder set the night before is gone by morning, silently. No
+  `ACCESS_BACKGROUND_LOCATION` either. A reminder is never offered on a
+  cached itinerary, and a scheduled reminder speaks the language it was set in
+  (the OS gets finished words when it is scheduled).
+- **Unverified on hardware:** that the foreground service keeps the position
+  stream alive with the screen off, that swiping the app away really stops it
+  and its notice, battery cost, the 100 m / 400 m / 150 m / 600 m thresholds,
+  a tap on a notification while the app is closed (not handled: the
+  launch-time response is not read), and every new Arabic string.
 
 Work is tracked on the **Masar** project board (project 2 on the repo), as
 issues #1–#34. The full specification is in [docs/board.md](docs/board.md) —
@@ -276,9 +303,8 @@ resting on that belongs in `In review`, not `Done`.
 `P0` is the critical path: #11 storage, ~~#14 `/places`~~ (backend done
 2026-09-22; the client half landed 2026-11-08 as #15/#16/#17, in `In review`),
 #19 map rendering,
-~~#21 notifications~~ (infrastructure done 2026-09-23; #22–#25 are still
-`Backlog`, because what shipped is the seam they schedule through and not the
-features). The `P0` set in `scripts/project_board.py` is now empty — every
+~~#21 notifications~~ (infrastructure done 2026-09-23; #22–#25 were built on
+it afterwards and are in `In review`). The `P0` set in `scripts/project_board.py` is now empty — every
 Backlog item waits on a blocker that has been built.
 
 `scripts/project_board.py` re-syncs the board; it is idempotent and needs
@@ -727,9 +753,10 @@ violates OSM's own licence and the community treats it seriously.
    day (#14), and the client half is built as of 2026-11-08 (#15, #16,
    #17) — see "The places client" above. Notification
    infrastructure landed 2026-09-23 (#21): `app/lib/core/notifications/`
-   holds the seam, the permission flow and the opt-out, but none of the
-   four notifications is scheduled by anything yet (#22–#25), and
-   background tracking is still missing. **Nothing in this app has
+   holds the seam, the permission flow and the opt-out, and the four
+   notifications are built on it (#22–#25): a departure reminder and
+   "تابع الرحلة" tracking with a next-stop alert on the itinerary screen,
+   and one post-trip question. **Nothing in this app has
    been seen on a screen**, only in widget tests and an APK build. No
    auth, no accounts, no settings screen — language, theme and the
    three notification switches are the only choices offered, and they

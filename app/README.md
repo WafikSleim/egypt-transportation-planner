@@ -17,7 +17,7 @@ On a physical phone, pass your machine's LAN address instead.
 
 ```bash
 flutter pub get   # also generates lib/l10n/generated/ (untracked) -- see below
-flutter test      # 323 tests, no device, no network, a few seconds
+flutter test      # 411 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -45,6 +45,7 @@ lib/
 │   ├── location/       one-off fixes, on demand only
 │   ├── map/            tile source, style builder, the map widget
 │   ├── notifications/  the four kinds that exist, and no way to add a fifth
+│   ├── tracking/       following a trip: the tracker, the GPS source, no network
 │   ├── network/        ApiClient, failure classification
 │   ├── presentation/   TripPresenter, PlacePresenter + the view models they emit  ← read this first
 │   ├── settings/       language and theme (the only two settings passengers get)
@@ -163,12 +164,62 @@ ongoing tracking notice, because silencing it would let GPS run invisibly.
 `test/fake_notification_service.dart`, which overrides only `deliver` and
 `retract`.
 
-**Location is read on demand and never in the background.** There is no
-`ACCESS_BACKGROUND_LOCATION` in the manifest. Following a trip is a separate
-feature with its own consent and its own persistent notification, and it must
-not arrive by accident through the "my location" button. A coarse fix is
-flagged to the user rather than quietly used, and a fix outside the covered
-box is caught before a request is spent on it.
+**Location is read in exactly two ways, and neither is automatic.** A one-off
+fix on demand, from the "my location" button (`core/location/`), and a position
+stream while a trip is being followed (`core/tracking/`, #24). They are
+different types on purpose, so the second cannot arrive through the first. The
+manifest has no `ACCESS_BACKGROUND_LOCATION`: following runs as a visible
+foreground service started from the app screen, which Android lets keep
+while-in-use access. A coarse fix is flagged to the user rather than quietly
+used, and a fix outside the covered box is caught before a request is spent on
+it.
+
+**Following a trip is honest about what it is (#24, #25).** There is no
+real-time vehicle data for Cairo's paratransit and none to buy, so the app
+cannot know where a microbus is and **never says when one arrives** -
+`TrackingEstimate` has no field for a time. What it does: after an explicit
+"تابع الرحلة" and a disclosure dialog (GPS, battery, the position staying on
+the phone, no live vehicle data), it compares the passenger's *own* GPS with
+the plan's recorded stops, and says so on the panel every time. Details that
+are easy to undo:
+
+- **Order is permission, then the notice, then the GPS** - and a notice that
+  cannot be shown means no GPS at all. Android runs a foreground service with
+  a refused notification invisibly, which would be exactly the silent tracking
+  the notice exists to rule out. `TrackingCubit` is where that is enforced.
+- **The tracking notice is the foreground service's own notification**, posted
+  through `NotificationService` like everything else, so there is one
+  notification, from `notification_copy.dart`, with the stop button.
+  geolocator's `foregroundNotificationConfig` is deliberately not used: it
+  takes title and body as plain strings and starts a second service. The
+  service is declared `stopWithTask`, so swiping the app away stops it rather
+  than leaving a notice behind that follows nothing; on launch any leftover
+  notice is cleared.
+- **Nothing leaves the phone.** `TrackingCubit` is given a location source and
+  a notifier - no repository, no HTTP client. Fixes are compared with a stop
+  and dropped: not stored, not logged. `test/tracking_test.dart` scans
+  `core/tracking/` and the cubit for network, storage and logging.
+- **`/plan` has no geometry**, so the "recorded route" is each ride's two
+  endpoints. The alert is for the *alighting* stop (and each transfer), never
+  "the next stop", which the data does not contain. A single `TripTracker`
+  decides: a poor fix (over 100 m), a fix far off the line, or silence for
+  90 s becomes "مش متأكدين إنك في السكة الصح" with no number. **Every
+  threshold in it is a documented first guess that has never met a road.**
+- **iPhone follows only while the app is open.** Background location there
+  needs `UIBackgroundModes`, which this project rules out; the disclosure says
+  so on iOS.
+- **One question after a trip, in code (#23).** `PostTripQuestion` carries an
+  opaque session key and `NotificationService.post` spends it in a ledger
+  *before* delivering, so an ignored question is a spent one and no caller can
+  ask twice. It is asked only when a followed trip ends by arriving, never
+  after a manual stop. Answers are kept on the phone only - there is no
+  contribution pipeline yet - and the dialog says so.
+- **A reminder is only offered on a fresh itinerary (#22).** A saved answer's
+  times are from another day, so a reminder on them would fire on time for a
+  vehicle that left yesterday. Cancelling is a button next to the reminder it
+  cancels; the notification's own button turns the whole kind off, and doing
+  that (from there or from About) now takes back the reminders already handed
+  to the OS. A scheduled reminder speaks the language it was set in.
 
 **A saved trip is a pair of places, not a saved itinerary.** The itinerary is
 worked out again every time it is opened. Storing the one that was on screen
@@ -210,11 +261,17 @@ Measured on 2026-09-23, Flutter 3.44.6, AGP 9.0.1, from a clean
 
 | Artifact | Bytes | | Budget |
 | --- | ---: | ---: | ---: |
-| `app-armeabi-v7a-release.apk` | 26,235,782 | 25.0 MiB | **28 MiB** |
-| `app-arm64-v8a-release.apk` | 31,523,614 | 30.1 MiB | **33 MiB** |
-| `app-x86_64-release.apk` | 33,358,978 | 31.8 MiB | **35 MiB** |
+| `app-armeabi-v7a-release.apk` | 27,444,427 | 26.2 MiB | **28 MiB** |
+| `app-arm64-v8a-release.apk` | 32,715,875 | 31.2 MiB | **33 MiB** |
+| `app-x86_64-release.apk` | 34,567,623 | 33.0 MiB | **35 MiB** |
 | `app-debug.apk` (all three ABIs in one file) | 189,936,842 | 181.1 MiB | — |
 | `app-release.aab` | 66,119,896 | 63.1 MiB | *not a download size* |
+
+Re-measured 2026-11-08 after #22–#25: the three release APKs rose by about
+1.2 MiB (the debug APK, the `.aab` and the breakdown below were *not*
+re-measured). Part of that is likely the notifications dependencies from #21,
+which postdate the first measurement, so it is not all attributable to these
+four; arm64 sits at 31.2 of its 33 MiB budget.
 
 The budget is deliberately about 10% above what is there now. It is a
 tripwire, not a target: anything that crosses it is a change big enough that
@@ -465,11 +522,17 @@ backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 
 - **Saved places as a thing of their own.** The picker offers the stops and
   places from saved trips; #11 stores recents and saved trips and no more
-- **The four notifications themselves** (#22–#25). The infrastructure landed
-  with #21 — the seam, the in-context permission flow, the switches on the
-  About screen — but nothing schedules a notification yet, and none of it has
-  run on a phone
-- **Background tracking** (P-17, #24)
+- **Cold-start taps.** A notification tapped while the app was closed starts
+  the app and does nothing more: the plugin's launch-time tap is not read, so
+  the post-trip dialog opens only if the app was already running
+- **A tracking session does not survive the process.** By design - an
+  "in progress" notice with no GPS behind it would be a lie - but it means a
+  phone that kills the app mid-trip stops following, and says nothing more
+  than the notice disappearing
+- **Everything in #22-#25 has never run on a phone.** The foreground service,
+  background location, battery cost, the GPS thresholds, the exact wording of
+  the new Egyptian Arabic copy and TalkBack reading the live panel are all
+  untested.
 - Map tiles on results and itinerary screens. The renderer exists — see
   `core/map/` and the coverage map reached from About — but `/plan` returns
   each leg's endpoints and no geometry, so an itinerary map would be drawing

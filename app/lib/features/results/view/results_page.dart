@@ -16,6 +16,7 @@ import '../../../domain/entities/trip_endpoint.dart';
 import '../../../domain/repositories/planner_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../itinerary/view/itinerary_page.dart';
+import '../../itinerary/widgets/trip_actions.dart';
 import '../view_model/results_cubit.dart';
 import '../view_model/results_state.dart';
 import '../widgets/itinerary_card.dart';
@@ -246,6 +247,7 @@ class _ResultList extends StatelessWidget {
               builder: (_) => ItineraryPage(
                 itinerary: itinerary,
                 attribution: plan.attribution,
+                tripActions: TripActions(itinerary: itinerary),
               ),
             ),
           ),

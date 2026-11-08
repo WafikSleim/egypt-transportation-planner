@@ -63,9 +63,9 @@ class _AboutPageState extends State<AboutPage> {
     final settings = context.watch<SettingsCubit>().state;
 
     return BlocProvider(
-      // Created here rather than at the root of the app: the switches are the
-      // only thing in the build that needs it today, and #22 and #24 will
-      // each provide it at their own screen the same way.
+      // Created here rather than at the root of the app, the same way the
+      // itinerary screen's `TripActions` provides its own for the reminder
+      // and trip-following flows.
       create: (_) =>
           NotificationsCubit(context.read<NotificationService>())..refresh(),
       child: Scaffold(
@@ -207,10 +207,10 @@ class _NotificationSwitches extends StatelessWidget {
                 ),
             SizedBox(height: Insets.sm),
             _Point(text: l.notificationsTrackingNotice),
-            // Asked here only because no feature schedules anything yet. Once
-            // #22 and #24 exist, the in-context moment is turning a reminder
-            // on or starting to follow a trip — both of which call
-            // `askToNotify` the same way this does.
+            // The in-context moments are turning a reminder on and starting to
+            // follow a trip, on the itinerary screen - both call `askToNotify`
+            // the same way this does. This button is the fallback for a
+            // passenger who wants notifications on without setting either.
             if (!state.granted && !state.blockedInSettings)
               Align(
                 alignment: AlignmentDirectional.centerStart,

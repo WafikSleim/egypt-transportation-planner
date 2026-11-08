@@ -8,7 +8,8 @@ import '../../domain/entities/trip_endpoint.dart';
 /// **On demand only.** Nothing here runs in the background or keeps a
 /// subscription open. Following a trip is a separate feature with its own
 /// consent, its own persistent notification and its own honesty about
-/// battery — it must not arrive by accident through this class.
+/// battery - it lives in `core/tracking/` as a different type, and it must not
+/// arrive by accident through this class.
 ///
 /// The result type is deliberately explicit about the ways this fails,
 /// because each one leads to different advice for the user, and "couldn't get
