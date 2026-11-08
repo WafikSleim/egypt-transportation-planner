@@ -45,6 +45,7 @@ class ItineraryPage extends StatelessWidget {
   /// model, which is what the goldens and the accessibility pass photograph,
   /// and it should stay one.
   final Widget? tripActions;
+
   /// Both injected by tests, which have no platform view to draw into.
   /// Production leaves them null.
   final MapTileSource? mapSource;
