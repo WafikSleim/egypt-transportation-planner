@@ -105,7 +105,8 @@ first if the map is what breaks.
 Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 239). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
-and `cd app && flutter test`, before and after any change to `api/`,
+and `cd app && flutter pub get && flutter test` (`pub get` generates the
+untracked `lib/l10n/generated/`; `flutter gen-l10n` after editing an `.arb`), before and after any change to `api/`,
 `app/` or `scripts/`. OTP is stubbed at the transport layer via
 `api.otp.TRANSPORT`, which exists purely so tests can drive the real request
 path; leave it `None` in production.
