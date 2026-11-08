@@ -17,7 +17,7 @@ On a physical phone, pass your machine's LAN address instead.
 
 ```bash
 flutter pub get   # also generates lib/l10n/generated/ (untracked) -- see below
-flutter test      # 239 tests, no device, no network, a few seconds
+flutter test      # 323 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -46,7 +46,7 @@ lib/
 │   ├── map/            tile source, style builder, the map widget
 │   ├── notifications/  the four kinds that exist, and no way to add a fifth
 │   ├── network/        ApiClient, failure classification
-│   ├── presentation/   TripPresenter + the view models it emits  ← read this first
+│   ├── presentation/   TripPresenter, PlacePresenter + the view models they emit  ← read this first
 │   ├── settings/       language and theme (the only two settings passengers get)
 │   ├── storage/        KeyValueStore - the seam over shared_preferences
 │   ├── text/           bidi isolation, Western-digit formatting
@@ -126,6 +126,27 @@ underneath, so the swap is one class if it ever comes.
 language from a newer build, a value of the wrong type — each falls back to
 the phone's own locale. Those are phones that would otherwise fail to launch
 over data the user can neither see nor clear without reinstalling.
+
+**The picker is one field over two datasets, and says so.** Stops are TfC's
+(CC BY-NC) and places are OpenStreetMap's (ODbL), so they come from two
+repositories (`PlannerRepository`, `PlacesRepository`), carry two marks, two
+credits (each from its own response) and two match rules — stops from the start
+of a name, places anywhere in it — and the screen states that last difference
+rather than leaving a user who typed `منيب` to conclude the app is broken. They
+are asked in parallel and listed interleaved. A place with no Arabic name is
+shown in Latin, left to right, with a note; never transliterated. A `/places`
+503 degrades to stops. `core/presentation/place_presenter.dart` is where
+`name_is_fallback` becomes a `NameNote`, the same way `TripPresenter` decides
+the badge rules.
+
+**Map picking returns the pin, not the place.** `features/map_pick/` reports
+where the camera came to rest (`CityMapView.onSettled`, wired to MapLibre's
+`onCameraIdle`), asks `/places/reverse` for a name and `/stops/nearby` for the
+nearest stop, and shows them as two labelled things under a panel saying the
+name is OpenStreetMap's and may be wrong. The endpoint it returns is at the
+pin's coordinates — a street's stored position can be a long way from where
+somebody pointed. The cubit takes `pointSettled(GeoPoint)` and never sees a
+MapLibre type, so the whole screen is testable on the Dart VM.
 
 **A notification cannot say anything it likes.** `core/notifications/` is
 built so that the fourth kind of notification — the growth one, the
@@ -442,7 +463,8 @@ design frame.
 Designed in [`design/app-prototype.html`](../design/app-prototype.html) and
 backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 
-- **Places and map picking** (P-18, P-19) — blocked on the `places` table
+- **Saved places as a thing of their own.** The picker offers the stops and
+  places from saved trips; #11 stores recents and saved trips and no more
 - **The four notifications themselves** (#22–#25). The infrastructure landed
   with #21 — the seam, the in-context permission flow, the switches on the
   About screen — but nothing schedules a notification yet, and none of it has

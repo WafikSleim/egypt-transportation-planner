@@ -101,9 +101,36 @@
   "tryAgain": "جرّب تاني",
   "changeSearch": "غيّر البحث",
   "stopSearchTitle": "دوّر على محطة",
-  "stopSearchHint": "اكتب اسم المحطة",
-  "stopSearchPrefixNote": "البحث بيبدأ من أول الاسم. اكتب «المنيب» مش «منيب».",
-  "stopSearchEmpty": "مالقيناش محطة بالاسم ده",
+  "pickerHint": "اكتب اسم محطة أو مكان",
+  "pickerMatchNote": "المحطات بتتلاقى من أول الاسم، والأماكن بأي جزء منه. يعني «المنيب» هتجيب المحطة، لكن «منيب» لوحدها هتجيب الأماكن بس.",
+  "pickerEmpty": "مالقيناش محطة ولا مكان بالاسم ده",
+  "pickerFilterAll": "الكل",
+  "pickerFilterStops": "محطات",
+  "pickerFilterPlaces": "أماكن",
+  "pickerStopKind": "محطة",
+  "pickerOnMap": "اختار من الخريطة",
+  "pickerPlacesOrdered": "الأماكن مرتّبة حسب القرب من نقطة البداية.",
+  "pickerPlacesUnavailable": "الأماكن مش متاحة دلوقتي، فبنوريك المحطات بس.",
+  "pickerStopsUnavailable": "المحطات مش متاحة دلوقتي، فبنوريك الأماكن بس.",
+  "pickerSavedHeading": "من مشاويرك المحفوظة",
+  "placeNoArabicName": "مافيش اسم عربي في الخريطة",
+  "placeNoEnglishName": "مافيش اسم إنجليزي في الخريطة",
+  "distanceMetres": "{distance} م",
+  "@distanceMetres": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "distanceKilometres": "{distance} كم",
+  "@distanceKilometres": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
   "stopSearchTruncated": "فيه {count} محطة بالاسم ده. اكتب اسم أطول عشان توصلها بسرعة.",
   "@stopSearchTruncated": {
     "placeholders": {
@@ -112,6 +139,44 @@
       }
     }
   },
+  "placeSearchTruncated": "فيه {count} مكان بالاسم ده. اكتب اسم أطول عشان توصله بسرعة.",
+  "@placeSearchTruncated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapPickTitle": "اختار من الخريطة",
+  "mapPickInstruction": "حرّك الخريطة على المكان",
+  "mapPickMapLabel": "الخريطة. حرّكها عشان الدبوس يقف على المكان اللي رايحه.",
+  "mapPickPinLabel": "الدبوس",
+  "mapPickConfirm": "أكّد المكان ده",
+  "mapPickByName": "أدوّر بالاسم بدل كده",
+  "mapPickLooking": "بندوّر على اسم المكان…",
+  "mapPickNoName": "مافيش اسم للمكان ده على الخريطة",
+  "mapPickNoNameHelp": "ده طبيعي في أماكن كتير في القاهرة. هنستخدم النقطة نفسها، والرحلة هتتحسب من عندها.",
+  "mapPickNameUnavailable": "مش قادرين نجيب اسم المكان دلوقتي",
+  "mapPickUnnamedLabel": "نقطة على الخريطة ({coordinates})",
+  "@mapPickUnnamedLabel": {
+    "placeholders": {
+      "coordinates": {
+        "type": "String"
+      }
+    }
+  },
+  "mapPickNearestStop": "أقرب محطة",
+  "mapPickNoStopNearby": "مافيش محطة في حدود {distance}",
+  "@mapPickNoStopNearby": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "mapPickStopUnavailable": "مش قادرين نحسب أقرب محطة دلوقتي",
+  "mapPickOutside": "النقطة دي برّه منطقة التغطية",
+  "mapPickOsmNote": "الاسم ده من خريطة OpenStreetMap، مش من بيانات المواصلات. ساعات بيكون ناقص أو بالإنجليزي بس. المهم هو المكان نفسه، ولو الاسم غلط الرحلة هتفضل مظبوطة.",
   "routesServed": "{count, plural, =1{خط واحد} =2{خطين} few{{count} خطوط} other{{count} خط}}",
   "@routesServed": {
     "placeholders": {

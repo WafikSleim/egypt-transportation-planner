@@ -172,6 +172,7 @@ redaction, or the calendar overlap guard each makes it fail.
 | --- | --- |
 | `GET /plan` | Plan a trip. `from`/`to` as `lat,lon`, optional `date`, `time`, `arrive_by`, `max_itineraries`, `lang` |
 | `GET /stops` | Search stops by name. `q`, `limit`, `lang` |
+| `GET /stops/nearby` | The stops closest to a point, nearest first, with straight-line distance. `at`, `radius_m`, `limit`, `lang`. **Written against OTP's `stopsByRadius` schema and not yet run against a live graph** |
 | `GET /places` | Search the OSM place index. `q`, `near`, `limit`, `lang` |
 | `GET /places/reverse` | Name the point a map pin settled on. `at`, `radius_m`, `limit`, `lang` |
 | `GET /health` | OTP reachability, feed/route/stop counts, and the place index's state |
@@ -297,7 +298,8 @@ licences, two credits — see below.
 distance in 100 m bands and by prominence within a band, so standing in a
 mall's car park names the mall rather than the service road beside it. It does
 **not** report the nearest stop: that is transit data out of OTP, and the
-client asks both and labels them separately.
+client asks both and labels them separately. The nearest stop is
+`/stops/nearby`, which is transit data and carries TfC's credit.
 
 ### The licence line, in code
 
