@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -90,10 +92,36 @@ class ReminderCubit extends Cubit<ReminderState> {
        _now = now ?? DateTime.now,
        super(
          ReminderState(
-           reminder: ledger.forTrip(target.tripKey),
+           reminder: _stillPending(notifications, ledger, target.tripKey),
            lead: ledger.lastLead,
          ),
        );
+
+  /// The reminder the ledger holds for [tripKey], **unless reminders have
+  /// been switched off since it was set**.
+  ///
+  /// Switching the kind off takes the OS's alarms back (see
+  /// `NotificationService.setAllowed`) but cannot reach this ledger from every
+  /// place it happens - the notification's own button runs in another isolate.
+  /// So the screen reads the switch too, and an entry whose alarm has been
+  /// taken back is dropped rather than shown as "we will remind you at 08:05"
+  /// for a reminder that will never fire. A revoked OS permission leaves the
+  /// same symptom and is not caught here: that answer is asynchronous.
+  static PlannedReminder? _stillPending(
+    NotificationService notifications,
+    ReminderLedger ledger,
+    String tripKey,
+  ) {
+    final held = ledger.forTrip(tripKey);
+    if (held == null) return null;
+    if (notifications.preferences.isAllowed(
+      NotificationKind.departureReminder,
+    )) {
+      return held;
+    }
+    unawaited(ledger.remove(tripKey));
+    return null;
+  }
 
   final NotificationService _notifications;
   final ReminderLedger _ledger;

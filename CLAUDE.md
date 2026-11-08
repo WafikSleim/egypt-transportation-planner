@@ -102,7 +102,7 @@ runtime, not at build time, so `app/android/app/proguard-rules.pro` records
 which plugins ship their own consumer rules (all three do) and what to try
 first if the map is what breaks.
 
-Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 326). The Dart
+Tests live in `tests/` (Python, 157) and `app/test/` (Dart, 327). The Dart
 suite runs with no device, no emulator and no network, against real API
 responses captured in `app/test/fixtures/`. Run them with `pytest` — no Docker, no graph, no database, no network,
 and `cd app && flutter test`, before and after any change to `api/`,
@@ -120,11 +120,7 @@ would put debug stripes in the picture), and the surface is pinned to 390x844
 or screenutil scales everything off an 800x600 test window. Regenerate with
 `flutter test --update-goldens test/golden_test.dart` **and look at the diff**
 — a golden is worth what the last person to regenerate it looked at. The
-file's doc comment is the long version. **Four of the six fail on the machine
-this work was done on** (the two cards and the two itinerary screens, by
-0.02–0.3% of pixels), identically before and after the notifications work —
-a rendering difference, not a regression — so they were left alone rather
-than regenerated unseen.
+file's doc comment is the long version.
 
 **The place index exists** as of 2026-09-22 (issue #14) — `GET /places` and
 `GET /places/reverse`, over an `osm.places` table built by

@@ -96,6 +96,25 @@ void main() {
       expect(service.delivered[0].id, isNot(service.delivered[1].id));
     });
 
+    test(
+      'a reminder silenced since it was set is not shown as pending',
+      () async {
+        await cubit().set(10);
+        expect(cubit().state.reminder, isNotNull);
+
+        // The notification's own button - which also takes the alarm back.
+        await service.tap(
+          NotificationKind.departureReminder,
+          actionId: NotificationService.silenceActionId,
+        );
+
+        final reopened = cubit();
+        expect(reopened.state.reminder, isNull);
+        await Future<void>.delayed(Duration.zero);
+        expect(ledger.pending(now: now), isEmpty);
+      },
+    );
+
     test('a reminder whose time has gone is not set', () async {
       final c = cubit(target(at: DateTime(2026, 11, 8, 7, 5)));
 
