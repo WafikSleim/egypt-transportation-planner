@@ -16,9 +16,17 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
+flutter pub get   # also generates lib/l10n/generated/ (untracked) -- see below
 flutter test      # 239 tests, no device, no network, a few seconds
 flutter analyze
 ```
+
+**`lib/l10n/generated/` is generated, not tracked** (#41). `flutter pub get`
+produces it from `lib/l10n/*.arb`; `flutter test` and `flutter analyze` do
+**not**, and on a fresh clone or worktree they die on a missing
+`app_localizations.dart` before any test runs. So `pub get` comes first. If you
+edit an `.arb` file, or the folder is missing for any other reason, run
+`flutter gen-l10n`. CI runs it explicitly rather than relying on `pub get`.
 
 ## Architecture — MVVM with Bloc
 
