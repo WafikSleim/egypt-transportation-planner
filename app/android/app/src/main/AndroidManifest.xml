@@ -1,11 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Read on demand only, when the passenger taps "my location". There is
-         deliberately no ACCESS_BACKGROUND_LOCATION here: following a trip is
-         a separate feature with its own consent and its own persistent
-         notification, and it must not arrive by accident through this. -->
+    <!-- Two uses, both started by a tap and neither automatic: a one-off fix
+         when the passenger taps "my location", and a position stream while
+         they are following a trip (#24, `core/tracking/`), which starts only
+         after an explicit "تابع الرحلة" and a disclosure of GPS and battery.
+         Foreground ("while in use") access is all either needs, so there is
+         deliberately no ACCESS_BACKGROUND_LOCATION: a followed trip runs as a
+         visible foreground service started from the app screen, and Android
+         keeps while-in-use access for a service started that way. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Following a trip (#24) keeps a GPS subscription alive while the
+         screen is off or another app is in front - that is the point of it,
+         a passenger rides with the phone in a pocket. Android only lets that
+         continue as a foreground service with a notification the user can
+         see, so these two are what make "persistent notification" a platform
+         guarantee rather than a promise: with no notice there is no service,
+         and with no service there is no GPS. The type is `location` and
+         nothing else; the service is declared below. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <!-- The app plans trips, it does not require a fix. A phone with no GPS
          hardware must still be able to install it and pick stops by name. -->
@@ -75,6 +90,17 @@
         </receiver>
         <receiver android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
+
+        <!-- The foreground service behind the "following your trip" notice.
+             Type `location` only. `stopWithTask` makes Android stop it when
+             the passenger swipes the app away: the Flutter engine, and with
+             it the GPS subscription, goes with the task, and a notice left
+             behind saying "following your trip" while following nothing is
+             the one lie this notification exists to prevent. -->
+        <service android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ForegroundService"
+            android:foregroundServiceType="location"
+            android:stopWithTask="true" />
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

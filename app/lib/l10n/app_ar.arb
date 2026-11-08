@@ -264,17 +264,22 @@
   "@notifyDepartureTitle": {
     "description": "Placeholder wording. The real copy belongs to #22, which has to say the time is an estimate off a recorded schedule."
   },
-  "notifyDepartureBody": "{trip}",
+  "notifyDepartureBody": "{trip} — تقريباً الساعة {time}. الميعاد ده تقدير من جدول مسجّل، مش مكان العربية دلوقتي.",
   "@notifyDepartureBody": {
+    "description": "Must say plainly that the time is an estimate off a recorded schedule (#22).",
     "placeholders": {
       "trip": {
+        "type": "String"
+      },
+      "time": {
         "type": "String"
       }
     }
   },
-  "notifyTrackingTitle": "بنتابع مشوارك",
-  "notifyTrackingBody": "{trip}",
+  "notifyTrackingTitle": "بنتابع مشوارك بالـ GPS",
+  "notifyTrackingBody": "{trip} — الـ GPS شغّال وبياكل بطارية. مكانك بيتحسب على تليفونك وما بيتبعتش لحد.",
   "@notifyTrackingBody": {
+    "description": "The persistent notice while a trip is followed. States GPS, battery and that location stays on the phone (#24).",
     "placeholders": {
       "trip": {
         "type": "String"
@@ -282,7 +287,7 @@
     }
   },
   "notifyNextStopTitle": "استعد تنزل",
-  "notifyNextStopBody": "الجاي: {stop}",
+  "notifyNextStopBody": "قرّبت من {stop}، المحطة اللي هتنزل فيها. ده تقدير من الـ GPS بتاعك، مش من مكان العربية.",
   "@notifyNextStopBody": {
     "placeholders": {
       "stop": {
@@ -291,8 +296,8 @@
     }
   },
   "notifyPostTripTitle": "وصلت بالسلامة؟",
-  "notifyPostTripBody": "لو تقدر تقولنا المشوار كان مظبوط ولا لأ.",
+  "notifyPostTripBody": "لو فاضي، قولنا المشوار كان زي ما اتوقّع ولا لأ. مش لازم تردّ، ومش هنسألك تاني.",
   "@notifyPostTripBody": {
-    "description": "Placeholder wording. The real copy belongs to #23, which has to ask kindly rather than demand a rating."
+    "description": "One question per trip, asked kindly, dismissible without answering (#23)."
   }
 }

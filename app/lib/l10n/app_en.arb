@@ -162,16 +162,19 @@
   "notifyNextStopAlert": "Tell me when to get off",
   "notifyPostTripQuestion": "One question after a trip",
   "notifyDepartureTitle": "Your trip is soon",
-  "notifyDepartureBody": "{trip}",
+  "notifyDepartureBody": "{trip} — around {time}. That time is an estimate from a recorded schedule, not where the vehicle is right now.",
   "@notifyDepartureBody": {
     "placeholders": {
       "trip": {
         "type": "String"
+      },
+      "time": {
+        "type": "String"
       }
     }
   },
-  "notifyTrackingTitle": "Following your trip",
-  "notifyTrackingBody": "{trip}",
+  "notifyTrackingTitle": "Following your trip with GPS",
+  "notifyTrackingBody": "{trip} — GPS is on and uses battery. Your position is worked out on your phone and never sent anywhere.",
   "@notifyTrackingBody": {
     "placeholders": {
       "trip": {
@@ -180,7 +183,7 @@
     }
   },
   "notifyNextStopTitle": "Get ready to get off",
-  "notifyNextStopBody": "Next: {stop}",
+  "notifyNextStopBody": "You are getting close to {stop}, where you get off. This is an estimate from your own GPS, not the vehicle's position.",
   "@notifyNextStopBody": {
     "placeholders": {
       "stop": {
@@ -189,5 +192,5 @@
     }
   },
   "notifyPostTripTitle": "Did you get there safely?",
-  "notifyPostTripBody": "Tell us whether the trip was right, if you can."
+  "notifyPostTripBody": "If you have a second, tell us whether the trip went as planned. No need to answer, and we will not ask again."
 }
