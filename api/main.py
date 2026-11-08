@@ -237,6 +237,7 @@ def _leg(raw: dict, names: dict[str, str], lang: str) -> Leg:
     frm = _place(raw.get("from") or {}, names, lang)
     to = _place(raw.get("to") or {}, names, lang)
     trip = raw.get("trip") or {}
+    route = _route_info(raw_route, mode, frm, to, lang) if raw_route else None
 
     return Leg(
         mode=ModeInfo(
@@ -253,9 +254,16 @@ def _leg(raw: dict, names: dict[str, str], lang: str) -> Leg:
         distance_m=round(raw.get("distance") or 0),
         **{"from": frm},
         to=to,
-        route=_route_info(raw_route, mode, frm, to, lang) if raw_route else None,
+        route=route,
         headsign=raw.get("headsign") or trip.get("tripHeadsign") or None,
         intermediate_stops=len(raw.get("intermediatePlaces") or []),
+        geometry=(raw.get("legGeometry") or {}).get("points") or None,
+        # Decided by feed, here, so the client does not have to know which
+        # feeds are ours. Every other feed ships a shapes.txt covering all of
+        # its trips (checked 2026-11-08: 0 of 1,784 road, 0 of 16 TfC metro
+        # trips lack a shape_id). Our own line 3 is stations joined by
+        # straight lines.
+        geometry_approximate=bool(route and route.source == "project"),
     )
 
 

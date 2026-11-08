@@ -97,6 +97,22 @@ class Leg(BaseModel):
     route: RouteInfo | None = None
     headsign: str | None = None
     intermediate_stops: int = 0
+    geometry: str | None = Field(
+        None,
+        description="The leg's path as a Google encoded polyline, precision 5 "
+                    "(lat before lon, as that format has it). For transit it "
+                    "is the feed's own shape; for a walk, the street network. "
+                    "Null when OTP returned none. A client must never draw a "
+                    "straight line between `from` and `to` in its place: that "
+                    "is a claim about the route nobody made.",
+    )
+    geometry_approximate: bool = Field(
+        False,
+        description="Set by the server, not inferred by the client: this "
+                    "path is a straight line between stations and not a "
+                    "surveyed track. True for metro line 3, whose feed is "
+                    "ours and has no track geometry.",
+    )
 
     model_config = {"populate_by_name": True}
 
