@@ -4,8 +4,9 @@ import 'package:egypt_transport/core/notifications/notification_service.dart';
 
 /// A notifier that records instead of notifying.
 ///
-/// It overrides only [deliver] and [retract], which is the point: the gate on
-/// [NotificationService.post] and the opt-out inside
+/// It overrides only the platform half - [deliver], [retract] and
+/// [retractAll] - which is the point: the gate on [NotificationService.post],
+/// the one-question cap inside it, and the opt-out inside
 /// [NotificationService.handleResponse] are the real ones, so a test against
 /// this fake is a test of the code that ships.
 final class FakeNotificationService extends NotificationService {
@@ -49,6 +50,13 @@ final class FakeNotificationService extends NotificationService {
 
   @override
   Future<void> retract(int id) async => retracted.add(id);
+
+  /// Kinds whose scheduled notifications were taken back wholesale.
+  final retractedKinds = <NotificationKind>[];
+
+  @override
+  Future<void> retractAll(NotificationKind kind) async =>
+      retractedKinds.add(kind);
 
   NotificationText? lastText;
 

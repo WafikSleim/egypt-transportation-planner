@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../data/models/models.dart';
+import '../../domain/entities/trip_endpoint.dart';
 
 /// How a mode is drawn.
 ///
@@ -50,6 +51,8 @@ class LegVm extends Equatable {
     required this.showNumberBadge,
     this.numberBadgeText,
     this.operatorName,
+    this.fromPoint,
+    this.toPoint,
   });
 
   final ModeBadgeVm badge;
@@ -75,6 +78,16 @@ class LegVm extends Equatable {
   final String? numberBadgeText;
   final String? operatorName;
 
+  /// Where this leg is boarded and left, as coordinates.
+  ///
+  /// Carried for trip following (#24, #25), the only thing that needs them:
+  /// `/plan` returns each leg's two endpoints and no geometry, so these two
+  /// points and the stop count are the whole of "the recorded route". They are
+  /// on the view model, and not read off the wire model by the tracking code,
+  /// for the reason every field here is: a View must not interpret wire fields.
+  final GeoPoint? fromPoint;
+  final GeoPoint? toPoint;
+
   @override
   List<Object?> get props => [
     badge,
@@ -91,6 +104,8 @@ class LegVm extends Equatable {
     showNumberBadge,
     numberBadgeText,
     operatorName,
+    fromPoint,
+    toPoint,
   ];
 }
 

@@ -77,7 +77,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     NotificationKind kind, {
     required bool allowed,
   }) async {
-    await _service.preferences.setAllowed(kind, allowed: allowed);
+    await _service.setAllowed(kind, allowed: allowed);
     if (isClosed) return;
     emit(
       NotificationsState(

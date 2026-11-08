@@ -1,6 +1,7 @@
 import 'dart:ui' show Locale;
 
 import '../../l10n/generated/app_localizations.dart';
+import '../text/formatting.dart';
 import 'notification_kind.dart';
 
 /// The words on a notification.
@@ -33,11 +34,13 @@ abstract class NotificationCopy {
 
 /// The one implementation, over the app's own strings.
 ///
-/// **Resolved when the notification is posted, not when it is scheduled**,
-/// and from the language the passenger has chosen rather than the phone's.
-/// This is the same trap as `lang` on API requests: a reminder scheduled in
-/// Arabic and fired after a switch to English would be the one screen in the
-/// app speaking the wrong language, and it would look like a working app.
+/// **Resolved when the notification is posted**, and from the language the
+/// passenger has chosen rather than the phone's. That is the same trap as
+/// `lang` on API requests. One honest limit: a *scheduled* reminder is
+/// resolved when it is scheduled, because the OS is handed the finished words
+/// then - a reminder set in Arabic and fired after a switch to English still
+/// speaks Arabic. Everything shown immediately uses the language of the
+/// moment.
 class AppNotificationCopy implements NotificationCopy {
   const AppNotificationCopy(this._l);
 
@@ -48,15 +51,15 @@ class AppNotificationCopy implements NotificationCopy {
 
   @override
   NotificationText forRequest(NotificationRequest request) => switch (request) {
-    // The wording of the three messages belongs to the issues that build
-    // them — #22 has to say plainly that a departure time is an estimate off
-    // a recorded schedule, and #23 has to ask its one question kindly rather
-    // than demand a rating. What is here is a placeholder honest enough to
-    // ship behind a feature that does not exist yet.
-    DepartureReminder(:final tripLabel) => NotificationText(
-      title: _l.notifyDepartureTitle,
-      body: _l.notifyDepartureBody(tripLabel),
-    ),
+    // Each sentence carries the honesty its feature owes: #22 says the time
+    // is an estimate off a recorded schedule, #24's notice says GPS, battery
+    // and that nothing leaves the phone, #25 says the estimate comes from the
+    // passenger's own GPS, and #23 asks kindly and promises not to ask again.
+    DepartureReminder(:final tripLabel, :final departureTime) =>
+      NotificationText(
+        title: _l.notifyDepartureTitle,
+        body: _l.notifyDepartureBody(tripLabel, clockTime(departureTime)),
+      ),
     TripInProgressNotice(:final tripLabel) => NotificationText(
       title: _l.notifyTrackingTitle,
       body: _l.notifyTrackingBody(tripLabel),

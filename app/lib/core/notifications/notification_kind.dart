@@ -91,16 +91,23 @@ sealed class NotificationRequest extends Equatable {
 
 /// #22. Fires before a planned departure.
 ///
-/// [tripLabel] is the trip as the passenger saved it — "المنيب ← رمسيس" —
-/// and is the only thing about the trip the notification layer is told.
+/// [tripLabel] is the trip as the passenger planned it — "المنيب ← رمسيس" —
+/// and, with [departureTime], is all the notification layer is told about it.
+///
+/// [at] is when the reminder fires; [departureTime] is the *estimated*
+/// departure it is about. Both are carried because the words say the second
+/// ("around 8:15, an estimate from a recorded schedule") while the OS needs
+/// the first.
 final class DepartureReminder extends NotificationRequest {
   const DepartureReminder({
     required this.at,
+    required this.departureTime,
     required this.tripLabel,
     this.slot = 0,
   });
 
   final DateTime at;
+  final DateTime departureTime;
   final String tripLabel;
 
   @override
@@ -113,7 +120,7 @@ final class DepartureReminder extends NotificationRequest {
   DateTime? get showAt => at;
 
   @override
-  List<Object?> get props => [kind, slot, at, tripLabel];
+  List<Object?> get props => [kind, slot, at, departureTime, tripLabel];
 }
 
 /// #24. The ongoing notice, for as long as a trip is being followed.
@@ -144,13 +151,22 @@ final class NextStopAlert extends NotificationRequest {
 
 /// #23. The single post-trip question.
 ///
-/// "At most one unsolicited prompt per trip" is #23's rule to enforce and
-/// #23's test to write. This type only says that such a notification exists.
+/// "At most one unsolicited prompt per trip" is enforced in
+/// `NotificationService.post`, next to the opt-out, and it needs to know
+/// *which* trip — so a question cannot be constructed without one. The
+/// [sessionKey] is an opaque id minted when a followed trip starts. It is not
+/// the route, not a place and not a coordinate: it exists so the ledger can
+/// say "this one has already been asked", and nothing else.
 final class PostTripQuestion extends NotificationRequest {
-  const PostTripQuestion();
+  const PostTripQuestion({required this.sessionKey});
+
+  final String sessionKey;
 
   @override
   NotificationKind get kind => NotificationKind.postTripQuestion;
+
+  @override
+  List<Object?> get props => [kind, sessionKey];
 }
 
 /// Something the passenger did to a notification, handed back to whichever

@@ -1,4 +1,5 @@
 import '../../data/models/models.dart';
+import '../../domain/entities/trip_endpoint.dart';
 import 'mode_catalog.dart';
 import 'view_models.dart';
 
@@ -106,6 +107,8 @@ class TripPresenter {
       showNumberBadge: showNumber,
       numberBadgeText: showNumber ? route.shortName : null,
       operatorName: route?.operator,
+      fromPoint: GeoPoint(l.from.lat, l.from.lon),
+      toPoint: GeoPoint(l.to.lat, l.to.lon),
     );
   }
 

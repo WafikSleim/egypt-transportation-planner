@@ -11,9 +11,12 @@ import 'core/notifications/notification_preferences.dart';
 import 'core/notifications/notification_service.dart';
 import 'core/settings/settings_cubit.dart';
 import 'core/storage/key_value_store.dart';
+import 'core/tracking/tracking_source.dart';
+import 'features/tracking/view_model/tracking_cubit.dart';
 import 'data/cache/plan_cache.dart';
 import 'data/repositories/places_repository_impl.dart';
 import 'data/repositories/planner_repository_impl.dart';
+import 'data/repositories/reminder_ledger.dart';
 import 'data/repositories/trip_history.dart';
 import 'domain/repositories/places_repository.dart';
 import 'domain/repositories/planner_repository.dart';
@@ -49,11 +52,24 @@ Future<void> main() async {
 
   runApp(
     MultiBlocProvider(
-      providers: [BlocProvider<SettingsCubit>.value(value: settings)],
+      providers: [
+        BlocProvider<SettingsCubit>.value(value: settings),
+        // App-wide, for the reason in the class: one session at a time, and
+        // the notice's stop button has to work from any screen.
+        BlocProvider<TrackingCubit>(
+          create: (_) => TrackingCubit(
+            source: const GeolocatorTrackingSource(),
+            notifications: notifications,
+          ),
+        ),
+      ],
       child: MultiRepositoryProvider(
         providers: [
           RepositoryProvider<KeyValueStore>.value(value: store),
           RepositoryProvider<TripHistory>(create: (_) => TripHistory(store)),
+          RepositoryProvider<ReminderLedger>(
+            create: (_) => ReminderLedger(store),
+          ),
           RepositoryProvider<LocationService>(
             create: (_) => const GeolocatorLocationService(),
           ),

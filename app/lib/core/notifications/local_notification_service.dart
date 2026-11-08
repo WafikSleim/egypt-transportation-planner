@@ -83,6 +83,12 @@ final class LocalNotificationService extends NotificationService {
     );
 
     await _createChannels(words);
+
+    // A followed trip does not survive the process: nothing restores the GPS
+    // subscription after a restart. A notice still on screen from a session
+    // that died would be an app announcing "following your trip" while
+    // following nothing - the one lie this notification exists to prevent.
+    await retract(const TripInProgressNotice(tripLabel: '').id);
   }
 
   /// One Android channel per kind, so the phone's own settings screen lists
@@ -184,6 +190,37 @@ final class LocalNotificationService extends NotificationService {
       ),
     );
 
+    // The tracking notice is not an ordinary notification on Android: it is
+    // the notification of a foreground service, which is what lets the GPS
+    // subscription keep running when the app is not on screen. Posted this way
+    // so that there is exactly ONE notification for tracking, drawn from
+    // `notification_copy.dart` with the stop action on it. The alternative -
+    // `geolocator`'s own `foregroundNotificationConfig` - takes a title and a
+    // body as plain strings and starts a second service, which is a way to put
+    // words on a phone that does not go through the copy layer.
+    if (request.kind == NotificationKind.tripInProgress) {
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android != null) {
+        await android.startForegroundService(
+          id: request.id,
+          title: text.title,
+          body: text.body,
+          notificationDetails: _androidDetails(request.kind, silenceLabel),
+          payload: _payload(request.kind, request.slot),
+          // Not sticky: if the system kills this process, the service must
+          // not come back with a notice and no subscription behind it.
+          startType: AndroidServiceStartType.startNotSticky,
+          foregroundServiceTypes: {
+            AndroidServiceForegroundType.foregroundServiceTypeLocation,
+          },
+        );
+        return;
+      }
+    }
+
     final at = request.showAt;
     if (at == null) {
       await _plugin.show(
@@ -257,7 +294,25 @@ final class LocalNotificationService extends NotificationService {
   };
 
   @override
-  Future<void> retract(int id) => _plugin.cancel(id: id);
+  Future<void> retract(int id) async {
+    if (id == const TripInProgressNotice(tripLabel: '').id) {
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      try {
+        await android?.stopForegroundService();
+      } catch (_) {
+        // Nothing was running - the launch-time cleanup lands here every
+        // time, and so does a stop tapped twice.
+      }
+    }
+    await _plugin.cancel(id: id);
+  }
+
+  @override
+  Future<void> retractAll(NotificationKind kind) =>
+      cancelPendingOfKind(_plugin, kind);
 
   static String _payload(NotificationKind kind, int slot) =>
       '${kind.name}/$slot';
@@ -275,6 +330,20 @@ final class LocalNotificationService extends NotificationService {
         actionId: response.actionId,
       ),
     );
+  }
+}
+
+/// Cancel everything of [kind] that the OS is still holding - in practice the
+/// departure reminders, which are the only kind scheduled ahead of time.
+///
+/// Ids are `kind.index * 1000 + slot` (see `NotificationRequest.id`), so the
+/// kind of a pending request is recoverable from its id alone.
+Future<void> cancelPendingOfKind(
+  FlutterLocalNotificationsPlugin plugin,
+  NotificationKind kind,
+) async {
+  for (final pending in await plugin.pendingNotificationRequests()) {
+    if (pending.id ~/ 1000 == kind.index) await plugin.cancel(id: pending.id);
   }
 }
 
@@ -313,11 +382,19 @@ Future<void> notificationBackgroundResponse(
   // Nothing is registered in a fresh isolate, including shared_preferences.
   DartPluginRegistrant.ensureInitialized();
 
-  await silenceFromBackground(
+  final silenced = await silenceFromBackground(
     await SharedPreferencesStore.open(),
     actionId: response.actionId,
     payload: response.payload,
   );
+
+  // The preference is only half of "off": reminders already handed to the OS
+  // fire without consulting it. This isolate has no plugin instance from
+  // `main`, so it makes its own - cancelling needs no initialisation.
+  final parsed = decodeNotificationPayload(response.payload);
+  if (silenced && parsed != null) {
+    await cancelPendingOfKind(FlutterLocalNotificationsPlugin(), parsed.kind);
+  }
 }
 
 /// The decision behind [notificationBackgroundResponse], with the storage

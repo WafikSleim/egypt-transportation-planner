@@ -192,16 +192,19 @@
   "notifyNextStopAlert": "Tell me when to get off",
   "notifyPostTripQuestion": "One question after a trip",
   "notifyDepartureTitle": "Your trip is soon",
-  "notifyDepartureBody": "{trip}",
+  "notifyDepartureBody": "{trip} — around {time}. That time is an estimate from a recorded schedule, not where the vehicle is right now.",
   "@notifyDepartureBody": {
     "placeholders": {
       "trip": {
         "type": "String"
+      },
+      "time": {
+        "type": "String"
       }
     }
   },
-  "notifyTrackingTitle": "Following your trip",
-  "notifyTrackingBody": "{trip}",
+  "notifyTrackingTitle": "Following your trip with GPS",
+  "notifyTrackingBody": "{trip} — GPS is on and uses battery. Your position is worked out on your phone and never sent anywhere.",
   "@notifyTrackingBody": {
     "placeholders": {
       "trip": {
@@ -210,7 +213,7 @@
     }
   },
   "notifyNextStopTitle": "Get ready to get off",
-  "notifyNextStopBody": "Next: {stop}",
+  "notifyNextStopBody": "You are getting close to {stop}, where you get off. This is an estimate from your own GPS, not the vehicle's position.",
   "@notifyNextStopBody": {
     "placeholders": {
       "stop": {
@@ -219,5 +222,80 @@
     }
   },
   "notifyPostTripTitle": "Did you get there safely?",
-  "notifyPostTripBody": "Tell us whether the trip was right, if you can."
+  "notifyPostTripBody": "If you have a second, tell us whether the trip went as planned. No need to answer, and we will not ask again.",
+  "reminderTitle": "Reminder before the trip",
+  "reminderEstimate": "That time is an estimate from a recorded schedule, not where the vehicle is right now. The reminder is made on your phone.",
+  "reminderPickTitle": "Remind me how long before?",
+  "reminderSetLine": "We will remind you at {time}, {minutes} minutes before the estimated departure.",
+  "@reminderSetLine": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderCancel": "Cancel the reminder",
+  "reminderCancelled": "Reminder cancelled.",
+  "reminderTimePassed": "That departure is too close or already gone, so we cannot remind you before it.",
+  "reminderTooMany": "You already have many reminders waiting. Cancel one first.",
+  "reminderNotificationsOff": "Notifications are turned off on this device, so we cannot remind you.",
+  "reminderCachedUnavailable": "This trip comes from a saved result, so its times are not reliable. Search for it again if you want a reminder.",
+  "trackingStart": "Follow this trip",
+  "trackingIntro": "Start when you get on. The app compares your position with this trip's stops and tells you before you get off.",
+  "trackingDisclosureTitle": "Before we start following",
+  "trackingDisclosureGps": "GPS will run for the whole trip, and that uses battery.",
+  "trackingDisclosureOnDevice": "Your position is worked out on your phone only. It is not sent to a server or to anyone, and we do not record the route you took.",
+  "trackingDisclosureNotLive": "We will not tell you the vehicle is coming in some minutes: nobody in Egypt publishes live positions for microbuses. We only compare your own position with the trip's recorded stops.",
+  "trackingDisclosureStop": "A notification stays on screen for as long as this runs, and you can stop it from there in one tap.",
+  "trackingDisclosureIosForeground": "On iPhone, following works only while the app is open.",
+  "trackingDisclosureStart": "Start following",
+  "trackingBasis": "This is an estimate from your own GPS against the recorded stops, not the vehicle's position.",
+  "trackingSearching": "Looking for a good GPS signal…",
+  "trackingUnsurePoorFix": "Not sure right now: the GPS signal is weak, and we will not show a distance we cannot stand behind.",
+  "trackingUnsureOffRoute": "We are not sure you are on the right route. You are far from the recorded line.",
+  "trackingUnsureNoSignal": "We are not sure you are on the right route. No fresh GPS reading for a while.",
+  "trackingOnRouteM": "Your stop: {stop}. About {meters} m from you.",
+  "@trackingOnRouteM": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      },
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "trackingOnRouteKm": "Your stop: {stop}. About {km} km from you.",
+  "@trackingOnRouteKm": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "trackingNear": "You are close to {stop}. Get ready to get off.",
+  "@trackingNear": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      }
+    }
+  },
+  "trackingArrived": "You have arrived. Following has stopped and the notification is gone.",
+  "trackingOtherTrip": "You are following another trip. Stop it first if you want to follow this one.",
+  "trackingFailNotifications": "We cannot start following without a visible notification. Turn notifications on first: that is what guarantees GPS never runs without you seeing it.",
+  "trackingFailDenied": "Without location permission we cannot follow the trip.",
+  "trackingFailDeniedForever": "Location permission is turned off in system settings.",
+  "trackingFailOff": "Location is switched off on this device.",
+  "trackingFailUnavailable": "We cannot start location right now.",
+  "postTripDialogQuestion": "Was the trip as we described it?",
+  "postTripYes": "Yes",
+  "postTripNo": "No",
+  "postTripLocalOnly": "Your answer is kept on your phone only and is not sent to anyone. We will not ask about this trip again."
 }
