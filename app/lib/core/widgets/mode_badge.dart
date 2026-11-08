@@ -34,7 +34,7 @@ class _ModePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = context.modeColors.forModeId(badge.modeId);
+    final color = context.modeColors.forBadge(badge);
     return Container(
       padding: EdgeInsetsDirectional.symmetric(
         horizontal: compact ? Insets.sm : Insets.md,
@@ -86,7 +86,7 @@ class _MetroCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = context.modeColors.forMetroLine(badge.metroLine);
+    final color = context.modeColors.forBadge(badge);
     final size = compact ? 22.0 : 25.0;
     return Semantics(
       label: '${badge.label} ${badge.metroLine ?? ''}'.trim(),

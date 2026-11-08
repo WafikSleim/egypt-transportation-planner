@@ -181,6 +181,8 @@ class Leg extends Equatable {
     this.route,
     this.headsign,
     this.intermediateStops = 0,
+    this.geometry,
+    this.geometryApproximate = false,
   });
 
   final ModeInfo mode;
@@ -194,6 +196,18 @@ class Leg extends Equatable {
   final RouteInfo? route;
   final String? headsign;
   final int intermediateStops;
+
+  /// The leg's path as a Google encoded polyline (precision 5), or null.
+  ///
+  /// Null covers three different facts — an older server, a plan cached by an
+  /// older build, and OTP sending none — and all three mean the same thing to
+  /// the client: there is no path to draw. It is never replaced by a line from
+  /// [from] to [to].
+  final String? geometry;
+
+  /// Set by the server: the path is stations joined by straight lines rather
+  /// than a surveyed track (metro line 3). The client does not work this out.
+  final bool geometryApproximate;
 
   factory Leg.fromJson(Map<String, dynamic> json) => Leg(
     mode: ModeInfo.fromJson(
@@ -212,6 +226,8 @@ class Leg extends Equatable {
         : RouteInfo.fromJson(json['route'] as Map<String, dynamic>),
     headsign: _as<String>(json['headsign']),
     intermediateStops: _int(json['intermediate_stops']),
+    geometry: _as<String>(json['geometry']),
+    geometryApproximate: _as<bool>(json['geometry_approximate']) ?? false,
   );
 
   @override
@@ -227,6 +243,8 @@ class Leg extends Equatable {
     route,
     headsign,
     intermediateStops,
+    geometry,
+    geometryApproximate,
   ];
 }
 
