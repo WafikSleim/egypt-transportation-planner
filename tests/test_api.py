@@ -523,3 +523,60 @@ async def test_our_own_metro_line_3_is_not_labelled_tfc(fake_otp, client):
     # Still the metro mode, and still a badge: mode comes from agency_id.
     assert route["short_name"] == "M3"
     assert route["has_line_number"] is True
+
+
+# --------------------------------------------------------------------------
+# Leg geometry (#20)
+# --------------------------------------------------------------------------
+
+# The reference string from Google's polyline-format documentation. The server
+# never decodes it, so what matters is that it arrives byte for byte.
+POLYLINE = "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
+
+
+def _with_geometry(itinerary):
+    for leg in itinerary["legs"]:
+        leg["legGeometry"] = {"points": POLYLINE, "length": 3}
+    return itinerary
+
+
+async def test_geometry_is_requested_from_otp():
+    """Without this field in the query nothing downstream can draw a route,
+    and the failure is silent: every leg simply comes back with no path."""
+    from api import otp
+
+    assert "legGeometry" in otp.PLAN_QUERY
+
+
+async def test_leg_geometry_is_passed_through_untouched(fake_otp, client):
+    fake_otp.itineraries = [_with_geometry(microbus_itinerary())]
+    async with client as c:
+        body = (await c.get("/plan", params=CAIRO)).json()
+
+    for leg in body["itineraries"][0]["legs"]:
+        assert leg["geometry"] == POLYLINE
+        assert leg["geometry_approximate"] is False
+
+
+async def test_a_leg_without_geometry_says_null_not_a_straight_line(
+    fake_otp, client
+):
+    fake_otp.itineraries = [microbus_itinerary()]
+    async with client as c:
+        body = (await c.get("/plan", params=CAIRO)).json()
+
+    assert all(l["geometry"] is None for l in body["itineraries"][0]["legs"])
+
+
+async def test_metro_line_3_geometry_is_flagged_approximate_by_the_server(
+    fake_otp, client
+):
+    """Line 3's feed is ours and its shapes are straight lines between
+    stations. The server says so, keyed on the feed, so the client never has to
+    know which feeds are ours."""
+    fake_otp.itineraries = [_with_geometry(metro_l3_itinerary())]
+    async with client as c:
+        body = (await c.get("/plan", params=CAIRO)).json()
+
+    transit = [l for l in body["itineraries"][0]["legs"] if l["is_transit"]]
+    assert transit and all(l["geometry_approximate"] for l in transit)

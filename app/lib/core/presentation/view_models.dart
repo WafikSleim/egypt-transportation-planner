@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../data/models/models.dart';
-import '../../domain/entities/trip_endpoint.dart';
+import '../map/geo.dart';
 
 /// How a mode is drawn.
 ///
@@ -51,6 +51,8 @@ class LegVm extends Equatable {
     required this.showNumberBadge,
     this.numberBadgeText,
     this.operatorName,
+    this.path = const [],
+    this.pathApproximate = false,
     this.fromPoint,
     this.toPoint,
   });
@@ -78,6 +80,16 @@ class LegVm extends Equatable {
   final String? numberBadgeText;
   final String? operatorName;
 
+  /// The leg's path, decoded. **Empty means there is no path** — never "draw
+  /// a line from [fromPoint] to [toPoint]": between two stops that is a claim
+  /// about the route that nobody made. A path of fewer than two points is
+  /// dropped to empty by the presenter for the same reason.
+  final List<GeoPoint> path;
+
+  /// The server said this path is stations joined by straight lines (metro
+  /// line 3), not a surveyed track.
+  final bool pathApproximate;
+
   /// Where this leg is boarded and left, as coordinates.
   ///
   /// Carried for trip following (#24, #25), the only thing that needs them:
@@ -90,6 +102,10 @@ class LegVm extends Equatable {
 
   @override
   List<Object?> get props => [
+    path,
+    pathApproximate,
+    fromPoint,
+    toPoint,
     badge,
     isTransit,
     isWalk,
@@ -109,6 +125,85 @@ class LegVm extends Equatable {
   ];
 }
 
+/// Why a stop is marked on the map.
+enum RouteStopRole { origin, destination, board, alight }
+
+/// One leg's line on the map.
+///
+/// Carries the badge, not a colour: which colour a badge means depends on the
+/// theme, and the one function that resolves it is `ModeColors.forBadge`. The
+/// map and the leg list both go through it, so a leg cannot be orange in one
+/// and blue in the other.
+class RouteSegmentVm extends Equatable {
+  const RouteSegmentVm({
+    required this.badge,
+    required this.isWalk,
+    required this.points,
+    required this.approximate,
+  });
+
+  final ModeBadgeVm badge;
+
+  /// Walking is drawn dashed: it is not a vehicle, and that should read
+  /// without reading.
+  final bool isWalk;
+  final List<GeoPoint> points;
+
+  /// Straight lines between stations. Drawn fainter, and the screen says why.
+  final bool approximate;
+
+  @override
+  List<Object?> get props => [badge, isWalk, points, approximate];
+}
+
+/// A marked stop. [badge] is set for boarding and alighting stops, so a metro
+/// boarding is a circle carrying its line and not a bare dot or, worse, a
+/// pill, and every ring takes its leg's colour.
+class RouteStopVm extends Equatable {
+  const RouteStopVm({required this.point, required this.role, this.badge});
+
+  final GeoPoint point;
+  final RouteStopRole role;
+  final ModeBadgeVm? badge;
+
+  @override
+  List<Object?> get props => [point, role, badge];
+}
+
+/// What the itinerary map draws, and what it admits it cannot.
+///
+/// There is no vehicle in here and no field that could hold one: there is no
+/// real-time feed for Cairo paratransit, so a moving dot would be invented.
+class RouteMapVm extends Equatable {
+  const RouteMapVm({
+    this.segments = const [],
+    this.stops = const [],
+    this.undrawnLegs = 0,
+  });
+
+  static const empty = RouteMapVm();
+
+  final List<RouteSegmentVm> segments;
+  final List<RouteStopVm> stops;
+
+  /// Legs with no usable path — left off the map rather than joined up with a
+  /// guess. The screen says how many.
+  final int undrawnLegs;
+
+  /// Nothing drawable means no map at all, not an empty one.
+  bool get hasRoute => segments.isNotEmpty;
+
+  bool get hasApproximate => segments.any((s) => s.approximate);
+
+  GeoBounds? get bounds => GeoBounds.around([
+    for (final s in segments) ...s.points,
+    for (final s in stops) s.point,
+  ]);
+
+  @override
+  List<Object?> get props => [segments, stops, undrawnLegs];
+}
+
 class ItineraryVm extends Equatable {
   const ItineraryVm({
     required this.startTime,
@@ -118,7 +213,10 @@ class ItineraryVm extends Equatable {
     required this.transfers,
     required this.legs,
     this.cachedAt,
+    this.routeMap = RouteMapVm.empty,
   });
+
+  final RouteMapVm routeMap;
 
   final DateTime startTime;
   final DateTime endTime;
@@ -156,6 +254,7 @@ class ItineraryVm extends Equatable {
     transfers,
     legs,
     cachedAt,
+    routeMap,
   ];
 }
 

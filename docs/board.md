@@ -129,6 +129,15 @@ and #17, which moved from `Backlog` to `In review` — nothing in them has run
 on a phone, and the Arabic copy is new. #16 also needed `GET /stops/nearby`,
 whose OTP query has not been run against a live graph.
 
+**#20 (the itinerary map) was not only waiting on #19.** The renderer was the
+blocker the issue named; the one it did not name was that `/plan` returned no
+geometry, so there was nothing to draw. It shipped on 2026-11-08 across both
+halves — the API now returns each leg's `legGeometry` and flags metro line 3's
+as approximate, the client draws it — and sits in **In review** because what
+cannot be checked here is how it looks on a phone: nothing in this project has
+run on hardware, the API change has not been run against a live OTP, and the
+three new Arabic strings need a native read.
+
 ---
 
 ## Conventions for a new issue

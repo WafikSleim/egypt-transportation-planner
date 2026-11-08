@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../presentation/view_models.dart';
 import 'tokens.dart';
 
 /// Mode and metro-line colours, as a theme extension so light/dark is one
@@ -120,6 +121,18 @@ class ModeColors extends ThemeExtension<ModeColors> {
         return unknown;
     }
   }
+
+  /// The one place a badge becomes a colour: the metro circle takes its line
+  /// colour, everything else its plate colour by mode id.
+  ///
+  /// Used by the badge widget, the leg list and the itinerary map. It was
+  /// once an inline branch in the leg list; a map that re-implemented it would
+  /// have drifted the first time a mode was added, and "the line on the map
+  /// is a different colour from the badge above it" is exactly the sort of
+  /// fault that looks like a design choice.
+  Color forBadge(ModeBadgeVm badge) => badge.shape == ModeBadgeShape.metroCircle
+      ? forMetroLine(badge.metroLine)
+      : forModeId(badge.modeId);
 
   Color forMetroLine(String? shortName) =>
       metroLines[shortName?.toUpperCase()] ?? unknown;
