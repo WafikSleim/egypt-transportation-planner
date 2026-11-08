@@ -33,8 +33,12 @@ dependencies:
   # data, and the API surface is four endpoints.
   http: ^1.5.0
 
-  # Device location. Only ever read on demand, never in the background -
-  # background tracking is its own feature (#24) with its own consent.
+  # Device location, two ways and no others: a one-off fix on demand
+  # (core/location), and a position stream while the passenger is following a
+  # trip (core/tracking, #24) - started only by an explicit tap, behind a
+  # disclosure, with a visible notification for as long as it runs. There is
+  # no ACCESS_BACKGROUND_LOCATION and geolocator's own foreground-service
+  # notification is not used; see core/tracking/tracking_source.dart.
   geolocator: ^14.0.2
 
   # On-device storage. shared_preferences rather than drift: see

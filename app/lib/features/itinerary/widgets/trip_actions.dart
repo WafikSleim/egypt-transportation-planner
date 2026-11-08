@@ -6,13 +6,15 @@ import '../../../core/notifications/notifications_cubit.dart';
 import '../../../core/presentation/view_models.dart';
 import '../../../core/text/bidi.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/tracking/tracked_trip.dart';
 import '../../../data/repositories/reminder_ledger.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../reminders/view/reminder_section.dart';
+import '../../tracking/view/tracking_section.dart';
 import '../../reminders/view_model/reminder_cubit.dart';
 
 /// What a passenger can ask of this trip beyond reading it: be reminded before
-/// it, and (#24) follow it with GPS while riding.
+/// it, and follow it with GPS while riding (#24, #25).
 ///
 /// Passed to `ItineraryPage` as a widget rather than built inside it. The
 /// detail screen is a pure function of a view model - it is what the goldens
@@ -43,6 +45,9 @@ class TripActions extends StatelessWidget {
     if (itinerary.legs.isEmpty) return const SizedBox.shrink();
 
     final service = context.read<NotificationService>();
+    final tripKey = keyFor(itinerary);
+    final label = labelFor(l, itinerary);
+    final trackable = TrackedTrip.fromItinerary(itinerary, label);
 
     return MultiBlocProvider(
       providers: [
@@ -53,8 +58,8 @@ class TripActions extends StatelessWidget {
             notifications: service,
             ledger: context.read<ReminderLedger>(),
             target: ReminderTarget(
-              tripKey: keyFor(itinerary),
-              tripLabel: labelFor(l, itinerary),
+              tripKey: tripKey,
+              tripLabel: label,
               departureAt: itinerary.startTime,
               isFromCache: itinerary.isFromCache,
             ),
@@ -63,9 +68,15 @@ class TripActions extends StatelessWidget {
       ],
       child: Padding(
         padding: EdgeInsetsDirectional.only(top: Insets.lg),
-        child: const Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [ReminderSection()],
+          children: [
+            const ReminderSection(),
+            if (trackable != null) ...[
+              SizedBox(height: Insets.xl),
+              TrackingSection(tripKey: tripKey, trip: trackable),
+            ],
+          ],
         ),
       ),
     );

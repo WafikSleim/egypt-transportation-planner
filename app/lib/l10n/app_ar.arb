@@ -319,5 +319,60 @@
   "reminderTimePassed": "الميعاد ده قرّب أو عدّى، مش هينفع نفكّرك قبله.",
   "reminderTooMany": "عندك تذكيرات كتير مستنية. الغي واحد الأول.",
   "reminderNotificationsOff": "التنبيهات مقفولة على الجهاز، فمش هنقدر نفكّرك.",
-  "reminderCachedUnavailable": "المشوار ده من نتيجة محفوظة، فمواعيده مش مضمونة. دوّر عليه من جديد لو عايزنا نفكّرك."
+  "reminderCachedUnavailable": "المشوار ده من نتيجة محفوظة، فمواعيده مش مضمونة. دوّر عليه من جديد لو عايزنا نفكّرك.",
+  "trackingStart": "تابع الرحلة",
+  "trackingIntro": "ابدأ لما تركب. التطبيق هيقارن مكانك بمحطات الرحلة وينبّهك قبل ما تنزل.",
+  "trackingDisclosureTitle": "قبل ما نبدأ المتابعة",
+  "trackingDisclosureGps": "الـ GPS هيشتغل طول الرحلة، وده بياكل بطارية.",
+  "trackingDisclosureOnDevice": "مكانك بيتحسب على تليفونك بس. مابيتبعتش للسيرفر ولا لحد، ومابنسجّلش الطريق اللي مشيته.",
+  "trackingDisclosureNotLive": "مش هنقولك العربية جاية بعد كام دقيقة، لأن مافيش بيانات لحظية للميكروباصات في مصر. إحنا بنقارن مكانك إنت بمحطات الرحلة المسجّلة بس.",
+  "trackingDisclosureStop": "هيفضل تنبيه ظاهر طول المتابعة، وتوقّفها منه بضغطة واحدة.",
+  "trackingDisclosureIosForeground": "على الآيفون المتابعة بتشتغل والتطبيق مفتوح بس.",
+  "trackingDisclosureStart": "ابدأ المتابعة",
+  "trackingBasis": "ده تقدير من الـ GPS بتاعك على المحطات المسجّلة، مش مكان العربية.",
+  "trackingSearching": "بندوّر على إشارة GPS كويسة…",
+  "trackingUnsurePoorFix": "مش متأكدين دلوقتي: إشارة الـ GPS ضعيفة، ومش هنقولك مسافة مش متأكدين منها.",
+  "trackingUnsureOffRoute": "مش متأكدين إنك في السكة الصح. مكانك بعيد عن الخط المسجّل.",
+  "trackingUnsureNoSignal": "مش متأكدين إنك في السكة الصح. مجاش GPS جديد بقاله شوية.",
+  "trackingOnRouteM": "المحطة اللي هتنزل فيها: {stop}. حوالي {meters} متر منك.",
+  "@trackingOnRouteM": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      },
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "trackingOnRouteKm": "المحطة اللي هتنزل فيها: {stop}. حوالي {km} كم منك.",
+  "@trackingOnRouteKm": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "trackingNear": "قرّبت من {stop}. استعد تنزل.",
+  "@trackingNear": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      }
+    }
+  },
+  "trackingArrived": "وصلت. وقّفنا المتابعة والتنبيه اختفى.",
+  "trackingOtherTrip": "بتتابع رحلة تانية دلوقتي. وقّفها الأول لو عايز تتابع الرحلة دي.",
+  "trackingFailNotifications": "مش هنقدر نبدأ المتابعة من غير تنبيه ظاهر. فعّل التنبيهات الأول — ده اللي بيضمن إن الـ GPS ما يشتغلش من غير ما تشوفه.",
+  "trackingFailDenied": "من غير إذن المكان مش هنقدر نتابع الرحلة.",
+  "trackingFailDeniedForever": "إذن المكان مقفول من إعدادات الجهاز.",
+  "trackingFailOff": "خدمة تحديد المكان مقفولة في الجهاز.",
+  "trackingFailUnavailable": "مش قادرين نشغّل تحديد المكان دلوقتي.",
+  "postTripDialogQuestion": "المشوار كان زي ما اتوقّعنا؟",
+  "postTripYes": "أيوه",
+  "postTripNo": "لأ",
+  "postTripLocalOnly": "ردّك بيتسجّل على تليفونك بس، ومابيتبعتش لحد. ومش هنسألك عن المشوار ده تاني."
 }
