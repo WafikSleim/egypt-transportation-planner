@@ -1,5 +1,6 @@
 import '../../data/cache/plan_cache.dart';
 import '../../data/models/models.dart';
+import '../../data/models/place_models.dart';
 import '../entities/trip_endpoint.dart';
 
 /// The Model side of MVVM: the only thing a ViewModel is allowed to call for
@@ -36,6 +37,15 @@ abstract class PlannerRepository {
   });
 
   Future<StopsResponse> searchStops(String query, {int limit = 20});
+
+  /// The stops nearest to [at], nearest first, with straight-line distances.
+  /// Transit data — it belongs here and not on `PlacesRepository`, and the
+  /// map-pick screen asks for it separately from the place's name.
+  Future<NearbyStopsResponse> nearbyStops(
+    GeoPoint at, {
+    int radiusMetres,
+    int limit,
+  });
 
   Future<Attribution> attribution();
 }

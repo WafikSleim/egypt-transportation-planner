@@ -1,0 +1,52 @@
+{
+  "query": "30.0312,31.4601",
+  "count": 2,
+  "total_matches": 2,
+  "truncated": false,
+  "places": [
+    {
+      "id": "w201",
+      "name": "شارع التسعين الجنوبي",
+      "name_language": "ar",
+      "name_is_fallback": false,
+      "name_ar": "شارع التسعين الجنوبي",
+      "name_en": null,
+      "category": {
+        "id": "street",
+        "label_en": "Street",
+        "label_ar": "شارع"
+      },
+      "area": "التجمع الخامس",
+      "lat": 30.0311,
+      "lon": 31.46,
+      "distance_m": 34,
+      "source": "osm",
+      "confidence": "reported"
+    },
+    {
+      "id": "n202",
+      "name": "Mobil Station",
+      "name_language": "en",
+      "name_is_fallback": true,
+      "name_ar": null,
+      "name_en": "Mobil Station",
+      "category": {
+        "id": "station",
+        "label_en": "Station",
+        "label_ar": "محطة"
+      },
+      "area": null,
+      "lat": 30.0313,
+      "lon": 31.4603,
+      "distance_m": 61,
+      "source": "osm",
+      "confidence": "reported"
+    }
+  ],
+  "attribution": {
+    "text": "© OpenStreetMap contributors",
+    "licence": "ODbL 1.0",
+    "source_url": "https://www.openstreetmap.org/copyright"
+  },
+  "matching": "nearest"
+}

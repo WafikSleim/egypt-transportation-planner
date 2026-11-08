@@ -1,0 +1,21 @@
+{
+  "at": "30.0312,31.4601",
+  "radius_m": 1000,
+  "count": 1,
+  "stops": [
+    {
+      "id": "2:1210",
+      "name": "المصراوية",
+      "lat": 30.0301,
+      "lon": 31.4571,
+      "distance_m": 239,
+      "source": "tfc",
+      "confidence": "confirmed"
+    }
+  ],
+  "attribution": {
+    "text": "This data was created by Transport for Cairo 'TfC' with DigitalMatatus and Takween for Integrated Community Development, under the Digital Cairo Project supported by ExpoLive 2020.",
+    "licence": "CC BY-NC 4.0",
+    "source_url": "https://data.transportforcairo.com"
+  }
+}

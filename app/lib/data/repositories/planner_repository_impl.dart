@@ -3,6 +3,7 @@ import '../../domain/entities/trip_endpoint.dart';
 import '../../domain/repositories/planner_repository.dart';
 import '../cache/plan_cache.dart';
 import '../models/models.dart';
+import '../models/place_models.dart';
 
 class PlannerRepositoryImpl implements PlannerRepository {
   PlannerRepositoryImpl(this._api, {PlanCache? cache}) : _cache = cache;
@@ -77,6 +78,19 @@ class PlannerRepositoryImpl implements PlannerRepository {
       query: {'q': query, 'limit': '$limit'},
     );
     return StopsResponse.fromJson(json);
+  }
+
+  @override
+  Future<NearbyStopsResponse> nearbyStops(
+    GeoPoint at, {
+    int radiusMetres = 1000,
+    int limit = 3,
+  }) async {
+    final json = await _api.getJson(
+      '/stops/nearby',
+      query: {'at': at.wire, 'radius_m': '$radiusMetres', 'limit': '$limit'},
+    );
+    return NearbyStopsResponse.fromJson(json);
   }
 
   @override

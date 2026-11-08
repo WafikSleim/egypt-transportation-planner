@@ -179,4 +179,91 @@ void main() {
       expect(TripHistory(store).saved().single.from.label, 'good');
     });
   });
+
+  group('places in storage (#17)', () {
+    const mall = TripEndpoint(
+      label: 'كايرو فستيفال',
+      point: GeoPoint(30.0287, 31.4079),
+      placeId: 'w101',
+    );
+
+    test('a place survives the round trip and is still a place', () async {
+      final history = TripHistory(InMemoryStore());
+      await history.remember(mall);
+
+      final back = history.recents().single;
+      expect(back.kind, EndpointKind.place);
+      expect(back.placeId, 'w101');
+      expect(back, mall);
+    });
+
+    test('a recent saved by a build before places existed still loads', () {
+      // The shape #11 wrote: no `place_id`. A phone updating the app must not
+      // lose, or crash on, what it already holds.
+      final history = TripHistory(
+        InMemoryStore({
+          'recent_endpoints':
+              '{"items":[{"label":"المنيب","lat":29.98,"lon":31.21,'
+              '"stop_id":"2:1145","modes":["microbus"]},'
+              '{"label":"مكاني","lat":30.04,"lon":31.23}]}',
+        }),
+      );
+
+      final recents = history.recents();
+      expect(recents, hasLength(2));
+      expect(recents[0].kind, EndpointKind.stop);
+      expect(recents[0].placeId, isNull);
+      expect(recents[1].kind, EndpointKind.point);
+    });
+
+    test('a record claiming to be both a stop and a place is a stop', () {
+      final history = TripHistory(
+        InMemoryStore({
+          'recent_endpoints':
+              '{"items":[{"label":"x","lat":30.0,"lon":31.2,'
+              '"stop_id":"2:1","place_id":"w9"}]}',
+        }),
+      );
+      expect(history.recents().single.kind, EndpointKind.stop);
+    });
+
+    test('a place and a stop at the same spot are two recents', () async {
+      final history = TripHistory(InMemoryStore());
+      await history.remember(stop('2:1', 'محطة'));
+      await history.remember(
+        const TripEndpoint(
+          label: 'مكان',
+          point: GeoPoint(30.04, 31.23),
+          placeId: 'n7',
+        ),
+      );
+      // Keyed on the stop id and on the rounded point respectively, so they
+      // do not collapse into one.
+      expect(history.recents(), hasLength(2));
+    });
+
+    test('an endpoint cannot be a stop and a place at once', () {
+      expect(
+        () => TripEndpoint(
+          label: 'x',
+          point: const GeoPoint(30, 31),
+          stopId: '2:1',
+          placeId: 'w1',
+        ),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
+    test('savedEndpoints are stops and places from saved trips, newest first, '
+        'each once, never a plain point', () async {
+      final history = TripHistory(InMemoryStore());
+      await history.save(point(30.05, 31.25), mall);
+      await history.save(stop('2:1', 'المنيب'), mall);
+
+      expect(history.savedEndpoints().map((e) => e.label), [
+        'كايرو فستيفال',
+        'المنيب',
+      ]);
+    });
+  });
 }

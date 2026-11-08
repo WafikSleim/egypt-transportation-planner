@@ -1,5 +1,6 @@
 import 'package:egypt_transport/data/cache/plan_cache.dart';
 import 'package:egypt_transport/data/models/models.dart';
+import 'package:egypt_transport/data/models/place_models.dart';
 import 'package:egypt_transport/domain/entities/trip_endpoint.dart';
 import 'package:egypt_transport/domain/repositories/planner_repository.dart';
 
@@ -8,7 +9,13 @@ import 'package:egypt_transport/domain/repositories/planner_repository.dart';
 /// Hand-written rather than mocked: there are three methods, and a fake that
 /// can be told to be slow is what the ordering tests actually need.
 class FakeRepository implements PlannerRepository {
-  FakeRepository({this.planResponse, this.stopsResponse, this.error});
+  FakeRepository({
+    this.planResponse,
+    this.stopsResponse,
+    this.error,
+    this.nearbyResponse,
+    this.nearbyError,
+  });
 
   PlanResponse? planResponse;
   StopsResponse? stopsResponse;
@@ -67,6 +74,30 @@ class FakeRepository implements PlannerRepository {
           query: query,
           stops: const [],
           attribution: const Attribution(text: '', licence: '', sourceUrl: ''),
+        );
+  }
+
+  /// What `nearbyStops` answers with; null makes it throw [error] or, with no
+  /// error set, answer an empty list (nothing within the radius).
+  NearbyStopsResponse? nearbyResponse;
+
+  /// Set to make only the nearby-stop lookup fail, leaving the rest working.
+  Object? nearbyError;
+
+  final List<GeoPoint> nearbyCalls = [];
+
+  @override
+  Future<NearbyStopsResponse> nearbyStops(
+    GeoPoint at, {
+    int radiusMetres = 1000,
+    int limit = 3,
+  }) async {
+    nearbyCalls.add(at);
+    if (nearbyError != null) throw nearbyError!;
+    return nearbyResponse ??
+        const NearbyStopsResponse(
+          stops: [],
+          attribution: Attribution(text: 'TfC', licence: 'l', sourceUrl: 's'),
         );
   }
 

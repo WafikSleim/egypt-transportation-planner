@@ -1,0 +1,33 @@
+{
+  "query": "كايرو فستيفال",
+  "count": 1,
+  "total_matches": 1,
+  "truncated": false,
+  "places": [
+    {
+      "id": "w101",
+      "name": "كايرو فستيفال سيتي مول",
+      "name_language": "ar",
+      "name_is_fallback": false,
+      "name_ar": "كايرو فستيفال سيتي مول",
+      "name_en": "Cairo Festival City Mall",
+      "category": {
+        "id": "mall",
+        "label_en": "Mall",
+        "label_ar": "مول"
+      },
+      "area": "التجمع الخامس",
+      "lat": 30.0287,
+      "lon": 31.4079,
+      "distance_m": null,
+      "source": "osm",
+      "confidence": "reported"
+    }
+  ],
+  "attribution": {
+    "text": "© OpenStreetMap contributors",
+    "licence": "ODbL 1.0",
+    "source_url": "https://www.openstreetmap.org/copyright"
+  },
+  "matching": "substring"
+}
