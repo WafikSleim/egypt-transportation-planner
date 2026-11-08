@@ -16,7 +16,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 On a physical phone, pass your machine's LAN address instead.
 
 ```bash
-flutter test      # 239 tests, no device, no network, a few seconds
+flutter test      # 326 tests, no device, no network, a few seconds
 flutter analyze
 ```
 
@@ -37,6 +37,7 @@ lib/
 │   ├── location/       one-off fixes, on demand only
 │   ├── map/            tile source, style builder, the map widget
 │   ├── notifications/  the four kinds that exist, and no way to add a fifth
+│   ├── tracking/       following a trip: the tracker, the GPS source, no network
 │   ├── network/        ApiClient, failure classification
 │   ├── presentation/   TripPresenter + the view models it emits  ← read this first
 │   ├── settings/       language and theme (the only two settings passengers get)
@@ -134,12 +135,62 @@ ongoing tracking notice, because silencing it would let GPS run invisibly.
 `test/fake_notification_service.dart`, which overrides only `deliver` and
 `retract`.
 
-**Location is read on demand and never in the background.** There is no
-`ACCESS_BACKGROUND_LOCATION` in the manifest. Following a trip is a separate
-feature with its own consent and its own persistent notification, and it must
-not arrive by accident through the "my location" button. A coarse fix is
-flagged to the user rather than quietly used, and a fix outside the covered
-box is caught before a request is spent on it.
+**Location is read in exactly two ways, and neither is automatic.** A one-off
+fix on demand, from the "my location" button (`core/location/`), and a position
+stream while a trip is being followed (`core/tracking/`, #24). They are
+different types on purpose, so the second cannot arrive through the first. The
+manifest has no `ACCESS_BACKGROUND_LOCATION`: following runs as a visible
+foreground service started from the app screen, which Android lets keep
+while-in-use access. A coarse fix is flagged to the user rather than quietly
+used, and a fix outside the covered box is caught before a request is spent on
+it.
+
+**Following a trip is honest about what it is (#24, #25).** There is no
+real-time vehicle data for Cairo's paratransit and none to buy, so the app
+cannot know where a microbus is and **never says when one arrives** -
+`TrackingEstimate` has no field for a time. What it does: after an explicit
+"تابع الرحلة" and a disclosure dialog (GPS, battery, the position staying on
+the phone, no live vehicle data), it compares the passenger's *own* GPS with
+the plan's recorded stops, and says so on the panel every time. Details that
+are easy to undo:
+
+- **Order is permission, then the notice, then the GPS** - and a notice that
+  cannot be shown means no GPS at all. Android runs a foreground service with
+  a refused notification invisibly, which would be exactly the silent tracking
+  the notice exists to rule out. `TrackingCubit` is where that is enforced.
+- **The tracking notice is the foreground service's own notification**, posted
+  through `NotificationService` like everything else, so there is one
+  notification, from `notification_copy.dart`, with the stop button.
+  geolocator's `foregroundNotificationConfig` is deliberately not used: it
+  takes title and body as plain strings and starts a second service. The
+  service is declared `stopWithTask`, so swiping the app away stops it rather
+  than leaving a notice behind that follows nothing; on launch any leftover
+  notice is cleared.
+- **Nothing leaves the phone.** `TrackingCubit` is given a location source and
+  a notifier - no repository, no HTTP client. Fixes are compared with a stop
+  and dropped: not stored, not logged. `test/tracking_test.dart` scans
+  `core/tracking/` and the cubit for network, storage and logging.
+- **`/plan` has no geometry**, so the "recorded route" is each ride's two
+  endpoints. The alert is for the *alighting* stop (and each transfer), never
+  "the next stop", which the data does not contain. A single `TripTracker`
+  decides: a poor fix (over 100 m), a fix far off the line, or silence for
+  90 s becomes "مش متأكدين إنك في السكة الصح" with no number. **Every
+  threshold in it is a documented first guess that has never met a road.**
+- **iPhone follows only while the app is open.** Background location there
+  needs `UIBackgroundModes`, which this project rules out; the disclosure says
+  so on iOS.
+- **One question after a trip, in code (#23).** `PostTripQuestion` carries an
+  opaque session key and `NotificationService.post` spends it in a ledger
+  *before* delivering, so an ignored question is a spent one and no caller can
+  ask twice. It is asked only when a followed trip ends by arriving, never
+  after a manual stop. Answers are kept on the phone only - there is no
+  contribution pipeline yet - and the dialog says so.
+- **A reminder is only offered on a fresh itinerary (#22).** A saved answer's
+  times are from another day, so a reminder on them would fire on time for a
+  vehicle that left yesterday. Cancelling is a button next to the reminder it
+  cancels; the notification's own button turns the whole kind off, and doing
+  that (from there or from About) now takes back the reminders already handed
+  to the OS. A scheduled reminder speaks the language it was set in.
 
 **A saved trip is a pair of places, not a saved itinerary.** The itinerary is
 worked out again every time it is opened. Storing the one that was on screen
@@ -435,11 +486,17 @@ Designed in [`design/app-prototype.html`](../design/app-prototype.html) and
 backlogged in [`docs/user-stories.md`](../docs/user-stories.md), but not wired:
 
 - **Places and map picking** (P-18, P-19) — blocked on the `places` table
-- **The four notifications themselves** (#22–#25). The infrastructure landed
-  with #21 — the seam, the in-context permission flow, the switches on the
-  About screen — but nothing schedules a notification yet, and none of it has
-  run on a phone
-- **Background tracking** (P-17, #24)
+- **Cold-start taps.** A notification tapped while the app was closed starts
+  the app and does nothing more: the plugin's launch-time tap is not read, so
+  the post-trip dialog opens only if the app was already running
+- **A tracking session does not survive the process.** By design - an
+  "in progress" notice with no GPS behind it would be a lie - but it means a
+  phone that kills the app mid-trip stops following, and says nothing more
+  than the notice disappearing
+- **Everything in #22-#25 has never run on a phone.** The foreground service,
+  background location, battery cost, the GPS thresholds, the exact wording of
+  the new Egyptian Arabic copy and TalkBack reading the live panel are all
+  untested. The release APK size was not re-measured after these four
 - Map tiles on results and itinerary screens. The renderer exists — see
   `core/map/` and the coverage map reached from About — but `/plan` returns
   each leg's endpoints and no geometry, so an itinerary map would be drawing

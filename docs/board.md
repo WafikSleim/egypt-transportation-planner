@@ -105,12 +105,17 @@ now shipped** — `P0` in `scripts/project_board.py` is the empty set:
 | ~~**#19** Map rendering~~ | the itinerary map, map picking | In review |
 | ~~**#21** Notification infrastructure~~ | reminders, post-trip prompt, background tracking | In review, 2026-09-23 |
 
-**A built blocker is not an unblocked issue.** #22, #23, #24 and #25 are still
-`Backlog` after #21, because what #21 shipped is the seam they schedule
+**A built blocker is not an unblocked issue.** #22, #23, #24 and #25 stayed
+`Backlog` after #21, because what #21 shipped was the seam they schedule
 through — `app/lib/core/notifications/`, the permission flow, the opt-out —
-and not the four notifications themselves. The same is true of #14's client
-half. Moving something out of `Backlog` means the thing it named as its
-blocker exists, in the sense that issue meant it.
+and not the four notifications themselves. They have since been built on it
+and sit in `In review`: the reminder (#22), the capped post-trip question
+(#23), honest background tracking (#24) and the next-stop alert (#25). What
+only a person with a phone can judge is background location under the
+foreground service, battery cost, the alert and "not sure" thresholds on a
+moving vehicle, and the Egyptian Arabic of the new copy. The same is true of
+#14's client half. Moving something out of `Backlog` means the thing it named
+as its blocker exists, in the sense that issue meant it.
 
 **#14 was the largest single blocker** — three v1 `must` stories waited on it,
 and it was backend work rather than app work. The backend half shipped on
